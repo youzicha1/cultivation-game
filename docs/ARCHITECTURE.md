@@ -13,10 +13,11 @@
 - 包含游戏核心逻辑：状态管理、随机数生成、游戏规则等
 - **game reducer**: 纯函数状态机，驱动 screen 切换
 - **persistence**: localStorage 存档/读档（仅序列化 GameState）
+- **events**: JSON 驱动探索事件，校验结构并提供抽取与结算函数
 
 ### content 层（内容层，未来）
-- 事件 JSON 驱动
-- 配置数据
+- 事件 JSON 驱动（`src/content/explore_events.v1.json`）
+- 配置数据（版本化）
 
 ## 核心原则
 
@@ -29,6 +30,7 @@
   - 确定性种子实现（`createSeededRng`）
   - 序列实现（`createSequenceRng`，用于测试）
 - **可复现存档**：存 `seed + rngCalls`，加载后跳过调用数恢复随机序列
+- **事件快照**：存档只保存事件快照（id/title/text/选项），加载后用 id 回查原事件定义
 
 ### 测试
 - engine 层必须 100% 可测试

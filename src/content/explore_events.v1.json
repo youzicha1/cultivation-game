@@ -1,0 +1,378 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "ancient_ruins",
+      "title": "古修遗迹",
+      "text": "风沙掩埋的石门前，灵纹依稀闪烁，似有机缘等待有缘人。",
+      "weight": 10,
+      "minDanger": 0,
+      "maxDanger": 3,
+      "choices": {
+        "A": {
+          "text": "硬闯遗迹",
+          "successRateBase": 0.55,
+          "successRateDangerFactor": -0.07,
+          "onSuccess": {
+            "log": "你破阵而入，得古修遗宝。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 4, "max": 12 },
+              { "type": "pills", "op": "add", "min": 0, "max": 1 },
+              { "type": "pendingReward", "op": "add", "min": 3, "max": 8 }
+            ]
+          },
+          "onFail": {
+            "log": "阵纹反噬，你气血翻涌。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -8, "max": -2 },
+              { "type": "danger", "op": "add", "min": 0, "max": 2 }
+            ]
+          }
+        },
+        "B": {
+          "text": "谨慎搜寻",
+          "successRateBase": 0.75,
+          "successRateDangerFactor": -0.04,
+          "onSuccess": {
+            "log": "你顺藤摸瓜，取回灵砂。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 3, "max": 7 },
+              { "type": "pendingReward", "op": "add", "min": 2, "max": 5 }
+            ]
+          },
+          "onFail": {
+            "log": "石门滑落，险些被困。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -4, "max": -1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "beast_lair",
+      "title": "妖兽巢穴",
+      "text": "山腹传来低吼，妖气翻涌，巢穴深处疑有灵材。",
+      "weight": 12,
+      "minDanger": 1,
+      "maxDanger": 6,
+      "choices": {
+        "A": {
+          "text": "正面厮杀",
+          "successRateBase": 0.5,
+          "successRateDangerFactor": -0.08,
+          "onSuccess": {
+            "log": "你斩妖取核，灵气激荡。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 5, "max": 14 },
+              { "type": "pendingReward", "op": "add", "min": 4, "max": 10 }
+            ]
+          },
+          "onFail": {
+            "log": "妖爪撕裂衣袍，你身受重伤。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -10, "max": -4 },
+              { "type": "danger", "op": "add", "min": 1, "max": 2 }
+            ]
+          }
+        },
+        "B": {
+          "text": "引开守卫",
+          "successRateBase": 0.72,
+          "successRateDangerFactor": -0.04,
+          "onSuccess": {
+            "log": "你取走灵材，悄然退去。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 3, "max": 6 },
+              { "type": "pendingReward", "op": "add", "min": 2, "max": 6 }
+            ]
+          },
+          "onFail": {
+            "log": "妖兽追击，你狼狈逃脱。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -6, "max": -2 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "mind_demon",
+      "title": "心魔试炼",
+      "text": "心神一震，幻境自生，旧日执念化作刀锋。",
+      "weight": 9,
+      "minDanger": 2,
+      "maxDanger": 9,
+      "choices": {
+        "A": {
+          "text": "直面心魔",
+          "successRateBase": 0.48,
+          "successRateDangerFactor": -0.06,
+          "onSuccess": {
+            "log": "你斩断执念，道心更稳。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 6, "max": 12 },
+              { "type": "pendingReward", "op": "add", "min": 2, "max": 5 }
+            ]
+          },
+          "onFail": {
+            "log": "心魔入体，气血紊乱。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -9, "max": -3 },
+              { "type": "danger", "op": "add", "min": 1, "max": 2 }
+            ]
+          }
+        },
+        "B": {
+          "text": "运功稳神",
+          "successRateBase": 0.7,
+          "successRateDangerFactor": -0.03,
+          "onSuccess": {
+            "log": "你守住心境，稳步前行。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 3, "max": 6 }
+            ]
+          },
+          "onFail": {
+            "log": "稍有疏忽，心神受损。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -5, "max": -2 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "secret_realm",
+      "title": "秘境裂隙",
+      "text": "天空裂开一缝，灵气倾泻，隐约可见秘境影像。",
+      "weight": 8,
+      "minDanger": 0,
+      "maxDanger": 5,
+      "choices": {
+        "A": {
+          "text": "强行踏入",
+          "successRateBase": 0.52,
+          "successRateDangerFactor": -0.06,
+          "onSuccess": {
+            "log": "秘境馈赠，你收获灵泉。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 4, "max": 10 },
+              { "type": "pills", "op": "add", "min": 0, "max": 1 },
+              { "type": "pendingReward", "op": "add", "min": 3, "max": 7 }
+            ]
+          },
+          "onFail": {
+            "log": "裂隙反噬，你气息不稳。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -7, "max": -2 }
+            ]
+          }
+        },
+        "B": {
+          "text": "布下稳阵",
+          "successRateBase": 0.78,
+          "successRateDangerFactor": -0.03,
+          "onSuccess": {
+            "log": "稳稳进入，收取灵材。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 2, "max": 5 },
+              { "type": "pendingReward", "op": "add", "min": 1, "max": 4 }
+            ]
+          },
+          "onFail": {
+            "log": "阵法失衡，微创退场。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -3, "max": -1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "broken_furnace",
+      "title": "残破丹炉",
+      "text": "遗弃丹炉半掩尘土，炉火残影尚存。",
+      "weight": 11,
+      "minDanger": 1,
+      "maxDanger": 7,
+      "choices": {
+        "A": {
+          "text": "点火炼丹",
+          "successRateBase": 0.6,
+          "successRateDangerFactor": -0.05,
+          "onSuccess": {
+            "log": "丹炉复燃，你得数颗灵丹。",
+            "effects": [
+              { "type": "pills", "op": "add", "min": 1, "max": 2 },
+              { "type": "pendingReward", "op": "add", "min": 2, "max": 5 }
+            ]
+          },
+          "onFail": {
+            "log": "炉火爆裂，你被灼伤。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -6, "max": -2 }
+            ]
+          }
+        },
+        "B": {
+          "text": "拆解取材",
+          "successRateBase": 0.8,
+          "successRateDangerFactor": -0.03,
+          "onSuccess": {
+            "log": "你拆得灵材，收获不小。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 2, "max": 5 },
+              { "type": "pendingReward", "op": "add", "min": 2, "max": 6 }
+            ]
+          },
+          "onFail": {
+            "log": "碎片飞溅，擦伤手臂。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -4, "max": -1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "formation_lock",
+      "title": "残阵封锁",
+      "text": "山谷被残阵封锁，阵中灵光流转。",
+      "weight": 7,
+      "minDanger": 3,
+      "maxDanger": 9,
+      "choices": {
+        "A": {
+          "text": "破阵硬开",
+          "successRateBase": 0.45,
+          "successRateDangerFactor": -0.08,
+          "onSuccess": {
+            "log": "阵眼破碎，灵气涌来。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 6, "max": 14 },
+              { "type": "pendingReward", "op": "add", "min": 4, "max": 9 }
+            ]
+          },
+          "onFail": {
+            "log": "阵光反噬，你经脉刺痛。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -9, "max": -4 },
+              { "type": "danger", "op": "add", "min": 1, "max": 2 }
+            ]
+          }
+        },
+        "B": {
+          "text": "绕阵取路",
+          "successRateBase": 0.7,
+          "successRateDangerFactor": -0.04,
+          "onSuccess": {
+            "log": "你避开锋芒，寻得阵外灵草。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 3, "max": 6 },
+              { "type": "pendingReward", "op": "add", "min": 2, "max": 5 }
+            ]
+          },
+          "onFail": {
+            "log": "阵纹触发，你被震退。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -6, "max": -2 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "remnant_soul",
+      "title": "残魂低语",
+      "text": "幽光摇曳，一缕残魂向你招手。",
+      "weight": 6,
+      "minDanger": 0,
+      "maxDanger": 8,
+      "choices": {
+        "A": {
+          "text": "强行吞噬",
+          "successRateBase": 0.5,
+          "successRateDangerFactor": -0.06,
+          "onSuccess": {
+            "log": "残魂被炼化，识海清明。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 5, "max": 11 },
+              { "type": "pendingReward", "op": "add", "min": 3, "max": 6 }
+            ]
+          },
+          "onFail": {
+            "log": "魂火反噬，你神识受损。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -8, "max": -3 }
+            ]
+          }
+        },
+        "B": {
+          "text": "以礼相待",
+          "successRateBase": 0.82,
+          "successRateDangerFactor": -0.03,
+          "onSuccess": {
+            "log": "残魂指点，你获心得。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 2, "max": 5 }
+            ]
+          },
+          "onFail": {
+            "log": "残魂消散，留下寒意。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -3, "max": -1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "sealed_scripture",
+      "title": "封印经卷",
+      "text": "古经被封灵锁缠绕，似有大能传承。",
+      "weight": 8,
+      "minDanger": 2,
+      "maxDanger": 9,
+      "choices": {
+        "A": {
+          "text": "强破封印",
+          "successRateBase": 0.46,
+          "successRateDangerFactor": -0.07,
+          "onSuccess": {
+            "log": "经卷破封，你悟得玄法。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 7, "max": 15 },
+              { "type": "pendingReward", "op": "add", "min": 4, "max": 9 }
+            ]
+          },
+          "onFail": {
+            "log": "封印反噬，你气血震荡。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -9, "max": -3 },
+              { "type": "danger", "op": "add", "min": 1, "max": 2 }
+            ]
+          }
+        },
+        "B": {
+          "text": "缓解封锁",
+          "successRateBase": 0.76,
+          "successRateDangerFactor": -0.04,
+          "onSuccess": {
+            "log": "你化解封印，得经卷残页。",
+            "effects": [
+              { "type": "exp", "op": "add", "min": 3, "max": 6 },
+              { "type": "pendingReward", "op": "add", "min": 2, "max": 4 }
+            ]
+          },
+          "onFail": {
+            "log": "封锁未解，灵气反弹。",
+            "effects": [
+              { "type": "hp", "op": "add", "min": -5, "max": -2 }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

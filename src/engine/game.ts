@@ -1,5 +1,11 @@
 import { createInitialState, type PlayerState } from './state'
 import { randInt, type Rng } from './rng'
+import {
+  exploreEvents,
+  pickExploreEvent,
+  resolveExploreChoice,
+  type ExploreEvent,
+} from './events'
 
 export type ScreenId =
   | 'start'
@@ -21,6 +27,13 @@ export type GameState = {
     turn: number
     danger: number
     pendingReward: number
+    currentEvent?: {
+      id: string
+      title: string
+      text: string
+      aText: string
+      bText: string
+    }
   }
   log: string[]
   summary?: { cause?: string; turns: number }
@@ -33,6 +46,9 @@ export type GameAction =
   | { type: 'CULTIVATE_TICK' }
   | { type: 'EXPLORE_START' }
   | { type: 'EXPLORE_PUSH' }
+  | { type: 'EXPLORE_ROLL_EVENT' }
+  | { type: 'EXPLORE_CHOOSE'; choice: 'A' | 'B' }
+  | { type: 'EXPLORE_DISMISS_EVENT' }
   | { type: 'EXPLORE_RETREAT' }
   | { type: 'ALCHEMY_BREW' }
   | { type: 'BREAKTHROUGH_ATTEMPT'; pillsUsed: number }
@@ -48,6 +64,7 @@ export function createInitialGameState(seed: number): GameState {
       turn: 0,
       danger: 0,
       pendingReward: 0,
+      currentEvent: undefined,
     },
     log: [],
   }
@@ -72,6 +89,20 @@ function nextRealm(current: string): string {
     return current
   }
   return realms[Math.min(index + 1, realms.length - 1)]
+}
+
+function snapshotEvent(event: ExploreEvent): GameState['run']['currentEvent'] {
+  return {
+    id: event.id,
+    title: event.title,
+    text: event.text,
+    aText: event.choices.A.text,
+    bText: event.choices.B.text,
+  }
+}
+
+function findEventById(eventId: string): ExploreEvent | undefined {
+  return exploreEvents.find((event) => event.id === eventId)
 }
 
 export function reduceGame(
@@ -140,14 +171,25 @@ export function reduceGame(
       let nextState: GameState = {
         ...state,
         screen: 'explore',
-        run: { ...baseRun, danger: 0, pendingReward: 0 },
+        run: { ...baseRun, danger: 0, pendingReward: 0, currentEvent: undefined },
       }
       nextState = addLog(nextState, '开始探索')
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'EXPLORE_PUSH': {
       const danger = baseRun.danger + 1
-      const reward = nextInt(1, 4) * (1 + danger)
+      const triggerEvent = next01() < 0.65
+      if (triggerEvent) {
+        const event = pickExploreEvent(rngWithCount, danger)
+        let nextState: GameState = {
+          ...state,
+          run: { ...baseRun, danger, currentEvent: snapshotEvent(event) },
+        }
+        nextState = addLog(nextState, `你遭遇了：${event.title}`)
+        return { ...nextState, run: { ...nextState.run, rngCalls } }
+      }
+
+      const reward = nextInt(1, 3) * (1 + danger)
       let nextState: GameState = {
         ...state,
         run: {
@@ -156,10 +198,65 @@ export function reduceGame(
           pendingReward: baseRun.pendingReward + reward,
         },
       }
-      nextState = addLog(nextState, `深入探索，收益 +${reward}`)
+      nextState = addLog(nextState, `未遇异象，收获 +${reward}`)
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'EXPLORE_ROLL_EVENT': {
+      const danger = baseRun.danger
+      const event = pickExploreEvent(rngWithCount, danger)
+      let nextState: GameState = {
+        ...state,
+        run: { ...baseRun, currentEvent: snapshotEvent(event) },
+      }
+      nextState = addLog(nextState, `你遭遇了：${event.title}`)
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'EXPLORE_DISMISS_EVENT': {
+      if (!baseRun.currentEvent) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      let nextState: GameState = {
+        ...state,
+        run: { ...baseRun, currentEvent: undefined },
+      }
+      nextState = addLog(nextState, '你压下冲动，暂避锋芒。')
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'EXPLORE_CHOOSE': {
+      const current = baseRun.currentEvent
+      if (!current) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      const event = findEventById(current.id)
+      if (!event) {
+        let nextState: GameState = {
+          ...state,
+          run: { ...baseRun, currentEvent: undefined },
+        }
+        nextState = addLog(nextState, '事件已远去，只得继续前行。')
+        return { ...nextState, run: { ...nextState.run, rngCalls } }
+      }
+      let nextState = resolveExploreChoice(
+        state,
+        event,
+        action.choice,
+        next01,
+        nextInt,
+      )
+      if (nextState.screen !== 'death') {
+        nextState = { ...nextState, screen: 'explore' }
+      }
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'EXPLORE_RETREAT': {
+      if (baseRun.currentEvent) {
+        let nextState: GameState = {
+          ...state,
+          run: { ...baseRun, currentEvent: undefined },
+        }
+        nextState = addLog(nextState, '你压下冲动，暂避锋芒。')
+        return { ...nextState, run: { ...nextState.run, rngCalls } }
+      }
       const danger = baseRun.danger
       const successRate = clamp(1 - danger * 0.15, 0.1, 0.95)
       const success = next01() < successRate
@@ -171,7 +268,12 @@ export function reduceGame(
             ...basePlayer,
             exp: basePlayer.exp + baseRun.pendingReward,
           },
-          run: { ...baseRun, danger: 0, pendingReward: 0 },
+          run: {
+            ...baseRun,
+            danger: 0,
+            pendingReward: 0,
+            currentEvent: undefined,
+          },
         }
         nextState = addLog(
           nextState,
@@ -187,7 +289,7 @@ export function reduceGame(
         ...state,
         screen: hp <= 0 ? 'death' : 'home',
         player: { ...basePlayer, hp },
-        run: { ...baseRun, pendingReward: 0 },
+        run: { ...baseRun, pendingReward: 0, currentEvent: undefined },
       }
       nextState = addLog(nextState, `撤退失败，损失生命 ${dmg}`)
       if (hp <= 0) {

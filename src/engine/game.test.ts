@@ -26,8 +26,8 @@ describe('game reducer', () => {
     expect(next.summary?.cause).toBe('走火入魔')
   })
 
-  it('探索 push 会增加 danger 与 pendingReward', () => {
-    const rng = createSequenceRng([0.0])
+  it('探索 push 未触发事件时增加 danger 与 pendingReward', () => {
+    const rng = createSequenceRng([0.9, 0.0])
     const state = createInitialGameState(1)
     const next = reduceGame(state, { type: 'EXPLORE_PUSH' }, rng)
 
