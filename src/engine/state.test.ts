@@ -12,5 +12,7 @@ describe('state', () => {
     expect(state.maxHp).toBeGreaterThan(0)
     expect(state.inheritancePoints).toBeGreaterThanOrEqual(0)
     expect(state.pills).toBeGreaterThanOrEqual(0)
+    expect(state.spiritStones).toBeGreaterThanOrEqual(0)
+    expect(state.pity).toBeGreaterThanOrEqual(0)
   })
 })

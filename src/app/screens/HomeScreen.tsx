@@ -25,9 +25,7 @@ export function HomeScreen({ state, dispatch }: ScreenProps) {
         <Button onClick={() => dispatch({ type: 'GO', screen: 'alchemy' })}>
           炼丹
         </Button>
-        <Button
-          onClick={() => dispatch({ type: 'GO', screen: 'breakthrough' })}
-        >
+        <Button onClick={() => dispatch({ type: 'BREAKTHROUGH_OPEN' })}>
           突破
         </Button>
         <Button onClick={() => dispatch({ type: 'GO', screen: 'settings' })}>

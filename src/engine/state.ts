@@ -14,6 +14,10 @@ export interface PlayerState {
   inheritancePoints: number
   /** 丹药数量 */
   pills: number
+  /** 灵石 */
+  spiritStones: number
+  /** 突破保底进度 */
+  pity: number
 }
 
 /**
@@ -27,5 +31,7 @@ export function createInitialState(): PlayerState {
     maxHp: 100,
     inheritancePoints: 0,
     pills: 0,
+    spiritStones: 0,
+    pity: 0,
   }
 }

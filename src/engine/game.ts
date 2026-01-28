@@ -34,6 +34,26 @@ export type GameState = {
       aText: string
       bText: string
     }
+    breakthroughPlan?: {
+      pillsUsed: number
+      inheritanceSpent: number
+      previewRate: number
+    }
+    lastOutcome?: {
+      kind: 'breakthrough'
+      success: boolean
+      title: string
+      text: string
+      deltas: {
+        realm: number
+        hp: number
+        maxHp: number
+        exp: number
+        pills: number
+        inheritancePoints: number
+        pity: number
+      }
+    }
   }
   log: string[]
   summary?: { cause?: string; turns: number }
@@ -51,7 +71,15 @@ export type GameAction =
   | { type: 'EXPLORE_DISMISS_EVENT' }
   | { type: 'EXPLORE_RETREAT' }
   | { type: 'ALCHEMY_BREW' }
-  | { type: 'BREAKTHROUGH_ATTEMPT'; pillsUsed: number }
+  | { type: 'BREAKTHROUGH_OPEN' }
+  | {
+      type: 'BREAKTHROUGH_SET_PLAN'
+      pillsUsed: number
+      inheritanceSpent: number
+    }
+  | { type: 'BREAKTHROUGH_CONFIRM' }
+  | { type: 'OUTCOME_CONTINUE'; to: ScreenId }
+  | { type: 'OUTCOME_RETRY_BREAKTHROUGH' }
   | { type: 'CLEAR_LOG' }
 
 export function createInitialGameState(seed: number): GameState {
@@ -74,6 +102,10 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
 
+function clampRate(value: number): number {
+  return clamp(value, 0.05, 0.95)
+}
+
 function addLog(state: GameState, message: string): GameState {
   const nextLog = [...state.log, message]
   if (nextLog.length > 50) {
@@ -89,6 +121,54 @@ function nextRealm(current: string): string {
     return current
   }
   return realms[Math.min(index + 1, realms.length - 1)]
+}
+
+function realmIndex(realm: string): number {
+  const realms = ['凡人', '炼气', '筑基', '金丹', '元婴', '化神']
+  const index = realms.indexOf(realm)
+  return index < 0 ? 0 : index
+}
+
+export function calcBreakthroughRate(
+  state: GameState,
+  pillsUsed: number,
+  inheritanceSpent: number,
+): number {
+  const base = 0.22 + realmIndex(state.player.realm) * 0.03
+  const pillsBonus = pillsUsed * 0.14
+  const inheritanceBonus = inheritanceSpent * 0.1
+  const pityBonus = state.player.pity * 0.06
+  const dangerPenalty = state.run.danger > 0 ? state.run.danger * 0.02 : 0
+  return clampRate(base + pillsBonus + inheritanceBonus + pityBonus - dangerPenalty)
+}
+
+function createBreakthroughPlan(
+  state: GameState,
+  pillsUsed: number,
+  inheritanceSpent: number,
+): GameState['run']['breakthroughPlan'] {
+  const pills = clamp(pillsUsed, 0, state.player.pills)
+  const inheritance = clamp(inheritanceSpent, 0, state.player.inheritancePoints)
+  return {
+    pillsUsed: pills,
+    inheritanceSpent: inheritance,
+    previewRate: calcBreakthroughRate(state, pills, inheritance),
+  }
+}
+
+function buildOutcomeDeltas(
+  before: GameState['player'],
+  after: GameState['player'],
+): GameState['run']['lastOutcome']['deltas'] {
+  return {
+    realm: realmIndex(after.realm) - realmIndex(before.realm),
+    hp: after.hp - before.hp,
+    maxHp: after.maxHp - before.maxHp,
+    exp: after.exp - before.exp,
+    pills: after.pills - before.pills,
+    inheritancePoints: after.inheritancePoints - before.inheritancePoints,
+    pity: after.pity - before.pity,
+  }
 }
 
 function snapshotEvent(event: ExploreEvent): GameState['run']['currentEvent'] {
@@ -311,50 +391,134 @@ export function reduceGame(
       nextState = addLog(nextState, `炼丹产出 ${pills} 颗`)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
-    case 'BREAKTHROUGH_ATTEMPT': {
-      const pillsUsed = clamp(action.pillsUsed, 0, basePlayer.pills)
-      const successRate = clamp(0.35 + pillsUsed * 0.15, 0.2, 0.95)
-      const success = next01() < successRate
+    case 'BREAKTHROUGH_OPEN': {
+      const plan = createBreakthroughPlan(state, 0, 0)
+      let nextState: GameState = {
+        ...state,
+        screen: 'breakthrough',
+        run: { ...baseRun, breakthroughPlan: plan },
+      }
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'BREAKTHROUGH_SET_PLAN': {
+      const plan = createBreakthroughPlan(
+        state,
+        action.pillsUsed,
+        action.inheritanceSpent,
+      )
+      let nextState: GameState = {
+        ...state,
+        run: { ...baseRun, breakthroughPlan: plan },
+      }
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'BREAKTHROUGH_CONFIRM': {
+      const plan = baseRun.breakthroughPlan ?? createBreakthroughPlan(state, 0, 0)
+      const pillsUsed = plan.pillsUsed
+      const inheritanceSpent = plan.inheritanceSpent
+
       let nextPlayer = {
         ...basePlayer,
         pills: basePlayer.pills - pillsUsed,
+        inheritancePoints: basePlayer.inheritancePoints - inheritanceSpent,
       }
 
+      const beforePlayer = { ...basePlayer }
+      const rate = calcBreakthroughRate(state, pillsUsed, inheritanceSpent)
+      const success = next01() < rate
+      const turn = baseRun.turn + 1
+
       if (success) {
-        const maxHp = nextPlayer.maxHp + 2
+        const maxHpGain = nextInt(0, 2)
+        const maxHp = nextPlayer.maxHp + 2 + maxHpGain
+        const expGain = nextInt(3, 8)
         nextPlayer = {
           ...nextPlayer,
           realm: nextRealm(nextPlayer.realm),
           maxHp,
           hp: maxHp,
+          exp: nextPlayer.exp + expGain,
+          pity: 0,
         }
+        const deltas = buildOutcomeDeltas(beforePlayer, nextPlayer)
         let nextState: GameState = {
           ...state,
-          screen: 'home',
           player: nextPlayer,
+          run: {
+            ...baseRun,
+            turn,
+            breakthroughPlan: undefined,
+            lastOutcome: {
+              kind: 'breakthrough',
+              success: true,
+              title: '突破成功！',
+              text: `你冲破瓶颈，踏入${nextPlayer.realm}之境！灵气灌体，生命上限提升至${maxHp}，顿悟获得${expGain}点经验。`,
+              deltas,
+            },
+          },
         }
-        nextState = addLog(nextState, '突破成功')
+        nextState = addLog(nextState, `突破成功，境界提升至${nextPlayer.realm}`)
         return { ...nextState, run: { ...nextState.run, rngCalls } }
       }
 
-      const dmg = nextInt(1, 6)
+      const dmg = nextInt(2, 6)
       const hp = nextPlayer.hp - dmg
+      const inheritanceGain = 1 + nextInt(0, 1)
       nextPlayer = {
         ...nextPlayer,
         hp,
-        inheritancePoints: nextPlayer.inheritancePoints + 1,
+        inheritancePoints: nextPlayer.inheritancePoints + inheritanceGain,
+        pity: nextPlayer.pity + 1,
       }
+      const deltas = buildOutcomeDeltas(beforePlayer, nextPlayer)
       let nextState: GameState = {
         ...state,
-        screen: hp <= 0 ? 'death' : 'breakthrough',
         player: nextPlayer,
+        run: {
+          ...baseRun,
+          turn,
+          breakthroughPlan: undefined,
+          lastOutcome: {
+            kind: 'breakthrough',
+            success: false,
+            title: '突破失败',
+            text: `突破受阻，气血翻涌损失${dmg}点生命。虽败犹荣，你获得${inheritanceGain}点传承点，保底进度+1。`,
+            deltas,
+          },
+        },
       }
-      nextState = addLog(nextState, '突破失败，获得传承点')
+      nextState = addLog(nextState, `突破失败，获得${inheritanceGain}点传承点`)
       if (hp <= 0) {
         nextState = {
           ...nextState,
-          summary: { cause: '突破失败', turns: baseRun.turn },
+          screen: 'death',
+          summary: { cause: '心魔反噬', turns: turn },
         }
+      }
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'OUTCOME_CONTINUE': {
+      let nextState: GameState = {
+        ...state,
+        screen: action.to,
+        run: {
+          ...baseRun,
+          breakthroughPlan: undefined,
+          lastOutcome: undefined,
+        },
+      }
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'OUTCOME_RETRY_BREAKTHROUGH': {
+      const plan = createBreakthroughPlan(state, 0, 0)
+      let nextState: GameState = {
+        ...state,
+        screen: 'breakthrough',
+        run: {
+          ...baseRun,
+          breakthroughPlan: plan,
+          lastOutcome: undefined,
+        },
       }
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
