@@ -12,6 +12,8 @@ export interface PlayerState {
   maxHp: number
   /** 传承点数 */
   inheritancePoints: number
+  /** 丹药数量 */
+  pills: number
 }
 
 /**
@@ -24,5 +26,6 @@ export function createInitialState(): PlayerState {
     hp: 100,
     maxHp: 100,
     inheritancePoints: 0,
+    pills: 0,
   }
 }

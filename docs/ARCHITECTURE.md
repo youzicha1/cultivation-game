@@ -5,11 +5,14 @@
 ### app 层（应用层）
 - **screens/**: 游戏屏幕/页面组件
 - **ui/**: 可复用的 UI 组件
+- **store/**: 状态机驱动 UI，负责存档联动
 
 ### engine 层（引擎层）
 - 纯逻辑层，无 DOM 依赖
 - 可测试、可注入依赖
 - 包含游戏核心逻辑：状态管理、随机数生成、游戏规则等
+- **game reducer**: 纯函数状态机，驱动 screen 切换
+- **persistence**: localStorage 存档/读档（仅序列化 GameState）
 
 ### content 层（内容层，未来）
 - 事件 JSON 驱动
@@ -25,6 +28,7 @@
   - 默认实现（`defaultRng`）
   - 确定性种子实现（`createSeededRng`）
   - 序列实现（`createSequenceRng`，用于测试）
+- **可复现存档**：存 `seed + rngCalls`，加载后跳过调用数恢复随机序列
 
 ### 测试
 - engine 层必须 100% 可测试
