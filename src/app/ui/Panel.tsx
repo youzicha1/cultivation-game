@@ -1,20 +1,16 @@
 import type { PropsWithChildren } from 'react'
 
-type PanelProps = PropsWithChildren<{ title?: string }>
+type PanelProps = PropsWithChildren<{
+  title?: string
+  subtitle?: string
+  className?: string
+}>
 
-export function Panel({ title, children }: PanelProps) {
+export function Panel({ title, subtitle, className = '', children }: PanelProps) {
   return (
-    <section
-      style={{
-        borderRadius: 12,
-        border: '1px solid #2f2f2f',
-        padding: 16,
-        background: '#161616',
-      }}
-    >
-      {title ? (
-        <h2 style={{ margin: '0 0 12px', fontSize: 18 }}>{title}</h2>
-      ) : null}
+    <section className={`app-panel ${className}`.trim()}>
+      {title ? <h2>{title}</h2> : null}
+      {subtitle ? <p className="app-panel-subtitle">{subtitle}</p> : null}
       {children}
     </section>
   )

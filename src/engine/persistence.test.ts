@@ -34,4 +34,44 @@ describe('persistence', () => {
     localStorage.setItem(SAVE_KEY, '{invalid json')
     expect(loadFromStorage()).toBeNull()
   })
+
+  it('TICKET-13: 保存/加载后 meta.pity* 与 kungfaShards 不丢', () => {
+    const state = createInitialGameState(789)
+    const withPity = {
+      ...state,
+      meta: {
+        ...state.meta!,
+        pityAlchemyTop: 4,
+        pityLegendLoot: 10,
+        pityLegendKungfa: 6,
+        kungfaShards: 50,
+      },
+    }
+    saveToStorage(withPity)
+    const loaded = loadFromStorage()
+    expect(loaded).not.toBeNull()
+    expect(loaded!.meta?.pityAlchemyTop).toBe(4)
+    expect(loaded!.meta?.pityLegendLoot).toBe(10)
+    expect(loaded!.meta?.pityLegendKungfa).toBe(6)
+    expect(loaded!.meta?.kungfaShards).toBe(50)
+  })
+
+  it('TICKET-10: 保存/加载后 relics 与 equippedRelics 不丢', () => {
+    const state = createInitialGameState(456)
+    const withRelics = {
+      ...state,
+      player: {
+        ...state.player,
+        relics: ['steady_heart', 'fire_suppress'],
+        equippedRelics: ['steady_heart', null, 'fire_suppress'] as [string | null, string | null, string | null],
+      },
+    }
+    saveToStorage(withRelics)
+    const loaded = loadFromStorage()
+    expect(loaded).not.toBeNull()
+    expect(loaded!.player.relics).toContain('steady_heart')
+    expect(loaded!.player.relics).toContain('fire_suppress')
+    expect(loaded!.player.equippedRelics[0]).toBe('steady_heart')
+    expect(loaded!.player.equippedRelics[2]).toBe('fire_suppress')
+  })
 })

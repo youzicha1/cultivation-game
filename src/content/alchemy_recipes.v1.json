@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "materials": [
+    { "id": "spirit_herb", "name": "灵草" },
+    { "id": "iron_sand", "name": "铁砂" },
+    { "id": "beast_core", "name": "妖核" },
+    { "id": "moon_dew", "name": "月华露" }
+  ],
+  "elixirs": [
+    { "id": "qi_pill", "name": "回气丹", "desc": "恢复气血，修炼必备。" },
+    { "id": "spirit_pill", "name": "凝神丹", "desc": "定心凝神，提高突破把握。" },
+    { "id": "foundation_pill", "name": "筑基丹", "desc": "突破关键丹药，效果最强。" }
+  ],
+  "recipes": [
+    {
+      "id": "qi_pill_recipe",
+      "name": "回气丹方",
+      "elixirId": "qi_pill",
+      "unlock": { "type": "default" },
+      "cost": { "spirit_herb": 2, "moon_dew": 1 },
+      "baseSuccess": 0.78,
+      "qualityBase": { "fan": 0.72, "xuan": 0.22, "di": 0.05, "tian": 0.01 },
+      "boomRate": 0.06
+    },
+    {
+      "id": "spirit_pill_recipe",
+      "name": "凝神丹方",
+      "elixirId": "spirit_pill",
+      "unlock": { "type": "fragment", "need": 3 },
+      "cost": { "spirit_herb": 2, "beast_core": 1 },
+      "baseSuccess": 0.65,
+      "qualityBase": { "fan": 0.6, "xuan": 0.28, "di": 0.1, "tian": 0.02 },
+      "boomRate": 0.1
+    },
+    {
+      "id": "foundation_pill_recipe",
+      "name": "筑基丹方",
+      "elixirId": "foundation_pill",
+      "unlock": { "type": "fragment", "need": 5 },
+      "cost": { "beast_core": 2, "moon_dew": 2, "iron_sand": 1 },
+      "baseSuccess": 0.55,
+      "qualityBase": { "fan": 0.48, "xuan": 0.32, "di": 0.16, "tian": 0.04 },
+      "boomRate": 0.14
+    }
+  ]
+}

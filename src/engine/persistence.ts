@@ -1,5 +1,6 @@
 import { createSeededRng, type Rng } from './rng'
 import type { GameState } from './game'
+import { createInitialState } from './state'
 
 const SAVE_KEY = 'cultivation_save_v1'
 const SAVE_VERSION = 1
@@ -40,6 +41,101 @@ function isValidState(state: GameState | null): state is GameState {
   )
 }
 
+function normalizeLoadedState(state: GameState): GameState {
+  const defaultPlayer = createInitialState()
+
+  const loadedPlayer: any = state.player ?? {}
+  const loadedMaterials: any = loadedPlayer.materials ?? {}
+  const loadedElixirs: any = loadedPlayer.elixirs ?? {}
+  const loadedCodex: any = loadedPlayer.codex ?? {}
+  const loadedBest: any = loadedCodex.bestQualityByRecipe ?? {}
+  const loadedRecipesUnlocked: any = loadedPlayer.recipesUnlocked ?? {}
+  const loadedFragments: any = loadedPlayer.fragments ?? {}
+
+  const player = {
+    ...defaultPlayer,
+    ...loadedPlayer,
+    materials: {
+      ...defaultPlayer.materials,
+      ...loadedMaterials,
+    },
+    elixirs: {
+      ...defaultPlayer.elixirs,
+      ...loadedElixirs,
+      qi_pill: { ...defaultPlayer.elixirs.qi_pill, ...(loadedElixirs.qi_pill ?? {}) },
+      spirit_pill: {
+        ...defaultPlayer.elixirs.spirit_pill,
+        ...(loadedElixirs.spirit_pill ?? {}),
+      },
+      foundation_pill: {
+        ...defaultPlayer.elixirs.foundation_pill,
+        ...(loadedElixirs.foundation_pill ?? {}),
+      },
+    },
+    recipesUnlocked: {
+      ...defaultPlayer.recipesUnlocked,
+      ...loadedRecipesUnlocked,
+    },
+    fragments: {
+      ...defaultPlayer.fragments,
+      ...loadedFragments,
+    },
+    codex: {
+      ...defaultPlayer.codex,
+      ...loadedCodex,
+      bestQualityByRecipe: {
+        ...defaultPlayer.codex.bestQualityByRecipe,
+        ...loadedBest,
+      },
+    },
+    achievements: Array.isArray(loadedPlayer.achievements) ? loadedPlayer.achievements : defaultPlayer.achievements,
+    relics: Array.isArray(loadedPlayer.relics) ? loadedPlayer.relics : defaultPlayer.relics,
+    equippedRelics: Array.isArray(loadedPlayer.equippedRelics) && loadedPlayer.equippedRelics.length === 3
+      ? loadedPlayer.equippedRelics
+      : defaultPlayer.equippedRelics,
+  }
+
+  const loadedChain = (state.run as { chain?: { activeChainId?: string; chapter?: number; completed?: Record<string, boolean> } }).chain
+  const chain =
+    loadedChain && typeof loadedChain === 'object'
+      ? {
+          ...(loadedChain.activeChainId != null ? { activeChainId: loadedChain.activeChainId } : {}),
+          ...(typeof loadedChain.chapter === 'number' ? { chapter: loadedChain.chapter } : {}),
+          completed: loadedChain.completed && typeof loadedChain.completed === 'object' ? loadedChain.completed : {},
+        }
+      : { completed: {} as Record<string, boolean> }
+
+  const run = {
+    ...state.run,
+    depth: typeof state.run.depth === 'number' ? state.run.depth : 0,
+    risk: typeof state.run.risk === 'number' ? state.run.risk : 0,
+    streak: typeof state.run.streak === 'number' ? state.run.streak : 0,
+    chainProgress: state.run.chainProgress && typeof state.run.chainProgress === 'object' ? state.run.chainProgress : {},
+    chain,
+    cultivateCount: typeof (state.run as { cultivateCount?: number }).cultivateCount === 'number' ? (state.run as { cultivateCount: number }).cultivateCount : 0,
+  }
+
+  const loadedMeta: any = state.meta ?? {}
+  const meta: GameState['meta'] = {
+    ...(loadedMeta.daily != null ? { daily: loadedMeta.daily } : {}),
+    legacyPoints: typeof loadedMeta.legacyPoints === 'number' ? loadedMeta.legacyPoints : 0,
+    legacySpent: typeof loadedMeta.legacySpent === 'number' ? loadedMeta.legacySpent : 0,
+    legacyUpgrades: loadedMeta.legacyUpgrades && typeof loadedMeta.legacyUpgrades === 'object' ? loadedMeta.legacyUpgrades : {},
+    pityAlchemyTop: typeof loadedMeta.pityAlchemyTop === 'number' ? loadedMeta.pityAlchemyTop : 0,
+    pityLegendLoot: typeof loadedMeta.pityLegendLoot === 'number' ? loadedMeta.pityLegendLoot : 0,
+    pityLegendKungfa: typeof loadedMeta.pityLegendKungfa === 'number' ? loadedMeta.pityLegendKungfa : 0,
+    kungfaShards: typeof loadedMeta.kungfaShards === 'number' ? loadedMeta.kungfaShards : 0,
+  }
+
+  return {
+    ...state,
+    player,
+    run,
+    meta,
+    log: Array.isArray(state.log) ? state.log : [],
+  }
+}
+
 export function loadFromStorage(): GameState | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY)
@@ -53,7 +149,7 @@ export function loadFromStorage(): GameState | null {
     if (!isValidState(parsed.state)) {
       return null
     }
-    return parsed.state
+    return normalizeLoadedState(parsed.state)
   } catch {
     return null
   }

@@ -1,0 +1,238 @@
+{
+  "upgrades": [
+    {
+      "id": "EX1",
+      "name": "轻身术",
+      "desc": "撤退成功率 +6%",
+      "branch": "explore",
+      "cost": 1,
+      "prereqIds": [],
+      "effect": {
+        "type": "explore_retreat_add",
+        "value": 0.06
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "EX2",
+      "name": "观气",
+      "desc": "稀有掉落权重 ×1.10",
+      "branch": "explore",
+      "cost": 1,
+      "prereqIds": ["EX1"],
+      "effect": {
+        "type": "loot_rare_weight_mul",
+        "value": 1.10
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "EX3",
+      "name": "护体罡",
+      "desc": "探索受伤伤害 -2",
+      "branch": "explore",
+      "cost": 2,
+      "prereqIds": ["EX2"],
+      "effect": {
+        "type": "explore_injury_reduction",
+        "value": 2
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "EX4",
+      "name": "贪念成瘾",
+      "desc": "连斩宝箱额外+1次掉落",
+      "branch": "explore",
+      "cost": 3,
+      "prereqIds": ["EX3"],
+      "effect": {
+        "type": "streak_chest_extra_drop",
+        "value": 1
+      },
+      "isKeyNode": true
+    },
+    {
+      "id": "EX5",
+      "name": "避凶趋吉",
+      "desc": "危险值增量 ×0.92",
+      "branch": "explore",
+      "cost": 2,
+      "prereqIds": ["EX4"],
+      "effect": {
+        "type": "explore_danger_inc_mul",
+        "value": 0.92
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "EX6",
+      "name": "天命所归",
+      "desc": "传奇掉落权重 ×1.12",
+      "branch": "explore",
+      "cost": 3,
+      "prereqIds": ["EX5"],
+      "effect": {
+        "type": "loot_legend_weight_mul",
+        "value": 1.12
+      },
+      "isKeyNode": true
+    },
+    {
+      "id": "AL1",
+      "name": "控火",
+      "desc": "爆丹率 ×0.90",
+      "branch": "alchemy",
+      "cost": 1,
+      "prereqIds": [],
+      "effect": {
+        "type": "alchemy_boom_rate_mul",
+        "value": 0.90
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "AL2",
+      "name": "凝丹",
+      "desc": "炼丹成功率 +3%",
+      "branch": "alchemy",
+      "cost": 1,
+      "prereqIds": ["AL1"],
+      "effect": {
+        "type": "alchemy_success_add",
+        "value": 0.03
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "AL3",
+      "name": "温养",
+      "desc": "炉温“爆”时天品偏移 +0.05",
+      "branch": "alchemy",
+      "cost": 2,
+      "prereqIds": ["AL2"],
+      "effect": {
+        "type": "alchemy_quality_shift_blast",
+        "value": 0.05
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "AL4",
+      "name": "丹心通明",
+      "desc": "天品保底阈值 -1（预备功能）",
+      "branch": "alchemy",
+      "cost": 3,
+      "prereqIds": ["AL3"],
+      "effect": {
+        "type": "alchemy_tian_pity_reduction",
+        "value": 1
+      },
+      "isKeyNode": true
+    },
+    {
+      "id": "AL5",
+      "name": "炉灵护持",
+      "desc": "爆丹反噬伤害 -3",
+      "branch": "alchemy",
+      "cost": 2,
+      "prereqIds": ["AL4"],
+      "effect": {
+        "type": "alchemy_boom_damage_reduction",
+        "value": 3
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "AL6",
+      "name": "一炉双成",
+      "desc": "每次炼丹有 8% 额外多得1颗（仅成功时）",
+      "branch": "alchemy",
+      "cost": 3,
+      "prereqIds": ["AL5"],
+      "effect": {
+        "type": "alchemy_extra_yield_chance",
+        "value": 0.08
+      },
+      "isKeyNode": true
+    },
+    {
+      "id": "BR1",
+      "name": "破障",
+      "desc": "突破成功率 +4%",
+      "branch": "breakthrough",
+      "cost": 1,
+      "prereqIds": [],
+      "effect": {
+        "type": "breakthrough_rate_add",
+        "value": 0.04
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "BR2",
+      "name": "守心",
+      "desc": "失败反噬伤害 -3",
+      "branch": "breakthrough",
+      "cost": 1,
+      "prereqIds": ["BR1"],
+      "effect": {
+        "type": "breakthrough_failure_damage_reduction",
+        "value": 3
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "BR3",
+      "name": "通脉",
+      "desc": "失败时额外 pity +1",
+      "branch": "breakthrough",
+      "cost": 2,
+      "prereqIds": ["BR2"],
+      "effect": {
+        "type": "breakthrough_pity_bonus",
+        "value": 1
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "BR4",
+      "name": "天机已明",
+      "desc": "pity 达阈值时额外成功率 +3%",
+      "branch": "breakthrough",
+      "cost": 3,
+      "prereqIds": ["BR3"],
+      "effect": {
+        "type": "breakthrough_pity_bonus_rate",
+        "value": 0.03
+      },
+      "isKeyNode": true
+    },
+    {
+      "id": "BR5",
+      "name": "灵台清明",
+      "desc": "突破丹效果 +10%",
+      "branch": "breakthrough",
+      "cost": 2,
+      "prereqIds": ["BR4"],
+      "effect": {
+        "type": "breakthrough_pill_bonus_mul",
+        "value": 1.10
+      },
+      "isKeyNode": false
+    },
+    {
+      "id": "BR6",
+      "name": "逆天改命",
+      "desc": "本局第一次突破失败必定不死（hp保底到1）",
+      "branch": "breakthrough",
+      "cost": 3,
+      "prereqIds": ["BR5"],
+      "effect": {
+        "type": "breakthrough_death_protection_once",
+        "value": 1
+      },
+      "isKeyNode": true
+    }
+  ]
+}

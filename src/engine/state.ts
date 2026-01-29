@@ -1,3 +1,12 @@
+import type {
+  ElixirId,
+  ElixirQuality,
+  MaterialId,
+  RecipeId,
+} from './alchemy'
+import type { AchievementId } from './constants'
+import type { RelicId } from './relics'
+
 /**
  * 玩家状态
  */
@@ -18,6 +27,32 @@ export interface PlayerState {
   spiritStones: number
   /** 突破保底进度 */
   pity: number
+
+  /** 材料背包 */
+  materials: Record<MaterialId, number>
+  /** 丹药库存（按类型与品质计数） */
+  elixirs: Record<ElixirId, Record<ElixirQuality, number>>
+  /** 配方解锁 */
+  recipesUnlocked: Record<RecipeId, boolean>
+  /** 丹方残页 */
+  fragments: Record<RecipeId, number>
+  /** 图鉴统计 */
+  codex: {
+    totalBrews: number
+    totalBooms: number
+    bestQualityByRecipe: Record<RecipeId, ElixirQuality | 'none'>
+    // TICKET-8: 新增统计字段
+    successBrews?: number
+    bestQualityByElixir?: Record<ElixirId, ElixirQuality | 'none'>
+    totalBlastHeatUsed?: number
+  }
+
+  /** TICKET-5: 已解锁成就 */
+  achievements: AchievementId[]
+  /** TICKET-5: 已获得遗物（ID 列表） */
+  relics: RelicId[]
+  /** TICKET-5: 已装备遗物（最多 3 个槽位） */
+  equippedRelics: [RelicId | null, RelicId | null, RelicId | null]
 }
 
 /**
@@ -33,5 +68,45 @@ export function createInitialState(): PlayerState {
     pills: 0,
     spiritStones: 0,
     pity: 0,
+    materials: {
+      spirit_herb: 0,
+      iron_sand: 0,
+      beast_core: 0,
+      moon_dew: 0,
+    },
+    elixirs: {
+      qi_pill: { fan: 0, xuan: 0, di: 0, tian: 0 },
+      spirit_pill: { fan: 0, xuan: 0, di: 0, tian: 0 },
+      foundation_pill: { fan: 0, xuan: 0, di: 0, tian: 0 },
+    },
+    recipesUnlocked: {
+      qi_pill_recipe: true,
+      spirit_pill_recipe: false,
+      foundation_pill_recipe: false,
+    },
+    fragments: {
+      qi_pill_recipe: 0,
+      spirit_pill_recipe: 0,
+      foundation_pill_recipe: 0,
+    },
+    codex: {
+      totalBrews: 0,
+      totalBooms: 0,
+      bestQualityByRecipe: {
+        qi_pill_recipe: 'none',
+        spirit_pill_recipe: 'none',
+        foundation_pill_recipe: 'none',
+      },
+      successBrews: 0,
+      bestQualityByElixir: {
+        qi_pill: 'none',
+        spirit_pill: 'none',
+        foundation_pill: 'none',
+      },
+      totalBlastHeatUsed: 0,
+    },
+    achievements: [],
+    relics: [],
+    equippedRelics: [null, null, null],
   }
 }

@@ -41,7 +41,9 @@ export function useGameStore() {
     const seed = createSeed()
     rngRef.current = createSeededRng(seed)
     clearStorage()
-    setState(createInitialGameState(seed))
+    const newState = createInitialGameState(seed)
+    // 新开局时直接进入主界面
+    setState({ ...newState, screen: 'home' })
   }, [])
 
   const clearSave = useCallback(() => {

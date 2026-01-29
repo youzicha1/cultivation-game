@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "chains": [
+    {
+      "chainId": "map_to_legacy",
+      "name": "残图引路",
+      "desc": "一张残图指向秘窟，终章可得洞府传承。",
+      "chapters": [
+        {
+          "chapter": 1,
+          "title": "残图",
+          "text": "你在废墟中拾到半张残图，墨迹指向深山某处。",
+          "choices": {
+            "A": {
+              "text": "按图索骥",
+              "successRateBase": 0.65,
+              "successRateDangerFactor": -0.05,
+              "onSuccess": { "log": "你辨明方位，向秘窟进发。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] },
+              "onFail": { "log": "路径难辨，你多绕了一段。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] }
+            },
+            "B": {
+              "text": "先记下再探",
+              "successRateBase": 0.8,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "你记下路线，稳步前行。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] },
+              "onFail": { "log": "记忆有误，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 1, "max": 3 }] }
+            }
+          }
+        },
+        {
+          "chapter": 2,
+          "title": "秘窟",
+          "text": "残图所指处，山腹中竟有一处秘窟入口，灵纹隐隐。",
+          "choices": {
+            "A": {
+              "text": "破阵而入",
+              "successRateBase": 0.55,
+              "successRateDangerFactor": -0.06,
+              "onSuccess": { "log": "阵破，洞府内景渐现。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }, { "type": "spiritStones", "op": "add", "min": 2, "max": 6 }] },
+              "onFail": { "log": "阵纹反噬，你气血翻涌。", "effects": [{ "type": "hp", "op": "add", "min": -10, "max": -4 }] }
+            },
+            "B": {
+              "text": "寻阵眼再破",
+              "successRateBase": 0.72,
+              "successRateDangerFactor": -0.04,
+              "onSuccess": { "log": "你找到阵眼，安然入内。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] },
+              "onFail": { "log": "阵眼难寻，只得强闯。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] }
+            }
+          }
+        },
+        {
+          "chapter": 3,
+          "title": "洞府传承",
+          "text": "洞府深处，一具坐化遗骸前摆着传承之物。",
+          "final": true,
+          "choices": {
+            "A": {
+              "text": "取传承",
+              "successRateBase": 0.7,
+              "successRateDangerFactor": -0.02,
+              "onSuccess": { "log": "你获得洞府传承！", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] },
+              "onFail": { "log": "禁制反噬，你仍取到部分传承。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 8 }] }
+            },
+            "B": {
+              "text": "恭敬一拜再取",
+              "successRateBase": 0.85,
+              "successRateDangerFactor": -0.01,
+              "onSuccess": { "log": "前辈显灵，传承尽归。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 18 }] },
+              "onFail": { "log": "你取到传承，心有所得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }
+            }
+          },
+          "guaranteedReward": { "type": "kungfu_or_recipe", "kungfuIds": ["retreat_charm", "depth_vision"], "recipeId": "spirit_pill_recipe", "inheritanceFallback": 1 }
+        }
+      ]
+    },
+    {
+      "chainId": "demon_lair",
+      "name": "妖祟作乱",
+      "desc": "异响引你入妖巢，终章可得妖王内丹与突破丹。",
+      "chapters": [
+        {
+          "chapter": 1,
+          "title": "异响",
+          "text": "林间传来异响，妖气隐隐，似有巢穴。",
+          "choices": {
+            "A": {
+              "text": "循声探去",
+              "successRateBase": 0.6,
+              "successRateDangerFactor": -0.06,
+              "onSuccess": { "log": "你摸到妖巢外围。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 7 }] },
+              "onFail": { "log": "妖物警觉，你险些暴露。", "effects": [{ "type": "danger", "op": "add", "min": 3, "max": 6 }] }
+            },
+            "B": {
+              "text": "隐匿接近",
+              "successRateBase": 0.78,
+              "successRateDangerFactor": -0.04,
+              "onSuccess": { "log": "你悄无声息接近巢穴。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] },
+              "onFail": { "log": "妖气扰动，你退后半步。", "effects": [{ "type": "danger", "op": "add", "min": 1, "max": 4 }] }
+            }
+          }
+        },
+        {
+          "chapter": 2,
+          "title": "妖巢",
+          "text": "巢穴深处，妖王盘踞，内丹隐隐可见。",
+          "choices": {
+            "A": {
+              "text": "正面搏杀",
+              "successRateBase": 0.5,
+              "successRateDangerFactor": -0.08,
+              "onSuccess": { "log": "你斩妖取核，灵气激荡。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }, { "type": "material", "op": "add", "id": "beast_core", "min": 1, "max": 2 }] },
+              "onFail": { "log": "妖爪撕裂衣袍，你身受重伤。", "effects": [{ "type": "hp", "op": "add", "min": -12, "max": -6 }] }
+            },
+            "B": {
+              "text": "伺机夺丹",
+              "successRateBase": 0.68,
+              "successRateDangerFactor": -0.05,
+              "onSuccess": { "log": "你趁其不备，取走内丹。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] },
+              "onFail": { "log": "妖王反扑，你带伤而退。", "effects": [{ "type": "hp", "op": "add", "min": -8, "max": -3 }] }
+            }
+          }
+        },
+        {
+          "chapter": 3,
+          "title": "妖王内丹",
+          "text": "妖王伏诛，内丹与洞中藏丹尽归你手。",
+          "final": true,
+          "choices": {
+            "A": {
+              "text": "炼化内丹",
+              "successRateBase": 0.65,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "内丹化入丹田，修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 20 }] },
+              "onFail": { "log": "炼化有阻，你仍得部分造化。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }
+            },
+            "B": {
+              "text": "先取藏丹",
+              "successRateBase": 0.88,
+              "successRateDangerFactor": -0.01,
+              "onSuccess": { "log": "你取走洞中突破丹与材料。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] },
+              "onFail": { "log": "你取到部分藏丹。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }
+            }
+          },
+          "guaranteedReward": { "type": "epic_material_elixir", "materialId": "moon_dew", "materialCount": 2, "inheritanceFallback": 1 }
+        }
+      ]
+    },
+    {
+      "chainId": "ancient_furnace",
+      "name": "古炉重现",
+      "desc": "破炉中丹火不灭，终章炉灵认主，可得炼丹功法。",
+      "chapters": [
+        {
+          "chapter": 1,
+          "title": "破炉",
+          "text": "废墟中一尊破败丹炉，炉火竟仍微微跳动。",
+          "choices": {
+            "A": {
+              "text": "引火入体",
+              "successRateBase": 0.58,
+              "successRateDangerFactor": -0.05,
+              "onSuccess": { "log": "一缕丹火入体，你与炉火共鸣。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] },
+              "onFail": { "log": "炉火灼人，你急退。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] }
+            },
+            "B": {
+              "text": "先观炉纹",
+              "successRateBase": 0.75,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "你参悟炉纹，丹火渐驯。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 7 }] },
+              "onFail": { "log": "炉纹晦涩，你略有所得。", "effects": [{ "type": "exp", "op": "add", "min": 1, "max": 4 }] }
+            }
+          }
+        },
+        {
+          "chapter": 2,
+          "title": "丹火",
+          "text": "炉中丹火愈旺，似有灵性，欲择主而栖。",
+          "choices": {
+            "A": {
+              "text": "以神念沟通",
+              "successRateBase": 0.62,
+              "successRateDangerFactor": -0.05,
+              "onSuccess": { "log": "丹火回应，炉灵初醒。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] },
+              "onFail": { "log": "神念被灼，你定神再试。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] }
+            },
+            "B": {
+              "text": "投料试炼",
+              "successRateBase": 0.8,
+              "successRateDangerFactor": -0.02,
+              "onSuccess": { "log": "炉火炼化灵材，炉灵悦然。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] },
+              "onFail": { "log": "火候不稳，你调整再炼。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] }
+            }
+          }
+        },
+        {
+          "chapter": 3,
+          "title": "炉灵认主",
+          "text": "炉灵显化，愿认你为主，并授镇火之法。",
+          "final": true,
+          "choices": {
+            "A": {
+              "text": "结契",
+              "successRateBase": 0.7,
+              "successRateDangerFactor": -0.02,
+              "onSuccess": { "log": "炉灵认主，镇火诀入心。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] },
+              "onFail": { "log": "契成有瑕，你仍得部分传承。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }
+            },
+            "B": {
+              "text": "恭敬受法",
+              "successRateBase": 0.9,
+              "successRateDangerFactor": -0.01,
+              "onSuccess": { "log": "炉灵授你镇火诀，丹道大进。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 18 }] },
+              "onFail": { "log": "你谨守心神，得传镇火诀。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }
+            }
+          },
+          "guaranteedReward": { "type": "kungfu", "id": "fire_suppress" }
+        }
+      ]
+    }
+  ]
+}

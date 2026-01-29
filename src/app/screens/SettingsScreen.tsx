@@ -1,5 +1,6 @@
 import type { GameAction, GameState } from '../../engine'
 import { Button } from '../ui/Button'
+import { Chip } from '../ui/Chip'
 import { Panel } from '../ui/Panel'
 import { Stack } from '../ui/Stack'
 
@@ -12,14 +13,28 @@ type ScreenProps = {
 export function SettingsScreen({ state, dispatch, clearSave }: ScreenProps) {
   return (
     <Panel title="设置">
-      <Stack gap={12}>
-        <div style={{ fontSize: 14, opacity: 0.7 }}>
-          当前境界：{state.player.realm}
+      <Stack gap={10}>
+        <div className="page-chips">
+          <Chip className="app-chip--gold">{state.player.realm}</Chip>
         </div>
-        <Button onClick={clearSave}>清档</Button>
-        <Button onClick={() => dispatch({ type: 'GO', screen: 'start' })}>
-          回到开局
-        </Button>
+        <div className="page-actions">
+          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'home' })}>
+            返回主界面
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => {
+              clearSave()
+              dispatch({ type: 'GO', screen: 'start' })
+            }}
+          >
+            清档
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'start' })}>
+            回到开局
+          </Button>
+        </div>
       </Stack>
     </Panel>
   )

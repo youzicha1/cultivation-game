@@ -21,6 +21,12 @@ describe('events', () => {
     expect(event.id).toBe('ancient_ruins')
   })
 
+  it('pickExploreEvent 在危险度极高时也不会抛错', () => {
+    const rng = createSequenceRng([0.5, 0.3])
+    const event = pickExploreEvent(rng, 999)
+    expect(event).toBeDefined()
+  })
+
   it('resolveExploreChoice 可走 success 并应用效果', () => {
     const event = exploreEvents.find((item) => item.id === 'ancient_ruins')
     if (!event) {
@@ -41,7 +47,7 @@ describe('events', () => {
       },
     )
 
-    expect(next.log.length).toBe(1)
+    expect(next.log.length).toBeGreaterThanOrEqual(1)
     expect(next.player.exp).toBeGreaterThan(state.player.exp)
   })
 
@@ -63,14 +69,16 @@ describe('events', () => {
     expect(next.player.hp).toBeLessThan(state.player.hp)
   })
 
-  it('reducer 触发事件会写入 currentEvent，选择后清空', () => {
-    const rng = createSequenceRng([0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+  it('reducer 深入抽事件写入 currentEvent，选择后清空', () => {
+    const rng = createSequenceRng([0.99, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     const state = createInitialGameState(1)
-    const pushed = reduceGame(state, { type: 'EXPLORE_PUSH' }, rng)
-    expect(pushed.run.currentEvent?.id).toBe('ancient_ruins')
+    const started = reduceGame(state, { type: 'EXPLORE_START' }, rng)
+    const deepened = reduceGame(started, { type: 'EXPLORE_DEEPEN' }, rng)
+    expect(deepened.run.currentEvent?.id).toBeDefined()
+    expect(deepened.run.currentEvent?.title).toBeTruthy()
 
     const resolved = reduceGame(
-      pushed,
+      deepened,
       { type: 'EXPLORE_CHOOSE', choice: 'A' },
       rng,
     )

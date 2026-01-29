@@ -1,26 +1,58 @@
 import type { ButtonHTMLAttributes, PropsWithChildren } from 'react'
 
+type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'danger'
+  | 'option-green'
+  | 'option-blue'
+  | 'option-purple'
+  | 'pill-chip'
+type ButtonSize = 'sm' | 'md' | 'lg'
+
 type ButtonProps = PropsWithChildren<
-  ButtonHTMLAttributes<HTMLButtonElement>
+  ButtonHTMLAttributes<HTMLButtonElement> & {
+    variant?: ButtonVariant
+    size?: ButtonSize
+  }
 >
 
-export function Button({ style, children, ...rest }: ButtonProps) {
+const variantClass: Record<ButtonVariant, string> = {
+  primary: 'app-btn-primary',
+  secondary: 'app-btn-secondary',
+  ghost: 'app-btn-ghost',
+  danger: 'app-btn-danger',
+  'option-green': 'app-btn-option-green',
+  'option-blue': 'app-btn-option-blue',
+  'option-purple': 'app-btn-option-purple',
+  'pill-chip': 'app-btn-pill-chip',
+}
+
+const sizeClass: Record<ButtonSize, string> = {
+  sm: 'app-btn-sm',
+  md: 'app-btn-md',
+  lg: 'app-btn-lg',
+}
+
+export function Button({
+  variant = 'secondary',
+  size = 'md',
+  className = '',
+  style,
+  children,
+  ...rest
+}: ButtonProps) {
+  const classes = [
+    'app-btn',
+    variantClass[variant],
+    sizeClass[size],
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
   return (
-    <button
-      style={{
-        minHeight: 44,
-        padding: '12px 16px',
-        width: '100%',
-        fontSize: 16,
-        borderRadius: 8,
-        border: '1px solid #3a3a3a',
-        background: '#1f1f1f',
-        color: '#ffffff',
-        cursor: 'pointer',
-        ...style,
-      }}
-      {...rest}
-    >
+    <button className={classes} style={style} {...rest}>
       {children}
     </button>
   )

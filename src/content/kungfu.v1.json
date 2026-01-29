@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "kungfu": [
+    {
+      "id": "steady_heart",
+      "name": "稳心诀",
+      "rarity": "common",
+      "shortDesc": "撤退更稳，高危险也能全身而退",
+      "sourceHint": "探索中低危险掉落、事件奖励",
+      "effects": { "explore_retreat_add": 0.06 }
+    },
+    {
+      "id": "shallow_breath",
+      "name": "浅息诀",
+      "rarity": "common",
+      "shortDesc": "深入时危险增幅略减，推进更稳",
+      "sourceHint": "探索普通掉落",
+      "effects": { "explore_danger_inc_mul": 0.92 }
+    },
+    {
+      "id": "lucky_cauldron",
+      "name": "稳炉符",
+      "rarity": "common",
+      "shortDesc": "爆丹率降低，炼丹更安心",
+      "sourceHint": "探索史诗/传说掉落",
+      "effects": { "alchemy_boom_rate_mul": 0.8 }
+    },
+    {
+      "id": "retreat_charm",
+      "name": "退避玉",
+      "rarity": "rare",
+      "shortDesc": "撤退成功率提升",
+      "sourceHint": "探索高危险、稀有事件",
+      "effects": { "explore_retreat_add": 0.1 }
+    },
+    {
+      "id": "depth_vision",
+      "name": "深境诀",
+      "rarity": "rare",
+      "shortDesc": "深入时危险增幅明显减小",
+      "sourceHint": "高危险层、连斩结算",
+      "effects": { "explore_danger_inc_mul": 0.85 }
+    },
+    {
+      "id": "loot_fortune",
+      "name": "拾缘诀",
+      "rarity": "rare",
+      "shortDesc": "稀有与传说掉落权重提升",
+      "sourceHint": "探索稀有事件、宝箱",
+      "effects": { "loot_rare_weight_mul": 1.25, "loot_legend_weight_mul": 1.2 }
+    },
+    {
+      "id": "fire_suppress",
+      "name": "镇火诀",
+      "rarity": "epic",
+      "shortDesc": "爆丹率大幅降低",
+      "sourceHint": "高危险掉落、事件链",
+      "effects": { "alchemy_boom_rate_mul": 0.7 }
+    },
+    {
+      "id": "heaven_shift",
+      "name": "向天诀",
+      "rarity": "epic",
+      "shortDesc": "炼丹品质向地/天偏移",
+      "sourceHint": "史诗事件、奇遇链",
+      "effects": { "alchemy_quality_shift": 0.08 }
+    },
+    {
+      "id": "breakthrough_boost",
+      "name": "破境诀",
+      "rarity": "epic",
+      "shortDesc": "突破成功率固定加成",
+      "sourceHint": "突破相关事件、高危险",
+      "effects": { "breakthrough_rate_add": 0.05 }
+    },
+    {
+      "id": "tian_blessing",
+      "name": "天缘石",
+      "rarity": "legendary",
+      "shortDesc": "天品质概率提升",
+      "sourceHint": "传说事件、传奇链",
+      "effects": { "alchemy_quality_shift": 0.12 }
+    },
+    {
+      "id": "streak_guard",
+      "name": "连斩护符",
+      "rarity": "legendary",
+      "shortDesc": "收手时保留连斩层数（仅清收益）",
+      "sourceHint": "传说掉落、十连斩后",
+      "effects": {}
+    },
+    {
+      "id": "legendary_eye",
+      "name": "天机眼",
+      "rarity": "legendary",
+      "shortDesc": "传说掉落权重大幅提升，撤退更稳",
+      "sourceHint": "传奇事件必掉",
+      "effects": { "loot_legend_weight_mul": 1.5, "explore_retreat_add": 0.08 }
+    }
+  ]
+}

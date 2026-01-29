@@ -6,8 +6,9 @@
       "title": "古修遗迹",
       "text": "风沙掩埋的石门前，灵纹依稀闪烁，似有机缘等待有缘人。",
       "weight": 10,
+      "rarity": "common",
       "minDanger": 0,
-      "maxDanger": 3,
+      "maxDanger": 100,
       "choices": {
         "A": {
           "text": "硬闯遗迹",
@@ -17,7 +18,7 @@
             "log": "你破阵而入，得古修遗宝。",
             "effects": [
               { "type": "exp", "op": "add", "min": 4, "max": 12 },
-              { "type": "pills", "op": "add", "min": 0, "max": 1 },
+              { "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 3 },
               { "type": "pendingReward", "op": "add", "min": 3, "max": 8 }
             ]
           },
@@ -54,8 +55,10 @@
       "title": "妖兽巢穴",
       "text": "山腹传来低吼，妖气翻涌，巢穴深处疑有灵材。",
       "weight": 12,
+      "rarity": "common",
+      "tags": ["combat"],
       "minDanger": 1,
-      "maxDanger": 6,
+      "maxDanger": 100,
       "choices": {
         "A": {
           "text": "正面厮杀",
@@ -65,6 +68,7 @@
             "log": "你斩妖取核，灵气激荡。",
             "effects": [
               { "type": "exp", "op": "add", "min": 5, "max": 14 },
+              { "type": "material", "op": "add", "id": "beast_core", "min": 1, "max": 2 },
               { "type": "pendingReward", "op": "add", "min": 4, "max": 10 }
             ]
           },
@@ -101,8 +105,9 @@
       "title": "心魔试炼",
       "text": "心神一震，幻境自生，旧日执念化作刀锋。",
       "weight": 9,
+      "rarity": "rare",
       "minDanger": 2,
-      "maxDanger": 9,
+      "maxDanger": 100,
       "choices": {
         "A": {
           "text": "直面心魔",
@@ -147,8 +152,9 @@
       "title": "秘境裂隙",
       "text": "天空裂开一缝，灵气倾泻，隐约可见秘境影像。",
       "weight": 8,
+      "rarity": "rare",
       "minDanger": 0,
-      "maxDanger": 5,
+      "maxDanger": 100,
       "choices": {
         "A": {
           "text": "强行踏入",
@@ -194,8 +200,9 @@
       "title": "残破丹炉",
       "text": "遗弃丹炉半掩尘土，炉火残影尚存。",
       "weight": 11,
+      "rarity": "common",
       "minDanger": 1,
-      "maxDanger": 7,
+      "maxDanger": 100,
       "choices": {
         "A": {
           "text": "点火炼丹",
@@ -240,8 +247,10 @@
       "title": "残阵封锁",
       "text": "山谷被残阵封锁，阵中灵光流转。",
       "weight": 7,
+      "rarity": "rare",
+      "tags": ["risk"],
       "minDanger": 3,
-      "maxDanger": 9,
+      "maxDanger": 100,
       "choices": {
         "A": {
           "text": "破阵硬开",
@@ -287,8 +296,9 @@
       "title": "残魂低语",
       "text": "幽光摇曳，一缕残魂向你招手。",
       "weight": 6,
+      "rarity": "rare",
       "minDanger": 0,
-      "maxDanger": 8,
+      "maxDanger": 100,
       "choices": {
         "A": {
           "text": "强行吞噬",
@@ -332,8 +342,9 @@
       "title": "封印经卷",
       "text": "古经被封灵锁缠绕，似有大能传承。",
       "weight": 8,
+      "rarity": "legendary",
       "minDanger": 2,
-      "maxDanger": 9,
+      "maxDanger": 100,
       "choices": {
         "A": {
           "text": "强破封印",
@@ -362,6 +373,7 @@
             "log": "你化解封印，得经卷残页。",
             "effects": [
               { "type": "exp", "op": "add", "min": 3, "max": 6 },
+              { "type": "fragment", "op": "add", "id": "spirit_pill_recipe", "min": 1, "max": 1 },
               { "type": "pendingReward", "op": "add", "min": 2, "max": 4 }
             ]
           },
