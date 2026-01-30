@@ -144,6 +144,7 @@ export type AlchemyRatesBreakdown = {
     dailyBonus: number
     heatMod: number
     kungfuSuccessAdd?: number
+    mindBonus?: number
     final: number
   }
   boom: {

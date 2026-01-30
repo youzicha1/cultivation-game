@@ -15,56 +15,54 @@ import { SHARD_COST_RARE } from './pity'
 import { TIME_MAX } from './time'
 
 describe('game reducer', () => {
-  it('修炼会增加经验且正常结束', () => {
+  it('修炼（吐纳）会增加经验、回血、心境且正常结束', () => {
     const rng = createSequenceRng([0.0, 0.9])
     const state = createInitialGameState(1)
-    const next = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
+    const next = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
+    const mind = state.player.mind ?? 50
+    const expGain = 10 + Math.floor(mind / 20)
+    const hpGain = 3 + (mind >= 70 ? 1 : 0)
 
-    expect(next.player.exp).toBe(state.player.exp + 1)
-    // TICKET-HP-1: 回血 +4，但会被 clamp 到 maxHp
-    expect(next.player.hp).toBe(Math.min(state.player.maxHp, state.player.hp + 4))
+    expect(next.player.exp).toBe(state.player.exp + expGain)
+    expect(next.player.hp).toBe(Math.min(state.player.maxHp, state.player.hp + hpGain))
+    expect(next.player.mind).toBe(Math.min(100, mind + 6))
     expect(next.run.turn).toBe(state.run.turn + 1)
     expect(next.run.cultivateCount).toBe(1)
-    // TICKET-14: 修炼消耗 1 时辰
     expect(next.run.timeLeft).toBe((state.run.timeLeft ?? TIME_MAX) - 1)
   })
 
-  it('走火入魔可致死并进入 death', () => {
-    const rng = createSequenceRng([0.05, 0.0, 0.999])
+  it('冲脉受伤可致死并进入 death', () => {
+    const rng = createSequenceRng([0.5, 0.05])
     const base = createInitialGameState(1)
     const state: GameState = {
       ...base,
-      player: { ...base.player, hp: 1 },
+      player: { ...base.player, hp: 5, mind: 50 },
     }
-    const next = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
-
+    const next = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'pulse' }, rng)
     expect(next.screen).toBe('death')
-    expect(next.summary?.cause).toBe('走火入魔')
+    expect(next.summary?.cause).toBe('修炼受伤')
   })
 
   describe('TICKET-HP-1 sustain loop', () => {
-    it('修炼疲劳递减：第4次 expGain < 第1次', () => {
+    it('吐纳 4 次后 mind 上升、cultivateCount=4', () => {
       const rng = createSequenceRng([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5])
       const state = createInitialGameState(1)
-      const s1 = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
-      const s2 = reduceGame(s1, { type: 'CULTIVATE_TICK' }, rng)
-      const s3 = reduceGame(s2, { type: 'CULTIVATE_TICK' }, rng)
-      const s4 = reduceGame(s3, { type: 'CULTIVATE_TICK' }, rng)
-      
-      const exp1 = s1.player.exp - state.player.exp
-      const exp4 = s4.player.exp - s3.player.exp
-      expect(exp4).toBeLessThan(exp1)
+      const s1 = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
+      const s2 = reduceGame(s1, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
+      const s3 = reduceGame(s2, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
+      const s4 = reduceGame(s3, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
+      expect(s4.player.mind).toBeGreaterThan(state.player.mind ?? 50)
       expect(s4.run.cultivateCount).toBe(4)
     })
 
-    it('修炼回血 +4（clamp到maxHp）', () => {
+    it('吐纳回血（clamp到maxHp）', () => {
       const rng = createSequenceRng([0.5, 0.5])
       const base = createInitialGameState(1)
       const state: GameState = {
         ...base,
         player: { ...base.player, hp: base.player.maxHp - 2 },
       }
-      const next = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
+      const next = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
       expect(next.player.hp).toBe(base.player.maxHp)
     })
 
@@ -786,14 +784,14 @@ describe('game reducer', () => {
       const rng = createSequenceRng([0.9, 0.5])
       const base = createInitialGameState(1)
       const state: GameState = { ...base, run: { ...base.run, timeLeft: 10, timeMax: TIME_MAX } }
-      const next = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
+      const next = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
       expect(next.run.timeLeft).toBe(9)
     })
     it('时辰耗尽进入天劫挑战：timeLeft=1 修炼后 screen=final_trial', () => {
       const rng = createSequenceRng([0.9, 0.5])
       const base = createInitialGameState(1)
       const state: GameState = { ...base, run: { ...base.run, timeLeft: 1, timeMax: TIME_MAX } }
-      const next = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
+      const next = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
       expect(next.run.timeLeft).toBe(0)
       expect(next.screen).toBe('final_trial')
       expect(next.run.finalTrial).toBeDefined()
@@ -831,7 +829,7 @@ describe('game reducer', () => {
       const pointsBefore = afterFinale.meta!.legacyPoints!
       const backToHome = reduceGame(afterFinale, { type: 'GO', screen: 'home' }, rng)
       expect(backToHome.screen).toBe('home')
-      const afterCultivate = reduceGame(backToHome, { type: 'CULTIVATE_TICK' }, rng)
+      const afterCultivate = reduceGame(backToHome, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
       expect(afterCultivate.screen).toBe('home')
       expect(afterCultivate.meta?.legacyPoints).toBe(pointsBefore)
       expect(afterCultivate.meta?.tribulationFinaleTriggered).toBe(true)

@@ -50,6 +50,7 @@ import {
 import { relicRegistry, type RelicId } from './relics'
 import { buildKungfaModifiers, getKungfu } from './kungfu'
 import { getKungfuModifiers } from './kungfu_modifiers'
+import { getMindBreakthroughBonus, getMindDangerIncMult, getMindAlchemySuccessBonus, cultivate, type CultivateMode, type InsightEvent } from './cultivation'
 import {
   buildLegacyModifiers,
   purchaseUpgrade,
@@ -165,6 +166,12 @@ export type GameState = {
     }
     /** TICKET-HP-1: 本局修炼次数（用于疲劳递减） */
     cultivateCount?: number
+    /** TICKET-23: 当前修炼模式（吐纳/冲脉/悟道） */
+    cultivateMode?: CultivateMode
+    /** TICKET-23: 修炼结果 Toast（exp/hp/mind 变化，CLEAR_CULTIVATE_TOAST 清除） */
+    cultivateToast?: { expGain: number; hpGain?: number; mindDelta?: number; spiritStonesGain?: number }
+    /** TICKET-23: 顿悟事件卡（A/B 选择，CULTIVATE_INSIGHT_CHOOSE 或 CLEAR_INSIGHT_EVENT 清除） */
+    pendingInsightEvent?: InsightEvent
     /** TICKET-14: 天劫倒计时（剩余时辰） */
     timeLeft?: number
     /** TICKET-14: 本局总时辰 */
@@ -280,7 +287,10 @@ export type GameAction =
   | { type: 'GO'; screen: ScreenId; shopMissing?: { materialId: string; need: number }[] }
   | { type: 'SHOP_BUY'; itemId: MaterialId; qty: number }
   | { type: 'SHOP_FILL_MISSING' }
-  | { type: 'CULTIVATE_TICK' }
+  | { type: 'CULTIVATE_TICK'; mode?: CultivateMode }
+  | { type: 'CULTIVATE_INSIGHT_CHOOSE'; choice: 'A' | 'B' }
+  | { type: 'CLEAR_CULTIVATE_TOAST' }
+  | { type: 'CLEAR_INSIGHT_EVENT' }
   | { type: 'EXPLORE_START' }
   | { type: 'EXPLORE_DEEPEN' }
   | { type: 'EXPLORE_CASH_OUT' }
@@ -512,7 +522,8 @@ export function calcBreakthroughRate(
   const mod = getKungfuModifiers(state)
   const kungfuAdd = mod.breakthroughSuccessAdd ?? 0
   const legacyAdd = buildLegacyModifiers(state.meta).breakthroughRateAdd
-  return clampRate(base + inheritanceBonus + pityBonus + elixirBonus - dangerPenalty + dailySuccessBonus + kungfuAdd + legacyAdd)
+  const mindBonus = getMindBreakthroughBonus(state.player.mind ?? 50)
+  return clampRate(base + inheritanceBonus + pityBonus + elixirBonus - dangerPenalty + dailySuccessBonus + kungfuAdd + legacyAdd + mindBonus)
 }
 
 /** TICKET-9: 临门一脚提示判定（纯函数，便于测试） */
@@ -847,55 +858,69 @@ export function reduceGame(
     case 'CULTIVATE_TICK': {
       const finale = tryTribulationFinaleIfNoTime(state)
       if (finale) return { ...finale, run: { ...finale.run, rngCalls } }
-      const dailyModCult = getDailyModifiersFromState(state)
-      const cultivateCount = (baseRun.cultivateCount ?? 0) + 1
-      
-      // TICKET-HP-1: 疲劳递减（第1~3次1.0，第4~6次0.6，第7次+0.3）
-      const fatigueMul = cultivateCount <= 3 ? 1.0 : cultivateCount <= 6 ? 0.6 : 0.3
-      const baseExp = nextInt(1, 3)
-      const expGain = Math.round(baseExp * fatigueMul)
-      
-      // TICKET-HP-1: 修炼小回血 +4（clamp到maxHp）
-      const heal = 4
-      const newHp = Math.min(basePlayer.maxHp, basePlayer.hp + heal)
-      
+      const mode: CultivateMode = action.mode ?? 'breath'
+      const result = cultivate(state, mode, rngWithCount)
       const turn = baseRun.turn + 1
       let nextState: GameState = {
         ...state,
-        player: {
-          ...basePlayer,
-          exp: basePlayer.exp + expGain,
-          hp: newHp,
+        player: result.nextPlayer,
+        run: {
+          ...baseRun,
+          turn,
+          ...result.nextRunDelta,
+          cultivateToast: result.toast,
+          cultivateMode: mode,
+          pendingInsightEvent: result.insightEvent,
         },
-        run: { ...baseRun, turn, cultivateCount },
       }
+      nextState = addLog(nextState, result.logMessage)
       nextState = advanceDailyMission(nextState, 'cultivate_tick')
-
-      // TICKET-HP-1: 走火入魔概率 8~12%，扣血 6（确保不会太狠）
-      const qiDeviationChance = 0.1
-      if (next01() < qiDeviationChance) {
-        const dmg = 6
-        const hp = Math.max(0, nextState.player.hp - dmg)
+      if (nextState.player.hp <= 0) {
         nextState = {
           ...nextState,
-          player: { ...nextState.player, hp },
+          screen: 'death',
+          summary: { cause: '修炼受伤', turns: turn, endingId: 'death' },
+          meta: { ...nextState.meta, legacyPoints: (nextState.meta?.legacyPoints ?? 0) + calculateLegacyPointsReward(nextState) },
         }
-        nextState = addLog(nextState, `走火入魔，损失生命 ${dmg}`)
-        if (hp <= 0) {
-          nextState = {
-            ...nextState,
-            screen: 'death',
-            summary: { cause: '走火入魔', turns: turn, endingId: 'death' },
-            meta: { ...nextState.meta, legacyPoints: (nextState.meta?.legacyPoints ?? 0) + calculateLegacyPointsReward(nextState) },
-          }
-        }
-      } else {
-        const fatigueMsg = cultivateCount >= 4 ? '（心境浮动，收益下降）' : ''
-        nextState = addLog(nextState, `修炼获得经验 ${expGain}，生命+${heal}${fatigueMsg}`)
       }
-
       nextState = applyTimeAndMaybeFinale(nextState, 1)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'CULTIVATE_INSIGHT_CHOOSE': {
+      const ev = baseRun.pendingInsightEvent
+      if (!ev) return { ...state, run: { ...state.run, rngCalls } }
+      const choice = action.choice
+      let nextPlayer = { ...basePlayer }
+      let nextRun = { ...baseRun, pendingInsightEvent: undefined }
+      let nextMeta = state.meta ?? {}
+      let logMsg = ''
+      if (choice === 'A') {
+        if (ev.choiceA.shards != null) {
+          nextMeta = { ...nextMeta, kungfaShards: (nextMeta.kungfaShards ?? 0) + ev.choiceA.shards }
+          logMsg = `【顿悟·稳】${ev.choiceA.text}，功法碎片+${ev.choiceA.shards}。`
+        } else if (ev.choiceA.legacy != null) {
+          nextMeta = { ...nextMeta, legacyPoints: (nextMeta.legacyPoints ?? 0) + ev.choiceA.legacy }
+          logMsg = `【顿悟·稳】${ev.choiceA.text}，传承点+${ev.choiceA.legacy}。`
+        } else {
+          logMsg = `【顿悟·稳】${ev.choiceA.text}。`
+        }
+      } else {
+        if (ev.choiceB.exp != null) nextPlayer = { ...nextPlayer, exp: nextPlayer.exp + ev.choiceB.exp }
+        if (ev.choiceB.dangerAdd != null) nextRun = { ...nextRun, danger: Math.min(DANGER_MAX, (baseRun.danger ?? 0) + ev.choiceB.dangerAdd) }
+        if (ev.choiceB.hpCost != null) nextPlayer = { ...nextPlayer, hp: Math.max(0, nextPlayer.hp - ev.choiceB.hpCost) }
+        logMsg = `【顿悟·险】${ev.choiceB.text}${ev.choiceB.exp != null ? `，修为+${ev.choiceB.exp}` : ''}${ev.choiceB.hpCost != null ? `，生命-${ev.choiceB.hpCost}` : ''}${ev.choiceB.dangerAdd != null ? `，危险+${ev.choiceB.dangerAdd}` : ''}。`
+      }
+      let nextState: GameState = { ...state, player: nextPlayer, meta: nextMeta, run: nextRun }
+      nextState = addLog(nextState, logMsg)
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'CLEAR_CULTIVATE_TOAST': {
+      const { cultivateToast: _, ...restRun } = baseRun
+      return { ...state, run: { ...restRun, rngCalls } }
+    }
+    case 'CLEAR_INSIGHT_EVENT': {
+      const { pendingInsightEvent: __, ...restRun } = baseRun
+      return { ...state, run: { ...restRun, rngCalls } }
     }
     case 'EXPLORE_START': {
       let nextState: GameState = {
@@ -950,8 +975,9 @@ export function reduceGame(
 
       const mod = getKungfuModifiers(state)
       const legacyCtx = buildLegacyModifiers(state.meta)
+      const mindMult = getMindDangerIncMult(basePlayer.mind ?? 50)
       const rawInc = nextInt(DANGER_DEEPEN_MIN, DANGER_DEEPEN_MAX)
-      const inc = Math.max(1, Math.round(rawInc * (mod.exploreDangerIncMult ?? 1) * legacyCtx.exploreDangerIncMul))
+      const inc = Math.max(1, Math.round(rawInc * (mod.exploreDangerIncMult ?? 1) * legacyCtx.exploreDangerIncMul * mindMult))
       nextDanger = Math.min(DANGER_MAX, nextDanger + inc)
       
       const nextStreak = (baseRun.streak ?? 0) + 1
@@ -1287,10 +1313,11 @@ export function reduceGame(
       const dailyModAlc = getDailyModifiersFromState(state)
       const pityQualityShift = getAlchemyPityQualityShift(state.meta)
       const mod = getKungfuModifiers(state)
+      const mindAlcBonus = getMindAlchemySuccessBonus(basePlayer.mind ?? 50)
       const kungfuMod = {
         alchemyBoomMul: (mod.alchemyBoomMul ?? 1) * buildLegacyModifiers(state.meta).alchemyBoomRateMul,
         alchemyQualityShift: (mod.alchemyQualityShift ?? 0) + buildLegacyModifiers(state.meta).alchemyQualityShiftBlast + pityQualityShift,
-        alchemySuccessAdd: mod.alchemySuccessAdd ?? 0,
+        alchemySuccessAdd: (mod.alchemySuccessAdd ?? 0) + mindAlcBonus,
         alchemyCostMult: mod.alchemyCostMult ?? 1,
         alchemyBoomCompMult: mod.alchemyBoomCompMult ?? 1,
       }

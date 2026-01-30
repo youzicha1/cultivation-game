@@ -145,6 +145,15 @@
 - **UI**：功法页展示流派标签与 1~2 条关键效果文案
 - **工程**：kungfu_modifiers.ts + kungfu_modifiers.test.ts；各 calc 测试补断言；docs 更新
 
+## TICKET-23 完成项（修炼系统增强：心境 + 三模式 + 顿悟）
+
+- **三模式**：吐纳（稳回血/修伤/修为）、冲脉（高修为小概率受伤/成功灵石+3）、悟道（概率顿悟 A/B 选赏）
+- **状态**：mind 0~100（默认 50）、injuredTurns；心境档位心浮/平稳/澄明/入定
+- **mind 联动**：探索危险增长 × mind 乘数；突破成功率 + mind 加值；炼丹（可选）mind≥70 成功率+2%
+- **顿悟**：悟道触发时弹层展示 A（稳悟碎片/传承）/ B（险悟修为+危险或扣血）
+- **UI**：修炼页心境条 + 三模式按钮（吐纳/冲脉/悟道）+ 结果 Toast + 顿悟弹层；一屏完成主要操作
+- **工程**：cultivation.ts + cultivation.test.ts；game CULTIVATE_TICK(mode)、CULTIVATE_INSIGHT_CHOOSE；persistence mind/injuredTurns/pendingInsightEvent；docs 更新
+
 ## 开发优先级
 
 待定，将根据游戏设计逐步确定。

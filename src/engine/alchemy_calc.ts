@@ -14,6 +14,7 @@ import {
   type MaterialId,
 } from './alchemy'
 import { getKungfuModifiers } from './kungfu_modifiers'
+import { getMindAlchemySuccessBonus } from './cultivation'
 import { getDailyModifiers } from './daily'
 import type { DailyEnvironmentId } from './daily'
 
@@ -92,10 +93,15 @@ export function getAlchemyChances(
     dailyMod,
     kungfuMod,
   })
+  const mindBonus = getMindAlchemySuccessBonus(state.player.mind ?? 50)
+  const successRate = Math.min(0.95, Math.max(0.01, rates.finalSuccessRate + mindBonus))
 
   return {
-    successRate: rates.finalSuccessRate,
+    successRate,
     boomRate: rates.finalBoomRate,
-    breakdown: rates.breakdown,
+    breakdown: {
+      ...rates.breakdown,
+      success: { ...rates.breakdown.success, mindBonus, final: successRate },
+    },
   }
 }

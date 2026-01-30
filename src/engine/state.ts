@@ -27,6 +27,10 @@ export interface PlayerState {
   spiritStones: number
   /** 突破保底进度 */
   pity: number
+  /** TICKET-23: 心境/灵台 0~100，影响探索危险增长、突破成功率等 */
+  mind: number
+  /** TICKET-23: 受伤剩余回合数（冲脉走火等），每回合-1，影响描述用 */
+  injuredTurns: number
 
   /** 材料背包 */
   materials: Record<MaterialId, number>
@@ -68,6 +72,8 @@ export function createInitialState(): PlayerState {
     pills: 0,
     spiritStones: 0,
     pity: 0,
+    mind: 50,
+    injuredTurns: 0,
     materials: {
       spirit_herb: 0,
       iron_sand: 0,

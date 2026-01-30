@@ -94,6 +94,8 @@ function normalizeLoadedState(state: GameState): GameState {
     equippedRelics: Array.isArray(loadedPlayer.equippedRelics) && loadedPlayer.equippedRelics.length === 3
       ? loadedPlayer.equippedRelics
       : defaultPlayer.equippedRelics,
+    mind: typeof loadedPlayer.mind === 'number' ? Math.max(0, Math.min(100, loadedPlayer.mind)) : defaultPlayer.mind,
+    injuredTurns: typeof loadedPlayer.injuredTurns === 'number' && loadedPlayer.injuredTurns >= 0 ? loadedPlayer.injuredTurns : 0,
   }
 
   const loadedChain = (state.run as { chain?: { activeChainId?: string; chapter?: number; completed?: Record<string, boolean> } }).chain
@@ -152,6 +154,7 @@ function normalizeLoadedState(state: GameState): GameState {
     ...(typeof runState.shopDiscountPercent === 'number' && runState.shopDiscountPercent >= 0 ? { shopDiscountPercent: runState.shopDiscountPercent } : {}),
     ...(typeof runState.tribulationDmgReductionPercent === 'number' && runState.tribulationDmgReductionPercent >= 0 ? { tribulationDmgReductionPercent: runState.tribulationDmgReductionPercent } : {}),
     ...(typeof runState.earnedTitle === 'string' && runState.earnedTitle ? { earnedTitle: runState.earnedTitle } : {}),
+    ...(runState.pendingInsightEvent && typeof runState.pendingInsightEvent === 'object' ? { pendingInsightEvent: runState.pendingInsightEvent } : {}),
   }
 
   const loadedMeta: any = state.meta ?? {}

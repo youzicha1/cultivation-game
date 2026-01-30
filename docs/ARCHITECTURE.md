@@ -54,6 +54,18 @@
 - **接入点**：探索（危险增长、收手灵石/修为倍率、稀有权重）；炼丹（成功率加值、爆丹率乘数、材料消耗倍率、爆丹补偿倍率）；突破（成功率加值、失败保底增长倍率）；天劫（伤害倍率、额外选项）
 - **流派标签**：功法 JSON 支持 `tags`（如 build:tanbao / build:danxiu / build:chongguan），UI 功法页展示流派标签与 1~2 条关键效果文案
 
+### Cultivation: mind 状态与系统联动（TICKET-23）
+- **状态**：`PlayerState.mind`（0~100，默认 50）、`PlayerState.injuredTurns`（受伤剩余回合）
+- **引擎入口**：`src/engine/cultivation.ts`
+  - `getCultivateInfo(state)`：返回 mind、mindTier（心浮/平稳/澄明/入定）、mindEffectsSummary
+  - `cultivate(state, mode, rng)`：mode 为 breath（吐纳）/ pulse（冲脉）/ insight（悟道），返回 nextPlayer、nextRunDelta、logMessage、toast、可选 insightEvent（顿悟 A/B 卡）
+- **三模式**：吐纳（稳定回血/修伤、修为 10+floor(mind/20)、mind+6、danger-2）；冲脉（高修为 16+rand(0,6)、mind-4、小概率受伤 hp-8 且 injuredTurns+2，成功时灵石+3）；悟道（基础修为 8、概率顿悟触发 A/B 选择：稳悟碎片/传承、险悟修为+危险/扣血）
+- **mind 联动**：
+  - **探索**：危险增长 × `getMindDangerIncMult(mind)`，乘数 = (1 - (mind-50)*0.002) clamp [0.85, 1.15]
+  - **突破**：成功率 + `getMindBreakthroughBonus(mind)`，加值 = (mind-50)*0.0012
+  - **炼丹**（可选）：mind≥70 时成功率 +2%（`getMindAlchemySuccessBonus`）
+- **动作**：`CULTIVATE_TICK` 接受 mode；`CULTIVATE_INSIGHT_CHOOSE` 处理顿悟 A/B；`CLEAR_CULTIVATE_TOAST` / `CLEAR_INSIGHT_EVENT` 清除 UI 状态
+
 ### 事件链系统（TICKET-11：content 驱动 + chain 状态 + pickEvent 优先级）
 - **内容**：`src/content/event_chains.v1.json`，3 条链（残图引路、妖祟作乱、古炉重现），每条 3 章，终章 `guaranteedReward` 必发
 - **状态**：`GameState.run.chain` = `{ activeChainId?, chapter?, completed: Record<string, boolean> }`；存档可续，收手后链条保留
