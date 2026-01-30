@@ -134,6 +134,7 @@ export type ScreenId =
   | 'final_trial'
   | 'final_result'
   | 'shop'
+  | 'diagnostics'
 
 export type GameState = {
   screen: ScreenId

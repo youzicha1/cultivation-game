@@ -18,6 +18,8 @@ import { LegacyScreen } from './app/screens/LegacyScreen'
 import { FinalTrialScreen } from './app/screens/FinalTrialScreen'
 import { FinalResultScreen } from './app/screens/FinalResultScreen'
 import { ShopScreen } from './app/screens/ShopScreen'
+import { DiagnosticsScreen } from './app/screens/DiagnosticsScreen'
+import { APP_VERSION } from './app/version'
 
 function App() {
   const { state, dispatch, newGame, clearSave } = useGameStore()
@@ -77,6 +79,14 @@ function App() {
         )
       case 'shop':
         return <ShopScreen state={state} dispatch={dispatch} />
+      case 'diagnostics':
+        return (
+          <DiagnosticsScreen
+            state={state}
+            dispatch={dispatch}
+            clearSave={clearSave}
+          />
+        )
       default:
         return <HomeScreen state={state} dispatch={dispatch} />
     }
@@ -103,6 +113,7 @@ function App() {
         )}
       </header>
       <main className={`app-main ${isBreakthrough ? 'app-main--breakthrough' : ''} ${isAlchemy ? 'app-main--alchemy' : ''} ${isShop ? 'app-main--shop' : ''}`}>{screen}</main>
+      <footer className="app-version">v{APP_VERSION}</footer>
       <section className="app-log">
         <div className="app-log-head">
           <span className="app-log-title">日志</span>

@@ -1152,6 +1152,14 @@
   flex-direction: column;
 }
 
+/* TICKET-24 版本号 */
+.app-version {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 8px;
+  text-align: center;
+}
+
 /* 日志：紧凑条带，与整体小按钮风格一致 */
 .app-log {
   border: 1px solid var(--border);
@@ -1218,6 +1226,14 @@
   opacity: 0.5;
   color: var(--muted);
 }
+
+/* TICKET-24 诊断页 */
+.diagnostics-meta p { margin: 4px 0; font-size: 13px; }
+.diagnostics-state-summary { word-break: break-all; font-size: 11px; opacity: 0.9; }
+.diagnostics-import-textarea { width: 100%; min-height: 80px; font-family: monospace; font-size: 11px; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); resize: vertical; }
+.diagnostics-error { color: #ef5350; font-size: 12px; margin: 4px 0; }
+.diagnostics-success { color: #66bb6a; font-size: 12px; margin: 4px 0; }
+
 .start-dead-hint {
   font-size: 12px;
   color: #fca5a5;

@@ -1,21 +1,93 @@
 import { createSeededRng, type Rng } from './rng'
 import type { GameState } from './game'
 import { createInitialState } from './state'
+import { createInitialGameState } from './game'
 import { TIME_MAX } from './time'
 
 const SAVE_KEY = 'cultivation_save_v1'
-const SAVE_VERSION = 1
+/** TICKET-24: 存档 schema 版本，用于迁移与兼容判断 */
+export const CURRENT_SCHEMA = 1
+const SAVE_VERSION = CURRENT_SCHEMA
+
+/** TICKET-24: envelope 外层 meta */
+export type SaveEnvelopeMeta = {
+  schemaVersion: number
+  savedAt: number
+}
 
 export type SaveFile = {
-  version: number
-  savedAt: number
+  meta: SaveEnvelopeMeta
   state: GameState
+}
+
+/** 旧格式：无 meta 时视为 schemaVersion=0（纯 state 或 { version, savedAt, state }） */
+type LegacySave = GameState | { version?: number; savedAt?: number; state: GameState }
+
+function isLikelyEnvelope(raw: unknown): raw is { meta?: { schemaVersion?: number }; state: unknown } {
+  return (
+    raw != null &&
+    typeof raw === 'object' &&
+    'state' in (raw as object) &&
+    typeof (raw as { state: unknown }).state === 'object'
+  )
+}
+
+function isLikelyLegacyState(raw: unknown): raw is GameState {
+  if (raw == null || typeof raw !== 'object') return false
+  const o = raw as Record<string, unknown>
+  return (
+    typeof o.screen === 'string' &&
+    typeof o.player === 'object' &&
+    typeof o.run === 'object' &&
+    Array.isArray(o.log)
+  )
+}
+
+/** TICKET-24: 备份当前 raw 到 key_backup_timestamp，避免丢档 */
+export function tryBackup(raw: string, reason: string): void {
+  try {
+    const key = `cultivation_save_v1_backup_${Date.now()}`
+    localStorage.setItem(key, raw)
+    localStorage.setItem('cultivation_save_backup_reason', reason)
+  } catch {
+    // 忽略备份失败
+  }
+}
+
+/** 将 raw 解析结果迁移为 envelope（兼容旧格式） */
+function migrate(raw: unknown): SaveFile | null {
+  const withState = raw != null && typeof raw === 'object' && 'state' in (raw as object)
+  const leg = raw as LegacySave & { meta?: SaveEnvelopeMeta; version?: number }
+  if (withState && typeof (raw as { state: unknown }).state === 'object') {
+    const state = (raw as { state: GameState }).state
+    if (!isValidState(state)) return null
+    const schemaVersion = leg.meta?.schemaVersion ?? leg.version ?? 0
+    if (schemaVersion > CURRENT_SCHEMA) return null
+    const savedAt = leg.meta?.savedAt ?? leg.savedAt ?? Date.now()
+    return {
+      meta: { schemaVersion: schemaVersion || CURRENT_SCHEMA, savedAt: typeof savedAt === 'number' ? savedAt : Date.now() },
+      state,
+    }
+  }
+  if (isLikelyLegacyState(raw)) {
+    if (!isValidState(raw)) return null
+    return {
+      meta: { schemaVersion: CURRENT_SCHEMA, savedAt: Date.now() },
+      state: raw,
+    }
+  }
+  if (leg && typeof leg === 'object' && leg.state && typeof leg.state === 'object' && isValidState(leg.state as GameState)) {
+    return {
+      meta: { schemaVersion: CURRENT_SCHEMA, savedAt: typeof leg.savedAt === 'number' ? leg.savedAt : Date.now() },
+      state: leg.state as GameState,
+    }
+  }
+  return null
 }
 
 export function saveToStorage(state: GameState): void {
   const payload: SaveFile = {
-    version: SAVE_VERSION,
-    savedAt: Date.now(),
+    meta: { schemaVersion: CURRENT_SCHEMA, savedAt: Date.now() },
     state,
   }
   try {
@@ -186,17 +258,27 @@ export function loadFromStorage(): GameState | null {
     if (!raw) {
       return null
     }
-    const parsed = JSON.parse(raw) as SaveFile
-    if (!parsed || parsed.version !== SAVE_VERSION) {
+    const parsed: unknown = JSON.parse(raw)
+    const envelope = migrate(parsed)
+    if (!envelope) {
+      tryBackup(raw, 'schema_incompatible_or_invalid')
       return null
     }
-    if (!isValidState(parsed.state)) {
-      return null
+    return normalizeLoadedState(envelope.state)
+  } catch (e) {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY)
+      if (raw) tryBackup(raw, 'parse_error')
+    } catch {
+      // ignore
     }
-    return normalizeLoadedState(parsed.state)
-  } catch {
     return null
   }
+}
+
+/** TICKET-24: 返回初始状态（用于解析失败/不兼容时调用方重置） */
+export function getInitialStateForNewGame(seed: number): GameState {
+  return createInitialGameState(seed)
 }
 
 export function clearStorage(): void {
@@ -220,3 +302,32 @@ export function createRngFromState(state: GameState): Rng {
 }
 
 export { SAVE_KEY, SAVE_VERSION }
+
+/** TICKET-24: 读取原始存档字符串（诊断页复制/导入用） */
+export function getRawSaveFromStorage(): string | null {
+  try {
+    return localStorage.getItem(SAVE_KEY)
+  } catch {
+    return null
+  }
+}
+
+/** TICKET-24: 校验并写入存档（导入用）；成功返回 true，失败抛错或返回 false */
+export function importSaveFromRaw(raw: string): boolean {
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    const envelope = migrate(parsed)
+    if (!envelope) {
+      throw new Error('存档格式不兼容或校验失败')
+    }
+    const payload: SaveFile = {
+      meta: { schemaVersion: CURRENT_SCHEMA, savedAt: Date.now() },
+      state: normalizeLoadedState(envelope.state),
+    }
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload))
+    return true
+  } catch (err) {
+    if (err instanceof Error) throw err
+    throw new Error('解析失败')
+  }
+}

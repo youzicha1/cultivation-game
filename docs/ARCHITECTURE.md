@@ -12,7 +12,7 @@
 - 可测试、可注入依赖
 - 包含游戏核心逻辑：状态管理、随机数生成、游戏规则等
 - **game reducer**: 纯函数状态机，驱动 screen 切换
-- **persistence**: localStorage 存档/读档（仅序列化 GameState）
+- **persistence**: localStorage 存档/读档；TICKET-24 使用 SaveEnvelope（meta.schemaVersion、savedAt + state），支持旧格式迁移与不兼容时自动备份
 - **events**: JSON 驱动探索事件，校验结构并提供抽取与结算函数
 
 ### Loot System（TICKET-7：探索掉落表系统）
@@ -153,6 +153,12 @@
 - **买入**：canBuy(state, itemId, qty) 检查 gold ≥ 总价；applyBuy 返回 newPlayer/cost/logMessage；reducer SHOP_BUY 应用并写日志
 - **一键补齐**：getFillMissingPlan(state, missing) 算总价与 missingGold；SHOP_FILL_MISSING 按顺序尽量买齐，钱不够则日志“还差灵石×X”
 - **存档**：persistence 可选保存/加载 run.shopMissing
+
+### 存档版本/迁移/诊断（TICKET-24）
+- **SaveEnvelope**：localStorage 写入格式为 `{ meta: { schemaVersion, savedAt }, state }`；key 为 `cultivation_save_v1`
+- **读档**：解析 raw → migrate(raw) → 返回 state；旧存档（纯 state 或旧 version/savedAt 格式）自动迁移为 envelope；schemaVersion 高于 CURRENT_SCHEMA 或解析失败时返回 null，不崩
+- **备份**：不兼容或解析失败时 `tryBackup(raw, reason)` 写入 `cultivation_save_v1_backup_<timestamp>`，调用方收到 null 后重置为 initState()
+- **诊断页**：`/diagnostics`（SettingsScreen 入口「诊断/自检」）；展示 APP_VERSION、CURRENT_SCHEMA、存档 meta、state 摘要；复制存档 JSON、粘贴导入（校验后写入）、清档
 
 ### 测试
 - engine 层必须 100% 可测试

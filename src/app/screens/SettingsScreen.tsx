@@ -23,6 +23,9 @@ export function SettingsScreen({ state, dispatch, clearSave }: ScreenProps) {
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'home' })}>
             返回主界面
           </Button>
+          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'diagnostics' })}>
+            诊断 / 自检
+          </Button>
           <Button
             variant="danger"
             size="sm"

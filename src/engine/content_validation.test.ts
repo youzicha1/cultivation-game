@@ -9,14 +9,16 @@
 import { describe, expect, it } from 'vitest'
 import { getChains, getChain, type GuaranteedReward } from './chains'
 import type { MaterialId, RecipeId } from './alchemy'
-import { getRecipe } from './alchemy'
+import { getRecipe, alchemyRecipes } from './alchemy'
 import { RELIC_IDS, type RelicId } from './relics'
 import exploreEventsFile from '../content/explore_events.v1.json'
 import type { ExploreEventsFile } from './events'
+import kungfuFile from '../content/kungfu.v1.json'
 
 const MATERIAL_IDS: MaterialId[] = ['spirit_herb', 'iron_sand', 'beast_core', 'moon_dew']
 const RECIPE_IDS: RecipeId[] = ['qi_pill_recipe', 'spirit_pill_recipe', 'foundation_pill_recipe']
 const VALID_RARITY = ['common', 'rare', 'legendary'] as const
+const VALID_KUNGFU_RARITY = ['common', 'rare', 'epic', 'legendary'] as const
 const DANGER_MIN = 0
 const DANGER_MAX = 100
 
@@ -177,6 +179,70 @@ describe('explore_events content validation', () => {
           }
         }
       }
+    }
+  })
+})
+
+describe('kungfu content validation', () => {
+  const file = kungfuFile as { version: number; kungfu: Array<{ id: string; name: string; rarity: string; shortDesc: string; sourceHint: string }> }
+  const kungfu = file.kungfu ?? []
+
+  it('功法 id 唯一', () => {
+    const ids = kungfu.map((k) => k.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('功法 id 均在 RELIC_IDS 中', () => {
+    for (const k of kungfu) {
+      expect(RELIC_IDS).toContain(k.id as RelicId)
+    }
+  })
+
+  it('功法 rarity 合法', () => {
+    for (const k of kungfu) {
+      expect(VALID_KUNGFU_RARITY).toContain(k.rarity as (typeof VALID_KUNGFU_RARITY)[number])
+    }
+  })
+
+  it('功法必含 name/shortDesc/sourceHint', () => {
+    for (const k of kungfu) {
+      expect(typeof k.name).toBe('string')
+      expect(typeof k.shortDesc).toBe('string')
+      expect(typeof k.sourceHint).toBe('string')
+    }
+  })
+})
+
+describe('alchemy_recipes content validation', () => {
+  const recipes = alchemyRecipes
+
+  it('配方 id 唯一', () => {
+    const ids = recipes.map((r) => r.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('配方 baseSuccess / boomRate 在 0..1', () => {
+    for (const r of recipes) {
+      expect(r.baseSuccess).toBeGreaterThanOrEqual(0)
+      expect(r.baseSuccess).toBeLessThanOrEqual(1)
+      expect(r.boomRate).toBeGreaterThanOrEqual(0)
+      expect(r.boomRate).toBeLessThanOrEqual(1)
+    }
+  })
+
+  it('配方 cost 中 material id 存在且 qty>=0', () => {
+    for (const r of recipes) {
+      for (const [mid, qty] of Object.entries(r.cost ?? {})) {
+        expect(MATERIAL_IDS).toContain(mid as MaterialId)
+        expect(Number(qty)).toBeGreaterThanOrEqual(0)
+      }
+    }
+  })
+
+  it('配方 qualityBase 和为 1', () => {
+    for (const r of recipes) {
+      const sum = (r.qualityBase.fan + r.qualityBase.xuan + r.qualityBase.di + r.qualityBase.tian)
+      expect(Math.abs(sum - 1)).toBeLessThan(1e-6)
     }
   })
 })

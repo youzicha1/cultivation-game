@@ -154,6 +154,14 @@
 - **UI**：修炼页心境条 + 三模式按钮（吐纳/冲脉/悟道）+ 结果 Toast + 顿悟弹层；一屏完成主要操作
 - **工程**：cultivation.ts + cultivation.test.ts；game CULTIVATE_TICK(mode)、CULTIVATE_INSIGHT_CHOOSE；persistence mind/injuredTurns/pendingInsightEvent；docs 更新
 
+## TICKET-24 完成项（发布前稳定性：版本号 + 存档信封 + 诊断 + 内容校验）
+
+- **版本号**：APP_VERSION 从 package.json 经 vite define 注入；设置页或首页底部显示（如 v0.1.0 / v1.0.0）
+- **SaveEnvelope**：存档写入 `{ meta: { schemaVersion, savedAt }, state }`；读档支持旧格式自动迁移；schemaVersion 更高或解析失败时自动备份并重置
+- **诊断页**：/diagnostics 显示版本、schemaVersion、savedAt、state 摘要；复制存档、粘贴导入（校验）、清档
+- **内容校验**：content_validation.test.ts 覆盖 chains/events/kungfu/recipes 等主要 content JSON（id 唯一、引用存在、数值范围）
+- **工程**：version.ts、persistence envelope/migrate/tryBackup、DiagnosticsScreen、content_validation 扩展；docs 更新
+
 ## 开发优先级
 
 待定，将根据游戏设计逐步确定。

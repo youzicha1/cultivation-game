@@ -5,6 +5,7 @@ import {
   saveToStorage,
   SAVE_KEY,
   SAVE_VERSION,
+  CURRENT_SCHEMA,
 } from './persistence'
 import { createInitialGameState } from './game'
 
@@ -20,14 +21,23 @@ describe('persistence', () => {
     expect(loaded).toEqual(state)
   })
 
-  it('版本不匹配返回 null', () => {
+  it('版本不匹配（schemaVersion 更高）返回 null 并备份', () => {
     const payload = {
-      version: SAVE_VERSION + 1,
+      version: CURRENT_SCHEMA + 1,
       savedAt: Date.now(),
       state: createInitialGameState(1),
     }
     localStorage.setItem(SAVE_KEY, JSON.stringify(payload))
     expect(loadFromStorage()).toBeNull()
+  })
+
+  it('TICKET-24: 旧格式（纯 state）自动迁移为 envelope 可加载', () => {
+    const state = createInitialGameState(42)
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state))
+    const loaded = loadFromStorage()
+    expect(loaded).not.toBeNull()
+    expect(loaded!.player.exp).toBe(state.player.exp)
+    expect(loaded!.run.seed).toBe(42)
   })
 
   it('非法 JSON 返回 null', () => {
