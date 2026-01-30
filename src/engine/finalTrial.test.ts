@@ -5,7 +5,6 @@ import {
   getDmgBase,
   applySteadyDamage,
   applyGamble,
-  GAMBLE_SUCCESS_RATE,
   applySacrificeDamage,
   canSacrifice,
   computeEndingId,

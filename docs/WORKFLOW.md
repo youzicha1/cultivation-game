@@ -19,16 +19,20 @@
    - 如有架构变更，更新 `ARCHITECTURE.md`
    - 如有新功能，更新 `ROADMAP.md`
 
-4. **运行测试**
-   - 执行 `npm test` 确保所有测试通过（全绿）
+4. **运行检查**
+   - 每次提交前**必须**执行 `npm run check`（test + typecheck + build），全部通过才允许提交。
+   - 若只跑 `npm test` 而未跑 `npm run build`，可能出现 test 绿但 tsc 失败，导致 CI/Vercel 构建失败。
 
 5. **提交代码**
-   - 通过测试后提交代码
+   - 通过 `npm run check` 后提交代码
    - 使用清晰的 commit message
 
-## 测试命令
+## 测试与构建命令
 
 - `npm test`: 运行所有测试（单次）
+- `npm run typecheck`: 仅类型检查（tsc --noEmit）
+- `npm run build`: 类型检查 + Vite 构建
+- `npm run check`: **推荐** — 依次执行 test、typecheck、build，全部通过即可提交
 - `npm run test:watch`: 监视模式运行测试
 - `npm run test:ui`: 打开测试 UI
 - `npm run test:coverage`: 生成覆盖率报告

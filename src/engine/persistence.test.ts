@@ -4,10 +4,10 @@ import {
   loadFromStorage,
   saveToStorage,
   SAVE_KEY,
-  SAVE_VERSION,
   CURRENT_SCHEMA,
 } from './persistence'
 import { createInitialGameState } from './game'
+import { makePlayer } from './test/factories'
 
 describe('persistence', () => {
   beforeEach(() => {
@@ -106,14 +106,7 @@ describe('persistence', () => {
 
   it('TICKET-10: 保存/加载后 relics 与 equippedRelics 不丢', () => {
     const state = createInitialGameState(456)
-    const withRelics = {
-      ...state,
-      player: {
-        ...state.player,
-        relics: ['steady_heart', 'fire_suppress'],
-        equippedRelics: ['steady_heart', null, 'fire_suppress'] as [string | null, string | null, string | null],
-      },
-    }
+    const withRelics = { ...state, player: makePlayer({ relics: ['steady_heart', 'fire_suppress'], equippedRelics: ['steady_heart', null, 'fire_suppress'] }) }
     saveToStorage(withRelics)
     const loaded = loadFromStorage()
     expect(loaded).not.toBeNull()

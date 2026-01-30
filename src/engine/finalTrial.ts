@@ -64,7 +64,7 @@ export const GAMBLE_SUCCESS_RATE = 0.55
 
 export function applyGamble(
   dmgBase: number,
-  resolve: number,
+  _resolve: number,
   roll: number,
 ): { dmg: number; resolveDelta: number; success: boolean } {
   const success = roll < GAMBLE_SUCCESS_RATE

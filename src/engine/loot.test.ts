@@ -7,7 +7,6 @@ import {
   getLootRarityWeight,
   getRarityLabel,
   getRarityToastText,
-  LOOT_RARITY_WEIGHT,
   rollLootDrop,
 } from './loot'
 
@@ -93,7 +92,7 @@ describe('loot', () => {
     it('高 danger 时更容易出稀有掉落', () => {
       const rngLow = createSequenceRng([0.1, 0.1])
       const rngHigh = createSequenceRng([0.1, 0.1])
-      const dropLow = rollLootDrop(rngLow, 10, 0)
+      rollLootDrop(rngLow, 10, 0)
       const dropHigh = rollLootDrop(rngHigh, 80, 0)
       // 高 danger 时 rare+ 权重更高，但具体结果取决于 rng，这里只验证能正常生成
       expect(dropHigh.rarity).toBeDefined()

@@ -3,6 +3,7 @@ import type { GameState } from './game'
 import { createInitialState } from './state'
 import { createInitialGameState } from './game'
 import { TIME_MAX } from './time'
+import type { InsightEvent } from './cultivation'
 
 const SAVE_KEY = 'cultivation_save_v1'
 /** TICKET-24: 存档 schema 版本，用于迁移与兼容判断 */
@@ -23,13 +24,9 @@ export type SaveFile = {
 /** 旧格式：无 meta 时视为 schemaVersion=0（纯 state 或 { version, savedAt, state }） */
 type LegacySave = GameState | { version?: number; savedAt?: number; state: GameState }
 
-function isLikelyEnvelope(raw: unknown): raw is { meta?: { schemaVersion?: number }; state: unknown } {
-  return (
-    raw != null &&
-    typeof raw === 'object' &&
-    'state' in (raw as object) &&
-    typeof (raw as { state: unknown }).state === 'object'
-  )
+/** Type guard: raw 为带 state 的 envelope 形态 */
+function hasStateAndMaybeSavedAt(x: unknown): x is { state: GameState; savedAt?: number } {
+  return x != null && typeof x === 'object' && 'state' in (x as object) && typeof (x as { state: unknown }).state === 'object'
 }
 
 function isLikelyLegacyState(raw: unknown): raw is GameState {
@@ -63,7 +60,7 @@ function migrate(raw: unknown): SaveFile | null {
     if (!isValidState(state)) return null
     const schemaVersion = leg.meta?.schemaVersion ?? leg.version ?? 0
     if (schemaVersion > CURRENT_SCHEMA) return null
-    const savedAt = leg.meta?.savedAt ?? leg.savedAt ?? Date.now()
+    const savedAt = leg.meta?.savedAt ?? (typeof (leg as Record<string, unknown>).savedAt === 'number' ? (leg as { savedAt: number }).savedAt : undefined) ?? Date.now()
     return {
       meta: { schemaVersion: schemaVersion || CURRENT_SCHEMA, savedAt: typeof savedAt === 'number' ? savedAt : Date.now() },
       state,
@@ -76,10 +73,10 @@ function migrate(raw: unknown): SaveFile | null {
       state: raw,
     }
   }
-  if (leg && typeof leg === 'object' && leg.state && typeof leg.state === 'object' && isValidState(leg.state as GameState)) {
+  if (hasStateAndMaybeSavedAt(leg) && isValidState(leg.state)) {
     return {
       meta: { schemaVersion: CURRENT_SCHEMA, savedAt: typeof leg.savedAt === 'number' ? leg.savedAt : Date.now() },
-      state: leg.state as GameState,
+      state: leg.state,
     }
   }
   return null
@@ -189,6 +186,7 @@ function normalizeLoadedState(state: GameState): GameState {
     shopDiscountPercent?: number
     tribulationDmgReductionPercent?: number
     earnedTitle?: string
+    pendingInsightEvent?: unknown
   }
   const loadedFinalTrial = runState.finalTrial
   const finalTrial =
@@ -226,7 +224,7 @@ function normalizeLoadedState(state: GameState): GameState {
     ...(typeof runState.shopDiscountPercent === 'number' && runState.shopDiscountPercent >= 0 ? { shopDiscountPercent: runState.shopDiscountPercent } : {}),
     ...(typeof runState.tribulationDmgReductionPercent === 'number' && runState.tribulationDmgReductionPercent >= 0 ? { tribulationDmgReductionPercent: runState.tribulationDmgReductionPercent } : {}),
     ...(typeof runState.earnedTitle === 'string' && runState.earnedTitle ? { earnedTitle: runState.earnedTitle } : {}),
-    ...(runState.pendingInsightEvent && typeof runState.pendingInsightEvent === 'object' ? { pendingInsightEvent: runState.pendingInsightEvent } : {}),
+    ...(runState.pendingInsightEvent && typeof runState.pendingInsightEvent === 'object' && 'title' in runState.pendingInsightEvent && 'choiceA' in runState.pendingInsightEvent ? { pendingInsightEvent: runState.pendingInsightEvent as InsightEvent } : {}),
   }
 
   const loadedMeta: any = state.meta ?? {}

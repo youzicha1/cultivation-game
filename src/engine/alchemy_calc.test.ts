@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { getAlchemyShortage, getAlchemyChances, type AlchemySelection } from './alchemy_calc'
+import type { GameState } from './game'
 import { createInitialGameState } from './game'
+import { makeState } from './test/factories'
 
 describe('alchemy_calc', () => {
   describe('getAlchemyShortage', () => {
@@ -85,16 +87,8 @@ describe('alchemy_calc', () => {
     })
 
     it('TICKET-22: 装备丹修功法后 successRate 更高', () => {
-      const base = createInitialGameState(1)
-      const stateNoKungfu = { ...base, player: { ...base.player, relics: [], equippedRelics: [null, null, null] } }
-      const stateWithDanxiu = {
-        ...base,
-        player: {
-          ...base.player,
-          relics: ['fire_suppress'],
-          equippedRelics: ['fire_suppress', null, null],
-        },
-      }
+      const stateNoKungfu = createInitialGameState(1)
+      const stateWithDanxiu = makeState({ player: { relics: ['fire_suppress'], equippedRelics: ['fire_suppress', null, null] } } as Partial<GameState>, 1)
       const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' }
       const chancesNo = getAlchemyChances(stateNoKungfu, selection)
       const chancesWith = getAlchemyChances(stateWithDanxiu, selection)
@@ -103,15 +97,7 @@ describe('alchemy_calc', () => {
     })
 
     it('TICKET-22: 装备向天诀时 getAlchemyShortage 使用 alchemyCostMult', () => {
-      const base = createInitialGameState(1)
-      const stateWithHeaven = {
-        ...base,
-        player: {
-          ...base.player,
-          relics: ['heaven_shift'],
-          equippedRelics: ['heaven_shift', null, null],
-        },
-      }
+      const stateWithHeaven = makeState({ player: { relics: ['heaven_shift'], equippedRelics: ['heaven_shift', null, null] } } as Partial<GameState>, 1)
       const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' }
       const { shortages } = getAlchemyShortage(stateWithHeaven, selection)
       expect(shortages.length).toBeGreaterThanOrEqual(0)

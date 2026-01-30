@@ -7,7 +7,6 @@
 
 import type { MaterialId, RecipeId } from './alchemy'
 import type { RelicId } from './relics'
-import { RARITY_BASE_WEIGHT } from './constants'
 import type { Rng } from './rng'
 
 export type LootRarity = 'common' | 'rare' | 'epic' | 'legendary'

@@ -52,11 +52,12 @@ export function LootToast({ drops, onDismiss }: LootToastProps) {
 
   if (drops.length === 0 || !visible) return null
 
-  // 只显示最高稀有度的掉落
-  const highestRarity = drops.reduce((max, d) => {
-    const order: LootDrop['rarity'][] = ['common', 'rare', 'epic', 'legendary']
-    return order.indexOf(d.rarity) > order.indexOf(max.rarity) ? d.rarity : max
-  }, 'common' as LootDrop['rarity'])
+  // 只显示最高稀有度的掉落（max 为 LootRarity 字符串，与 d.rarity 比较）
+  const order: LootDrop['rarity'][] = ['common', 'rare', 'epic', 'legendary']
+  const highestRarity = drops.reduce<LootDrop['rarity']>(
+    (max, d) => (order.indexOf(d.rarity) > order.indexOf(max) ? d.rarity : max),
+    'common'
+  )
 
   const highestDrop = drops.find((d) => d.rarity === highestRarity) ?? drops[0]
   const toastText = getRarityToastText(highestRarity)

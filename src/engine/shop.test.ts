@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   getShopCatalog,
   getShopCatalogDef,
-  getItemCurrentPrice,
   canBuy,
   applyBuy,
   getFillMissingPlan,

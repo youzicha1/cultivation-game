@@ -7,12 +7,6 @@ import {
   EXPLORE_PENALTY_CHANCE,
   EXPLORE_PENALTY_DANGER_THRESHOLD,
   EXPLORE_PENALTY_HP,
-  RISK_DROP_MULTIPLIER,
-  RISK_RETREAT_FACTOR,
-  STREAK_BONUS_THRESHOLDS,
-  STREAK_DROP_BONUS_PER_LEVEL,
-  STREAK_MAX_CAP,
-  type RiskLevel,
 } from './constants'
 import {
   getRarityLabel,
@@ -54,9 +48,7 @@ import { getMindBreakthroughBonus, getMindDangerIncMult, getMindAlchemySuccessBo
 import {
   buildLegacyModifiers,
   purchaseUpgrade,
-  getNextKeyNodeDistance,
   getLegacyUpgrade,
-  type LegacyModifiers,
 } from './legacy'
 import {
   getChain,
@@ -79,15 +71,9 @@ import {
   shouldForceLegendLoot,
   addKungfaShards,
   spendKungfaShardsForRarity,
-  PITY_ALCHEMY_THRESHOLD,
-  PITY_ALCHEMY_HARD,
-  PITY_LEGEND_LOOT_THRESHOLD,
-  PITY_LEGEND_LOOT_HARD,
-  PITY_LEGEND_KUNGFU_THRESHOLD,
 } from './pity'
 import {
   TIME_MAX,
-  TIME_WARNING_THRESHOLD,
   applyTimeCost,
   shouldTriggerTribulationFinale,
 } from './time'
@@ -97,12 +83,9 @@ import {
   getDmgBase,
   applySteadyDamage,
   applyGamble,
-  GAMBLE_SUCCESS_RATE,
   applySacrificeDamage,
   canSacrifice,
   getSacrificeDeduction,
-  getSacrificeHeal,
-  getSacrificeResolveDelta,
   computeEndingId,
   getFinalRewards,
   ENDING_TITLES,
@@ -113,7 +96,6 @@ import {
   applyBuy,
   getFillMissingPlan,
   getItemCurrentPrice,
-  type MaterialId as ShopMaterialId,
 } from './shop'
 
 export type ScreenId =
@@ -378,32 +360,6 @@ function addLog(state: GameState, message: string): GameState {
     nextLog.splice(0, nextLog.length - 50)
   }
   return { ...state, log: nextLog }
-}
-
-/** TICKET-14: 时辰耗尽后触发收官结算（天劫） */
-function triggerTribulationFinale(state: GameState): GameState {
-  const base = calculateLegacyPointsReward(state)
-  const extra = Math.min(3, Math.max(1, Math.floor((state.run.danger ?? 0) / 30) + 1))
-  const total = base + extra
-  const next = addLog(
-    {
-      ...state,
-      screen: 'ending',
-      summary: {
-        cause: '天劫将至，强制收官。你在天劫前做到了本局所能及。',
-        turns: state.run.turn,
-        endingId: 'tribulation',
-        nearMissHints: ['下一局可更强，传承树等你。'],
-      },
-      meta: {
-        ...state.meta,
-        legacyPoints: (state.meta?.legacyPoints ?? 0) + total,
-        tribulationFinaleTriggered: true,
-      },
-    },
-    `【天劫】时辰耗尽！收官结算：传承点 +${total}（基础${base}，天劫加成${extra}）。下一局可更强！`,
-  )
-  return next
 }
 
 /** TICKET-14/15: 扣减时辰并判断是否进入天劫挑战（统一入口） */
@@ -799,7 +755,7 @@ export function reduceGame(
       return { ...state, screen: nextScreen, run: { ...baseRun, shopMissing: undefined } }
     }
     case 'SHOP_BUY': {
-      const result = applyBuy(state, action.itemId as ShopMaterialId, action.qty)
+      const result = applyBuy(state, action.itemId, action.qty)
       if (!result) {
         return { ...state, run: { ...state.run, rngCalls } }
       }
@@ -1035,7 +991,6 @@ export function reduceGame(
 
       const event = pickExploreEvent(rngWithCount, nextDanger)
       const rarity = event.rarity ?? 'common'
-      const rarityLabel = rarity === 'common' ? '普通' : rarity === 'rare' ? '稀有' : '传说'
       let nextState: GameState = {
         ...stateAfterMission,
         player: nextPlayer,
@@ -1312,7 +1267,7 @@ export function reduceGame(
       if (finaleBrew) return { ...finaleBrew, run: { ...finaleBrew.run, rngCalls } }
       const plan = baseRun.alchemyPlan ?? { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' as const }
       const dailyModAlc = getDailyModifiersFromState(state)
-      const pityQualityShift = getAlchemyPityQualityShift(state.meta)
+      const pityQualityShift = getAlchemyPityQualityShift(state.meta ?? {})
       const mod = getKungfuModifiers(state)
       const mindAlcBonus = getMindAlchemySuccessBonus(basePlayer.mind ?? 50)
       const kungfuMod = {
@@ -1333,7 +1288,7 @@ export function reduceGame(
         kungfuMod,
       )
       // TICKET-13: 保底强制至少地品（pity>=HARD 且本炉未出地/天时）
-      if (shouldForceAlchemyAtLeastDi(state.meta) && outcome.success && outcome.elixirId && outcome.topQuality && outcome.topQuality !== 'di' && outcome.topQuality !== 'tian') {
+      if (shouldForceAlchemyAtLeastDi(state.meta ?? {}) && outcome.success && outcome.elixirId && outcome.topQuality && outcome.topQuality !== 'di' && outcome.topQuality !== 'tian') {
         const elixirId = outcome.elixirId
         const items = { ...outcome.items }
         items[outcome.topQuality] -= 1
@@ -1709,12 +1664,12 @@ export function reduceGame(
         let nextState = addLog(state, `碎片不足，需要 ${result.cost} 才能兑换该稀有度功法。`)
         return { ...nextState, run: { ...nextState.run, rngCalls } }
       }
-      const alreadyOwned = basePlayer.relics.includes(kungfuId)
+      const alreadyOwned = basePlayer.relics.includes(kungfuId as RelicId)
       if (alreadyOwned) {
         let nextState = addLog(state, '已拥有该功法，无需兑换。')
         return { ...nextState, run: { ...nextState.run, rngCalls } }
       }
-      const nextPlayer = { ...basePlayer, relics: [...basePlayer.relics, kungfuId] }
+      const nextPlayer = { ...basePlayer, relics: [...basePlayer.relics, kungfuId as RelicId] }
       let nextState: GameState = {
         ...state,
         player: nextPlayer,

@@ -71,7 +71,6 @@ export function getAlchemyChances(
   const recipe = getRecipe(selection.recipeId)
   if (!recipe) return null
 
-  const batch = Math.max(1, Math.min(5, selection.batch))
   const heat = selection.heat ?? 'push'
   const realmIdx = realmIndex(state.player.realm)
   const dailyMod = state.meta?.daily?.environmentId

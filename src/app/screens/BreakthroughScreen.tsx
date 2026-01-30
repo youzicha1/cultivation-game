@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { ElixirQuality, GameAction, GameState } from '../../engine'
 import {
   buildKungfaModifiers,
@@ -9,7 +8,6 @@ import {
 } from '../../engine'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
-import { ProgressRing } from '../ui/ProgressRing'
 
 type ScreenProps = {
   state: GameState
@@ -25,7 +23,6 @@ const QUALITY_LABEL: Record<ElixirQuality, string> = {
   tian: '天',
 }
 
-const QUALITIES: ElixirQuality[] = ['fan', 'xuan', 'di', 'tian']
 const BEST_QUALITY_FIRST: ElixirQuality[] = ['tian', 'di', 'xuan', 'fan']
 
 function realmIndexForDisplay(realm: string): number {
@@ -154,7 +151,6 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
   // ——— 战报式结算页（居中弹层） ———
   if (outcome?.kind === 'breakthrough') {
     const isSuccess = outcome.success
-    const clutchHint = shouldShowClutchHint(state)
 
     return (
       <div className="breakthrough-page breakthrough-page--with-modal">

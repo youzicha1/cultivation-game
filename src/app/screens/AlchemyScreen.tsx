@@ -5,6 +5,7 @@ import {
   alchemyRecipes,
   getDailyEnvironmentDef,
   getRecipe,
+  PITY_ALCHEMY_HARD,
   PITY_ALCHEMY_THRESHOLD,
   PITY_DEBUG_SHOW_VALUES,
 } from '../../engine'

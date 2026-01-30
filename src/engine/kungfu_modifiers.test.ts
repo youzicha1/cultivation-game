@@ -5,6 +5,7 @@
 import { describe, it, expect } from 'vitest'
 import { mergeModifiers, getKungfuModifiers, type KungfuModifiers } from './kungfu_modifiers'
 import { createInitialState } from './state'
+import { makePlayer } from './test/factories'
 
 describe('mergeModifiers', () => {
   it('空列表返回空对象', () => {
@@ -55,26 +56,14 @@ describe('getKungfuModifiers', () => {
   })
 
   it('装备探宝功法后 exploreDangerIncMult < 1 或 exploreRareWeightMult > 1', () => {
-    const state = {
-      player: {
-        ...createInitialState(),
-        relics: ['shallow_breath', 'loot_fortune'],
-        equippedRelics: ['shallow_breath', 'loot_fortune', null],
-      },
-    }
+    const state = { player: makePlayer({ relics: ['shallow_breath', 'loot_fortune'], equippedRelics: ['shallow_breath', 'loot_fortune', null] }) }
     const mod = getKungfuModifiers(state)
     expect(mod.exploreDangerIncMult).toBe(0.92)
     expect(mod.exploreRareWeightMult).toBe(1.25)
   })
 
   it('三槽位功法 modifiers 合并正确', () => {
-    const state = {
-      player: {
-        ...createInitialState(),
-        relics: ['breakthrough_boost', 'fire_suppress'],
-        equippedRelics: ['breakthrough_boost', 'fire_suppress', null],
-      },
-    }
+    const state = { player: makePlayer({ relics: ['breakthrough_boost', 'fire_suppress'], equippedRelics: ['breakthrough_boost', 'fire_suppress', null] }) }
     const mod = getKungfuModifiers(state)
     expect(mod.breakthroughSuccessAdd).toBe(0.05)
     expect(mod.alchemySuccessAdd).toBe(0.04)
@@ -82,14 +71,8 @@ describe('getKungfuModifiers', () => {
   })
 
   it('装备冲关功法后天劫伤害倍率 < 1', () => {
-    const stateNo = { player: { ...createInitialState(), relics: [], equippedRelics: [null, null, null] } }
-    const stateWith = {
-      player: {
-        ...createInitialState(),
-        relics: ['legendary_eye'],
-        equippedRelics: ['legendary_eye', null, null],
-      },
-    }
+    const stateNo = { player: makePlayer({ relics: [], equippedRelics: [null, null, null] }) }
+    const stateWith = { player: makePlayer({ relics: ['legendary_eye'], equippedRelics: ['legendary_eye', null, null] }) }
     const modNo = getKungfuModifiers(stateNo)
     const modWith = getKungfuModifiers(stateWith)
     expect(modWith.tribulationDamageMult).toBe(0.9)

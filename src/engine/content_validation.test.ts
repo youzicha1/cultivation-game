@@ -7,8 +7,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { getChains, getChain, type GuaranteedReward } from './chains'
-import type { MaterialId, RecipeId } from './alchemy'
+import { getChains, type GuaranteedReward } from './chains'
+import type { MaterialId } from './alchemy'
 import { getRecipe, alchemyRecipes } from './alchemy'
 import { RELIC_IDS, type RelicId } from './relics'
 import exploreEventsFile from '../content/explore_events.v1.json'
@@ -16,7 +16,6 @@ import type { ExploreEventsFile } from './events'
 import kungfuFile from '../content/kungfu.v1.json'
 
 const MATERIAL_IDS: MaterialId[] = ['spirit_herb', 'iron_sand', 'beast_core', 'moon_dew']
-const RECIPE_IDS: RecipeId[] = ['qi_pill_recipe', 'spirit_pill_recipe', 'foundation_pill_recipe']
 const VALID_RARITY = ['common', 'rare', 'legendary'] as const
 const VALID_KUNGFU_RARITY = ['common', 'rare', 'epic', 'legendary'] as const
 const DANGER_MIN = 0

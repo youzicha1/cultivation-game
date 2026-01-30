@@ -69,8 +69,42 @@ type KungfuFile = {
   }>
 }
 
+/** 清洗 JSON：仅保留 number 的 effects/modifiers，满足 KungfuFile 类型 */
+function normalizeKungfuFile(raw: unknown): KungfuFile {
+  if (raw == null || typeof raw !== 'object' || !('kungfu' in (raw as object))) {
+    throw new Error('kungfu.v1.json: invalid structure')
+  }
+  const o = raw as { version?: number; kungfu?: unknown[] }
+  const version = typeof o.version === 'number' ? o.version : 1
+  const kungfu = Array.isArray(o.kungfu)
+    ? o.kungfu.map((row: unknown) => {
+        if (row == null || typeof row !== 'object') throw new Error('kungfu.v1.json: invalid row')
+        const r = row as Record<string, unknown>
+        const cleanNum = (obj: unknown): Record<string, number> | undefined => {
+          if (obj == null || typeof obj !== 'object') return undefined
+          const out: Record<string, number> = {}
+          for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+            if (typeof v === 'number') out[k] = v
+          }
+          return Object.keys(out).length ? out : undefined
+        }
+        return {
+          id: String(r.id ?? ''),
+          name: String(r.name ?? ''),
+          rarity: String(r.rarity ?? 'common'),
+          shortDesc: String(r.shortDesc ?? ''),
+          sourceHint: String(r.sourceHint ?? ''),
+          effects: cleanNum(r.effects),
+          tags: Array.isArray(r.tags) ? r.tags : undefined,
+          modifiers: cleanNum(r.modifiers),
+        }
+      })
+    : []
+  return { version, kungfu }
+}
+
 function validateKungfuFile(): Map<RelicId, KungfuDef> {
-  const file = kungfuFile as KungfuFile
+  const file = normalizeKungfuFile(kungfuFile)
   if (!file?.kungfu || !Array.isArray(file.kungfu)) {
     throw new Error('kungfu.v1.json: missing or invalid kungfu array')
   }

@@ -6,9 +6,9 @@ import {
   getChainTriggerRate,
   pickChainToStart,
   applyGuaranteedReward,
-  CHAIN_DEBUG_ALWAYS_TRIGGER,
 } from './chains'
 import { createInitialState } from './state'
+import { makePlayer } from './test/factories'
 import { createSequenceRng } from './rng'
 
 describe('chains', () => {
@@ -75,7 +75,7 @@ describe('chains', () => {
   })
 
   it('applyGuaranteedReward kungfu 已有则传承点+1', () => {
-    const player = { ...createInitialState(), relics: ['fire_suppress'] }
+    const player = makePlayer({ relics: ['fire_suppress'] })
     const { player: next } = applyGuaranteedReward(player, { type: 'kungfu', id: 'fire_suppress' })
     expect(next.inheritancePoints).toBe(player.inheritancePoints + 1)
   })

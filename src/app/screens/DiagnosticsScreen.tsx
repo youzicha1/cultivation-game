@@ -38,7 +38,7 @@ function getEnvelopeSummary(raw: string | null): { schemaVersion?: number; saved
   }
 }
 
-export function DiagnosticsScreen({ state, dispatch, clearSave }: ScreenProps) {
+export function DiagnosticsScreen({ state: _state, dispatch, clearSave }: ScreenProps) {
   const raw = getRawSaveFromStorage()
   const summary = getEnvelopeSummary(raw)
   const [importText, setImportText] = useState('')

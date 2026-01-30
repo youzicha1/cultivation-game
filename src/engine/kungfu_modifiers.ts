@@ -24,9 +24,6 @@ function isMultKey(key: string): boolean {
   return key.endsWith('Mult') || key.endsWith('Mul') || key === 'alchemyCostMult' || key === 'alchemyBoomCompMult' || key === 'breakthroughPityGainMult'
 }
 
-function isAddKey(key: string): boolean {
-  return key.endsWith('Add') || key.endsWith('Shift')
-}
 
 /**
  * 叠加规则：*Mult 类默认 1 相乘；*Add 类默认 0 相加；*ChoiceAdd 取整相加

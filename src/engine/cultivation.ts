@@ -79,14 +79,8 @@ export type CultivateResult = {
   insightEvent?: InsightEvent
 }
 
-function addLog(state: GameState, message: string): GameState {
-  const nextLog = [...state.log, message]
-  if (nextLog.length > 50) nextLog.splice(0, nextLog.length - 50)
-  return { ...state, log: nextLog }
-}
-
 /** 吐纳：稳定回血/修伤 + 稳定修为，mind 上升 */
-export function cultivateBreath(state: GameState, rng: Rng): CultivateResult {
+export function cultivateBreath(state: GameState, _rng: Rng): CultivateResult {
   const player = state.player
   const mind = clampMind(player.mind ?? MIND_DEFAULT)
   const expGain = 10 + Math.floor(mind / 20)

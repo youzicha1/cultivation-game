@@ -136,7 +136,7 @@ export const DEFAULT_BREAK_COMPENSATION = {
 export function pickChainToStart(
   rng: Rng,
   completedChainIds: Record<string, boolean>,
-  danger: number,
+  _danger: number,
 ): ChainDef | null {
   const available = getChainsRegistry().filter((c) => !completedChainIds[c.chainId])
   if (available.length === 0) return null
