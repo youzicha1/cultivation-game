@@ -178,6 +178,7 @@ function normalizeLoadedState(state: GameState): GameState {
       : { completed: {} as Record<string, boolean> }
 
   const runState = state.run as {
+    tribulationLevel?: number
     timeLeft?: number
     timeMax?: number
     cultivateCount?: number
@@ -215,6 +216,7 @@ function normalizeLoadedState(state: GameState): GameState {
     chainProgress: state.run.chainProgress && typeof state.run.chainProgress === 'object' ? state.run.chainProgress : {},
     chain,
     cultivateCount: typeof runState.cultivateCount === 'number' ? runState.cultivateCount : 0,
+    tribulationLevel: typeof runState.tribulationLevel === 'number' && runState.tribulationLevel >= 0 && runState.tribulationLevel <= 12 ? runState.tribulationLevel : 0,
     timeLeft: typeof runState.timeLeft === 'number' ? Math.max(0, runState.timeLeft) : TIME_MAX,
     timeMax: typeof runState.timeMax === 'number' ? runState.timeMax : TIME_MAX,
     ...(finalTrial ? { finalTrial } : {}),

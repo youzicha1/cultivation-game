@@ -72,4 +72,6 @@ export {
   ENDING_SUBTITLES,
 } from './finalTrial'
 export type { SacrificeKind, EndingId } from './finalTrial'
+export * from './tribulation/names'
+export * from './tribulation/rates'
 export * from './cultivation'

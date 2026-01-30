@@ -132,8 +132,8 @@
 - **位置**：`src/engine/time.ts`；`GameState.run.timeLeft` / `timeMax`
 - **概念**：用“时辰”（行动步数）控制单局长度，不依赖现实时间；每局重置，约 20~35 次关键行动后时辰耗尽
 - **消耗**：修炼、探索深入、探索事件选项、炼丹（一次）、突破（一次）各消耗 1 时辰；返回/查看/装备/领取等不消耗
-- **耗尽**：`timeLeft === 0` 时进入天劫挑战（screen=final_trial），不再直接 ending；完成 3 回合后进入 final_result 并发放结局奖励
-- **统一入口**：`applyTimeCost(state, cost)` 扣减；`shouldTriggerTribulationFinale(state)` 判断；reducer 关键 action 开头 `tryTribulationFinaleIfNoTime(state)` 若时辰已耗尽则 `enterFinalTrial(state)` 进入天劫挑战
+- **耗尽**：`timeLeft === 0` 时进入天劫挑战（screen=final_trial），不再直接 ending；完成 3 回合后根据渡劫成功/失败与当前重数进入 victory / final_result / home（续局）
+- **统一入口**：`applyTimeCost(state, cost)` 扣减；`shouldTriggerTribulationFinale(state)` 判断（排除 screen=death/ending/summary/victory）；reducer 关键 action 开头 `tryTribulationFinaleIfNoTime(state)` 若时辰已耗尽则 `enterFinalTrial(state)` 进入天劫挑战
 - **UI**：主界面顶部“时辰 x/24”；剩余 ≤4 时红字“天劫将至！再贪就来不及了。”；探索/炼丹/突破按钮旁“消耗：1 时辰”
 - **调试**：`TIME_DEBUG_BUTTON = true` 时设置页显示“[调试] 减少 5 时辰”；`DEBUG_SET_TIME_LEFT` action 可设 timeLeft，耗尽时进入 final_trial
 
@@ -145,6 +145,16 @@
 - **结局判定**：computeEndingId(hp, resolve, threat)；hp≤0 → dead；score=resolve-threat，≥20 ascend，[-5,19] retire，<-5 demon
 - **奖励**：getFinalRewards(endingId)；ascend +3 传承 +3 碎片；retire +2 +2；demon +2 +1 且 demonPathUnlocked；dead +1 +1
 - **存档**：persistence 保存/加载 run.finalTrial（step、threat、resolve、choices），中途退出可续
+
+### 天劫 12 重通关（TICKET-27）
+- **状态**：`GameState.run.tribulationLevel` 0..12，表示本局已渡过的天劫重数；NEW_GAME 为 0，渡劫成功 +1，达 12 即通关
+- **命名**：`src/engine/tribulation/names.ts` 固定 12 重名称（青霄雷劫 → 大道归一劫）；`getTribulationName(level)` 取第 level 重名称
+- **成功率**：`src/engine/tribulation/rates.ts` 的 `getTribulationSuccessRate(level, bonus)`，base 0.78、每重降 0.045、下限 0.12、上限 0.95；供 UI 展示与后续难度缩放
+- **通关条件**：连续渡过 12 次天劫（每次时辰耗尽 → final_trial 3 回合 → 成功则 tribulationLevel += 1）；tribulationLevel === 12 时进入 screen=**victory**，传承点 +8，显示「十二劫尽渡，登临大道！」
+- **失败**：任意一重 hp≤0（endingId=dead）→ screen=final_result，传承点 1+floor(level/4)，本局结束
+- **续局**：渡劫成功且 level < 12 → screen=home，timeLeft/timeMax 重置，tribulationFinaleTriggered=false，可继续玩至下次时辰耗尽进入下一重
+- **UI**：FinalTrialScreen 显示「第 N 重：{名字} / 12」与渡劫成功率；VictoryScreen 通关摘要 + 再开一局
+- **存档**：persistence 保存/加载 run.tribulationLevel（0..12）
 
 ### 坊市/商店（TICKET-18）
 - **位置**：`src/engine/shop.ts`；ScreenId `shop`；`run.shopMissing` 可选（从炼丹页带入缺口）

@@ -861,17 +861,62 @@ describe('game reducer', () => {
       expect(next.screen).toBe('final_trial')
     })
 
-    it('三回合稳后进入 final_result，endingId 与奖励', () => {
+    it('三回合稳后渡劫成功：tribulationLevel 0 -> 续局 home、tribulationLevel 1', () => {
       const rng = createSequenceRng([])
       let state = stateWithFinalTrial(1, 200, 80, 60)
       state = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
       state = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
       const next = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
-      expect(next.screen).toBe('final_result')
-      expect(next.summary?.endingId).toBeDefined()
-      expect(['ascend', 'retire', 'demon', 'dead']).toContain(next.summary?.endingId)
-      expect(next.meta?.tribulationFinaleTriggered).toBe(true)
+      expect(next.screen).toBe('home')
+      expect(next.run.tribulationLevel).toBe(1)
+      expect(next.run.finalTrial).toBeUndefined()
+      expect(next.run.timeLeft).toBeGreaterThan(0)
+      expect(next.meta?.tribulationFinaleTriggered).toBe(false)
       expect(next.meta?.legacyPoints).toBeGreaterThan(0)
+    })
+
+    it('TICKET-27: 第 12 重渡劫成功后进入 victory', () => {
+      const rng = createSequenceRng([])
+      const base = createInitialGameState(1)
+      let state: GameState = {
+        ...base,
+        screen: 'final_trial',
+        player: { ...base.player, hp: 200, maxHp: 200 },
+        run: {
+          ...base.run,
+          tribulationLevel: 11,
+          finalTrial: { step: 1, threat: 60, resolve: 80, choices: [] },
+        },
+      }
+      state = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      state = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      const next = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      expect(next.screen).toBe('victory')
+      expect(next.run.tribulationLevel).toBe(12)
+      expect(next.meta?.tribulationFinaleTriggered).toBe(true)
+      expect(next.meta?.legacyPoints).toBe(8)
+    })
+
+    it('TICKET-27: 渡劫失败（dead）进入 final_result，传承点 1+floor(level/4)', () => {
+      const rng = createSequenceRng([])
+      const base = createInitialGameState(1)
+      const state: GameState = {
+        ...base,
+        screen: 'final_trial',
+        player: { ...base.player, hp: 2, maxHp: 100 },
+        run: {
+          ...base.run,
+          tribulationLevel: 0,
+          finalTrial: { step: 1, threat: 120, resolve: 0, choices: [] },
+        },
+      }
+      const next = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      expect(next.player.hp).toBe(0)
+      const after2 = reduceGame(next, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      const after3 = reduceGame(after2, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      expect(after3.screen).toBe('final_result')
+      expect(after3.summary?.endingId).toBe('dead')
+      expect(after3.meta?.legacyPoints).toBe(1)
     })
 
     it('搏：rng 成功时伤害低、resolve 大加', () => {

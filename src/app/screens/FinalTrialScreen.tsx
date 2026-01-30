@@ -6,6 +6,8 @@ import {
   canSacrifice,
   type SacrificeKind,
 } from '../../engine/finalTrial'
+import { getTribulationName } from '../../engine/tribulation/names'
+import { getTribulationSuccessRate } from '../../engine/tribulation/rates'
 import { Button } from '../ui/Button'
 import { Panel } from '../ui/Panel'
 import { Stack } from '../ui/Stack'
@@ -34,12 +36,18 @@ export function FinalTrialScreen({ state, dispatch }: ScreenProps) {
   }
 
   const step = ft.step
+  const level = (state.run.tribulationLevel ?? 0) + 1
+  const levelName = getTribulationName(level)
+  const tribulationSuccessRate = getTribulationSuccessRate(level)
   const dmgBase = getDmgBase(ft.threat, step)
   const steady = applySteadyDamage(dmgBase, ft.resolve)
   const successRate = Math.round(GAMBLE_SUCCESS_RATE * 100)
 
   return (
-    <Panel title="天劫挑战" subtitle={`第 ${step} 道天雷`}>
+    <Panel
+      title="天劫挑战"
+      subtitle={`第 ${level} 重：${levelName} / 12 · 第 ${step} 道天雷 · 渡劫成功率 ${Math.round(tribulationSuccessRate * 100)}%`}
+    >
       <Stack gap={12}>
         <div className="final-trial-stats">
           <span className="final-trial-stat">HP {player.hp}/{player.maxHp}</span>

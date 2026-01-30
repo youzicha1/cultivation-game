@@ -154,6 +154,15 @@
 - **UI**：修炼页心境条 + 三模式按钮（吐纳/冲脉/悟道）+ 结果 Toast + 顿悟弹层；一屏完成主要操作
 - **工程**：cultivation.ts + cultivation.test.ts；game CULTIVATE_TICK(mode)、CULTIVATE_INSIGHT_CHOOSE；persistence mind/injuredTurns/pendingInsightEvent；docs 更新
 
+## TICKET-27 完成项（天劫 12 重小通关 + 爽文命名 + 难度递增）
+
+- **通关条件**：连续渡过 12 次天劫即通关；tribulationLevel 0..12，每次渡劫成功 +1，达 12 进入 Victory 屏
+- **12 重命名**：`src/engine/tribulation/names.ts` 固定表（青霄雷劫、赤炎焚心劫 … 大道归一劫）；FinalTrialScreen 显示「第 N 重：{名字} / 12」
+- **成功率**：`getTribulationSuccessRate(level, bonus)` 单一真相，base 0.78、每重降 0.045、clamp [0.12, 0.95]；UI 展示由引擎返回
+- **失败**：任意一重战死 → final_result，传承点 1+floor(level/4)；成功续局则时辰重置、回 home
+- **Victory 屏**：十二劫尽渡传承点 +8，摘要 + 再开一局；time 排除 screen=victory 触发收官
+- **工程**：tribulation/names.ts、rates.ts + 对应 test；game.run.tribulationLevel、ScreenId victory、FINAL_TRIAL_CHOOSE 三分支（victory / final_result / home）；persistence tribulationLevel；VictoryScreen、FinalTrialScreen 文案；ARCHITECTURE + ROADMAP
+
 ## TICKET-24 完成项（发布前稳定性：版本号 + 存档信封 + 诊断 + 内容校验）
 
 - **版本号**：APP_VERSION 从 package.json 经 vite define 注入；设置页或首页底部显示（如 v0.1.0 / v1.0.0）

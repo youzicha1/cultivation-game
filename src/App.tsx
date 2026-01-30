@@ -17,6 +17,7 @@ import { SummaryScreen } from './app/screens/SummaryScreen'
 import { LegacyScreen } from './app/screens/LegacyScreen'
 import { FinalTrialScreen } from './app/screens/FinalTrialScreen'
 import { FinalResultScreen } from './app/screens/FinalResultScreen'
+import { VictoryScreen } from './app/screens/VictoryScreen'
 import { ShopScreen } from './app/screens/ShopScreen'
 import { DiagnosticsScreen } from './app/screens/DiagnosticsScreen'
 import { APP_VERSION } from './app/version'
@@ -76,6 +77,10 @@ function App() {
       case 'final_result':
         return (
           <FinalResultScreen state={state} dispatch={dispatch} newGame={newGame} />
+        )
+      case 'victory':
+        return (
+          <VictoryScreen state={state} dispatch={dispatch} newGame={newGame} />
         )
       case 'shop':
         return <ShopScreen state={state} dispatch={dispatch} />

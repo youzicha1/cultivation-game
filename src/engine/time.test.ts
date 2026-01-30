@@ -18,7 +18,7 @@ describe('time', () => {
   it('getActionTimeCost: 关键动作消耗 1，其余 0', () => {
     const state = createInitialGameState(1)
     expect(getActionTimeCost('CULTIVATE_TICK', state)).toBe(1)
-    expect(getActionTimeCost('EXPLORE_DEEPEN', state)).toBe(1)
+    expect(getActionTimeCost('EXPLORE_DEEPEN', state)).toBe(0) // 继续探索仅为指示，不消耗时辰
     expect(getActionTimeCost('EXPLORE_CHOOSE', state)).toBe(1)
     expect(getActionTimeCost('ALCHEMY_BREW_CONFIRM', state)).toBe(1)
     expect(getActionTimeCost('BREAKTHROUGH_CONFIRM', state)).toBe(1)

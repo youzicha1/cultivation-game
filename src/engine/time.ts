@@ -30,7 +30,6 @@ export function getDayPhase(timeLeft: number, timeMax: number): string {
 export function getActionTimeCost(actionType: string, _state?: GameState): number {
   switch (actionType) {
     case 'CULTIVATE_TICK':
-    case 'EXPLORE_DEEPEN':
     case 'EXPLORE_CHOOSE':
     case 'ALCHEMY_BREW_CONFIRM':
     case 'BREAKTHROUGH_CONFIRM':
@@ -55,5 +54,5 @@ export function applyTimeCost(state: GameState, cost: number): GameState {
 export function shouldTriggerTribulationFinale(state: GameState): boolean {
   if (state.meta?.tribulationFinaleTriggered) return false
   const timeLeft = state.run.timeLeft ?? TIME_MAX
-  return timeLeft <= 0 && state.screen !== 'death' && state.screen !== 'ending' && state.screen !== 'summary'
+  return timeLeft <= 0 && state.screen !== 'death' && state.screen !== 'ending' && state.screen !== 'summary' && state.screen !== 'victory'
 }

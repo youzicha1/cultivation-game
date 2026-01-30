@@ -115,6 +115,7 @@ export type ScreenId =
   | 'legacy'
   | 'final_trial'
   | 'final_result'
+  | 'victory'
   | 'shop'
   | 'diagnostics'
 
@@ -155,6 +156,8 @@ export type GameState = {
     cultivateToast?: { expGain: number; hpGain?: number; mindDelta?: number; spiritStonesGain?: number }
     /** TICKET-23: 顿悟事件卡（A/B 选择，CULTIVATE_INSIGHT_CHOOSE 或 CLEAR_INSIGHT_EVENT 清除） */
     pendingInsightEvent?: InsightEvent
+    /** TICKET-27: 当前已渡过的天劫重数 0..12，渡劫成功后 +1，12 即通关 */
+    tribulationLevel?: number
     /** TICKET-14: 天劫倒计时（剩余时辰） */
     timeLeft?: number
     /** TICKET-14: 本局总时辰 */
@@ -329,6 +332,7 @@ export function createInitialGameState(seed: number): GameState {
       chainProgress: {},
       chain: { completed: {} },
       cultivateCount: 0,
+      tribulationLevel: 0,
       timeLeft: TIME_MAX,
       timeMax: TIME_MAX,
       currentEvent: undefined,
@@ -1756,31 +1760,93 @@ export function reduceGame(
       if (nextStep > 3) {
         const endingId: EndingId = computeEndingId(newHp, newResolve, ft.threat)
         const rewards = getFinalRewards(endingId)
-        const baseLegacy = 1
-        const totalLegacy = baseLegacy + rewards.legacyBonus
+        const currentLevel = baseRun.tribulationLevel ?? 0
+        const newLevel = currentLevel + 1
+        const isDead = endingId === 'dead'
+        const isVictory = !isDead && newLevel >= 12
+
+        if (isVictory) {
+          const victoryLegacy = 8
+          let nextState: GameState = addLog(
+            {
+              ...state,
+              player: nextPlayer,
+              screen: 'victory',
+              run: {
+                ...baseRun,
+                tribulationLevel: 12,
+                finalTrial: { ...ft, step: 3, resolve: newResolve, choices: newChoices },
+              },
+              summary: {
+                cause: ENDING_TITLES[endingId],
+                turns: state.run.turn,
+                endingId: 'ascend',
+              },
+              meta: {
+                ...state.meta,
+                legacyPoints: (state.meta?.legacyPoints ?? 0) + victoryLegacy,
+                kungfaShards: (state.meta?.kungfaShards ?? 0) + rewards.shardsBonus,
+                tribulationFinaleTriggered: true,
+                ...(rewards.demonUnlock ? { demonPathUnlocked: true } : {}),
+              },
+            },
+            logMsg + ` 十二劫尽渡！传承点 +${victoryLegacy}，碎片 +${rewards.shardsBonus}。`,
+          )
+          return { ...nextState, run: { ...nextState.run, rngCalls } }
+        }
+
+        if (isDead) {
+          const failLegacy = 1 + Math.floor(currentLevel / 4)
+          const totalLegacy = failLegacy
+          let nextState: GameState = addLog(
+            {
+              ...state,
+              player: nextPlayer,
+              screen: 'final_result',
+              run: {
+                ...baseRun,
+                finalTrial: { ...ft, step: 3, resolve: newResolve, choices: newChoices },
+              },
+              summary: {
+                cause: ENDING_TITLES[endingId],
+                turns: state.run.turn,
+                endingId,
+              },
+              meta: {
+                ...state.meta,
+                legacyPoints: (state.meta?.legacyPoints ?? 0) + totalLegacy,
+                kungfaShards: (state.meta?.kungfaShards ?? 0) + rewards.shardsBonus,
+                tribulationFinaleTriggered: true,
+                ...(rewards.demonUnlock ? { demonPathUnlocked: true } : {}),
+              },
+            },
+            logMsg + ` 天劫结束：${ENDING_TITLES[endingId]} 传承点 +${totalLegacy}，碎片 +${rewards.shardsBonus}。`,
+          )
+          return { ...nextState, run: { ...nextState.run, rngCalls } }
+        }
+
+        const totalLegacy = 1 + rewards.legacyBonus
         let nextState: GameState = addLog(
           {
             ...state,
             player: nextPlayer,
-            screen: 'final_result',
+            screen: 'home',
             run: {
               ...baseRun,
-              finalTrial: { ...ft, step: 3, resolve: newResolve, choices: newChoices },
-            },
-            summary: {
-              cause: ENDING_TITLES[endingId],
-              turns: state.run.turn,
-              endingId,
+              tribulationLevel: newLevel,
+              finalTrial: undefined,
+              timeLeft: baseRun.timeMax ?? TIME_MAX,
+              timeMax: baseRun.timeMax ?? TIME_MAX,
             },
             meta: {
               ...state.meta,
               legacyPoints: (state.meta?.legacyPoints ?? 0) + totalLegacy,
               kungfaShards: (state.meta?.kungfaShards ?? 0) + rewards.shardsBonus,
-              tribulationFinaleTriggered: true,
+              tribulationFinaleTriggered: false,
               ...(rewards.demonUnlock ? { demonPathUnlocked: true } : {}),
             },
           },
-          logMsg + ` 天劫结束：${ENDING_TITLES[endingId]} 传承点 +${totalLegacy}，碎片 +${rewards.shardsBonus}。`,
+          logMsg + ` 渡过第 ${newLevel} 重天劫！传承点 +${totalLegacy}，时辰重置。`,
         )
         return { ...nextState, run: { ...nextState.run, rngCalls } }
       }
