@@ -13,9 +13,9 @@ function realmIndex(realm: string): number {
   return i < 0 ? 0 : i
 }
 
-/** 天劫强度 [60, 140]：本局越贪越强 */
+/** 天劫强度 [90, 200]：难度提升，本局越贪越强 */
 export function computeThreat(state: GameState): number {
-  const base = 50
+  const base = 90
   const realm = realmIndex(state.player.realm)
   const danger = state.run.danger ?? 0
   const chain = state.run.chain
@@ -32,22 +32,22 @@ export function computeThreat(state: GameState): number {
   const raw =
     base +
     realm * 6 +
-    danger * 0.3 +
+    danger * 0.35 +
     alchemyBonus +
     chainsCompleted * 8
-  return Math.round(Math.max(60, Math.min(140, raw)))
+  return Math.round(Math.max(90, Math.min(200, raw)))
 }
 
-/** 初始抗性/意志（用于天劫挑战） */
+/** 初始抗性/意志（用于天劫挑战，难度提升后略降） */
 export function computeInitialResolve(state: GameState): number {
   const realm = realmIndex(state.player.realm)
   const maxHp = state.player.maxHp ?? 100
-  return Math.round(maxHp * 0.6) + realm * 5
+  return Math.round(maxHp * 0.5) + realm * 4
 }
 
-/** 本回合基础伤害（仅依赖 threat 与回合数） */
+/** 本回合基础伤害（难度提升：系数加大，三雷总伤高） */
 export function getDmgBase(threat: number, step: number): number {
-  return Math.round(threat * 0.12) + step * 2
+  return Math.round(threat * 0.22) + step * 5
 }
 
 /** 稳：伤害较低，resolve 小幅提升 */

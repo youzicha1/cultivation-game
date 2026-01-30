@@ -23,14 +23,14 @@ function mockState(overrides: Partial<GameState> = {}): GameState {
 
 describe('finalTrial', () => {
   describe('computeThreat', () => {
-    it('clamps threat to [60, 140]', () => {
+    it('clamps threat to [90, 200]', () => {
       const state = mockState({
         player: createInitialState(),
         run: { ...createInitialGameState(1).run, danger: 0 },
       })
       const t = computeThreat(state)
-      expect(t).toBeGreaterThanOrEqual(60)
-      expect(t).toBeLessThanOrEqual(140)
+      expect(t).toBeGreaterThanOrEqual(90)
+      expect(t).toBeLessThanOrEqual(200)
     })
 
     it('increases with realm and danger', () => {

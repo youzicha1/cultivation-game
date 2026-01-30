@@ -12,7 +12,7 @@ import { createSequenceRng } from './rng'
 import { buildLegacyModifiers } from './legacy'
 import { buildKungfaModifiers, getKungfuIdsByRarity } from './kungfu'
 import { SHARD_COST_RARE } from './pity'
-import { TIME_MAX } from './time'
+import { TIME_MAX, getTimeMaxForSegment } from './time'
 
 describe('game reducer', () => {
   it('修炼（吐纳）会增加经验、回血、心境且正常结束', () => {
@@ -796,7 +796,7 @@ describe('game reducer', () => {
       expect(next.screen).toBe('final_trial')
       expect(next.run.finalTrial).toBeDefined()
       expect(next.run.finalTrial?.step).toBe(1)
-      expect(next.run.finalTrial?.threat).toBeGreaterThanOrEqual(60)
+      expect(next.run.finalTrial?.threat).toBeGreaterThanOrEqual(90)
       expect(next.run.finalTrial?.resolve).toBeGreaterThan(0)
     })
     it('GO / RELIC_EQUIP 不消耗时辰', () => {
@@ -870,7 +870,8 @@ describe('game reducer', () => {
       expect(next.screen).toBe('home')
       expect(next.run.tribulationLevel).toBe(1)
       expect(next.run.finalTrial).toBeUndefined()
-      expect(next.run.timeLeft).toBeGreaterThan(0)
+      expect(next.run.timeLeft).toBe(getTimeMaxForSegment(1))
+      expect(next.run.timeMax).toBe(getTimeMaxForSegment(1))
       expect(next.meta?.tribulationFinaleTriggered).toBe(false)
       expect(next.meta?.legacyPoints).toBeGreaterThan(0)
     })

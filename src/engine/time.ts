@@ -1,15 +1,26 @@
 /**
  * TICKET-14: 天劫倒计时（局长节拍器）
  * 用“时辰”控制单局长度，不依赖现实时间。
+ * 难度提升：首局 48 时辰，每过一劫续局时 +12 时辰（48→60→72…），单局约 20–30 分钟。
  */
 
 import type { GameState } from './game'
 
-/** 本局总时辰（约 20~35 次关键行动） */
-export const TIME_MAX = 24
+/** 新局/首劫段总时辰（约 20–30 分钟一局） */
+export const TIME_MAX_BASE = 48
+/** 每过一劫续局时额外增加的时辰 */
+export const TIME_EXTRA_PER_LEVEL = 12
+
+/** 默认总时辰（新局使用，= TIME_MAX_BASE） */
+export const TIME_MAX = TIME_MAX_BASE
+
+/** 第 level 劫段的总时辰：48 + level*12（level 0=首局 48，过 1 劫后 60…） */
+export function getTimeMaxForSegment(tribulationLevel: number): number {
+  return TIME_MAX_BASE + Math.max(0, tribulationLevel) * TIME_EXTRA_PER_LEVEL
+}
 
 /** 剩余时辰 ≤ 此值时 UI 红字提示“天劫将至” */
-export const TIME_WARNING_THRESHOLD = 4
+export const TIME_WARNING_THRESHOLD = 8
 
 /** 设置页是否显示“减少时辰”调试按钮（默认隐藏） */
 export const TIME_DEBUG_BUTTON = false

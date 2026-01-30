@@ -130,18 +130,21 @@
 
 ### 天劫倒计时（TICKET-14：局长节拍器）
 - **位置**：`src/engine/time.ts`；`GameState.run.timeLeft` / `timeMax`
-- **概念**：用“时辰”（行动步数）控制单局长度，不依赖现实时间；每局重置，约 20~35 次关键行动后时辰耗尽
+- **概念**：用“时辰”（行动步数）控制单局长度，不依赖现实时间；单局约 20–30 分钟，难度提升后给足时辰
+- **时辰量**：首局 48 时辰（`TIME_MAX_BASE`）；每过一劫续局时 +12（`getTimeMaxForSegment(level)` = 48 + level×12），如过 1 劫后 60、过 2 劫后 72
 - **消耗**：修炼、探索深入、探索事件选项、炼丹（一次）、突破（一次）各消耗 1 时辰；返回/查看/装备/领取等不消耗
-- **耗尽**：`timeLeft === 0` 时进入天劫挑战（screen=final_trial），不再直接 ending；完成 3 回合后根据渡劫成功/失败与当前重数进入 victory / final_result / home（续局）
+- **耗尽**：`timeLeft === 0` 时进入天劫挑战（screen=final_trial）；完成 3 回合后根据渡劫成功/失败与当前重数进入 victory / final_result / home（续局）
 - **统一入口**：`applyTimeCost(state, cost)` 扣减；`shouldTriggerTribulationFinale(state)` 判断（排除 screen=death/ending/summary/victory）；reducer 关键 action 开头 `tryTribulationFinaleIfNoTime(state)` 若时辰已耗尽则 `enterFinalTrial(state)` 进入天劫挑战
-- **UI**：主界面顶部“时辰 x/24”；剩余 ≤4 时红字“天劫将至！再贪就来不及了。”；探索/炼丹/突破按钮旁“消耗：1 时辰”
+- **UI**：主界面顶部“时辰 x/48”（或当前 timeMax）；剩余 ≤8 时红字“天劫将至！再贪就来不及了。”；探索/炼丹/突破按钮旁“消耗：1 时辰”
 - **调试**：`TIME_DEBUG_BUTTON = true` 时设置页显示“[调试] 减少 5 时辰”；`DEBUG_SET_TIME_LEFT` action 可设 timeLeft，耗尽时进入 final_trial
 
 ### 终局天劫挑战与多结局（TICKET-15）
 - **位置**：`src/engine/finalTrial.ts`；`GameState.run.finalTrial`
-- **流程**：时辰耗尽 → screen=final_trial，初始化 finalTrial（step=1, threat, resolve, choices=[]）；每回合 FINAL_TRIAL_CHOOSE（steady/gamble/sacrifice）→ 扣血/加 resolve、step++；step>3 → 根据 hp/resolve/threat 计算 endingId（ascend/retire/demon/dead）→ screen=final_result，summary + meta 奖励，tribulationFinaleTriggered=true
-- **threat**：纯函数 computeThreat(state)，base 50 + 境界*6 + danger*0.3 + 丹品质（地+6 天+12）+ 通关链数*8，clamp [60,140]
-- **伤害**：getDmgBase(threat, step)；稳 applySteadyDamage；搏 applyGamble(rng)；献祭 applySacrificeDamage + 资源扣除；伤害 clamp ≥1
+- **流程**：时辰耗尽 → screen=final_trial，初始化 finalTrial（step=1, threat, resolve, choices=[]）；每回合 FINAL_TRIAL_CHOOSE（steady/gamble/sacrifice）→ 扣血/加 resolve、step++；step>3 → 根据 hp/resolve/threat 计算 endingId（ascend/retire/demon/dead）→ screen=final_result 或 victory 或 home（续局）
+- **难度**：设计目标为首劫约 1/15 通过、二劫更难；threat/伤害/道心已调高，且 threat 按已渡劫数缩放（enterFinalTrial 中 threat *= 1 + level×0.12）
+- **threat**：纯函数 computeThreat(state)，base 90 + 境界*6 + danger*0.35 + 丹品质（地+6 天+12）+ 通关链数*8，clamp [90,200]；进入天劫时再乘 (1 + tribulationLevel×0.12)
+- **伤害**：getDmgBase(threat, step) = threat×0.22 + step×5；稳 applySteadyDamage；搏 applyGamble(rng)；献祭 applySacrificeDamage + 资源扣除；伤害 clamp ≥1
+- **道心**：computeInitialResolve = maxHp×0.5 + 境界×4（略降以增加难度）
 - **结局判定**：computeEndingId(hp, resolve, threat)；hp≤0 → dead；score=resolve-threat，≥20 ascend，[-5,19] retire，<-5 demon
 - **奖励**：getFinalRewards(endingId)；ascend +3 传承 +3 碎片；retire +2 +2；demon +2 +1 且 demonPathUnlocked；dead +1 +1
 - **存档**：persistence 保存/加载 run.finalTrial（step、threat、resolve、choices），中途退出可续

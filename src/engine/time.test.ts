@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   TIME_MAX,
+  TIME_MAX_BASE,
+  TIME_EXTRA_PER_LEVEL,
   TIME_WARNING_THRESHOLD,
+  getTimeMaxForSegment,
   getActionTimeCost,
   applyTimeCost,
   shouldTriggerTribulationFinale,
@@ -11,8 +14,17 @@ import { createInitialGameState } from './game'
 
 describe('time', () => {
   it('TIME_MAX 与 TIME_WARNING_THRESHOLD 为预期值', () => {
-    expect(TIME_MAX).toBe(24)
-    expect(TIME_WARNING_THRESHOLD).toBe(4)
+    expect(TIME_MAX).toBe(48)
+    expect(TIME_MAX_BASE).toBe(48)
+    expect(TIME_EXTRA_PER_LEVEL).toBe(12)
+    expect(TIME_WARNING_THRESHOLD).toBe(8)
+  })
+
+  it('getTimeMaxForSegment: 首局 48，每过一劫 +12', () => {
+    expect(getTimeMaxForSegment(0)).toBe(48)
+    expect(getTimeMaxForSegment(1)).toBe(60)
+    expect(getTimeMaxForSegment(2)).toBe(72)
+    expect(getTimeMaxForSegment(12)).toBe(48 + 12 * 12)
   })
 
   it('getActionTimeCost: 关键动作消耗 1，其余 0', () => {
@@ -61,11 +73,12 @@ describe('time', () => {
   })
 
   it('getDayPhase: 按比例返回晨/昼/暮/劫', () => {
-    expect(getDayPhase(24, 24)).toBe('晨')
-    expect(getDayPhase(18, 24)).toBe('晨')
-    expect(getDayPhase(12, 24)).toBe('昼')
-    expect(getDayPhase(8, 24)).toBe('暮')
-    expect(getDayPhase(4, 24)).toBe('劫')
-    expect(getDayPhase(2, 24)).toBe('劫')
+    const max = 48
+    expect(getDayPhase(48, max)).toBe('晨')
+    expect(getDayPhase(36, max)).toBe('晨')
+    expect(getDayPhase(24, max)).toBe('昼')
+    expect(getDayPhase(16, max)).toBe('暮')
+    expect(getDayPhase(8, max)).toBe('劫')
+    expect(getDayPhase(4, max)).toBe('劫')
   })
 })

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import './App.css'
 import { useGameStore } from './app/store/useGameStore'
-import { TIME_MAX, TIME_WARNING_THRESHOLD } from './engine'
+import { TIME_MAX, TIME_WARNING_THRESHOLD, getDayPhase } from './engine'
 import { AchievementsScreen } from './app/screens/AchievementsScreen'
 import { AlchemyScreen } from './app/screens/AlchemyScreen'
 import { AlchemyCodexScreen } from './app/screens/AlchemyCodexScreen'
@@ -110,7 +110,7 @@ function App() {
         <h1>仙途暴击</h1>
         {showTimer && (
           <div className={`app-timer-bar ${timeWarning ? 'app-timer-bar--warning' : ''}`}>
-            <span className="app-timer-label">时辰 {`${timeLeft}/${timeMax}`}</span>
+            <span className="app-timer-label">时辰 {`${timeLeft}/${timeMax}`} · {getDayPhase(timeLeft, timeMax)}</span>
             {timeWarning && (
               <span className="app-timer-warning">天劫将至！再贪就来不及了。</span>
             )}

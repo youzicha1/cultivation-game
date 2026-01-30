@@ -74,6 +74,7 @@ import {
 } from './pity'
 import {
   TIME_MAX,
+  getTimeMaxForSegment,
   applyTimeCost,
   shouldTriggerTribulationFinale,
 } from './time'
@@ -333,8 +334,8 @@ export function createInitialGameState(seed: number): GameState {
       chain: { completed: {} },
       cultivateCount: 0,
       tribulationLevel: 0,
-      timeLeft: TIME_MAX,
-      timeMax: TIME_MAX,
+      timeLeft: getTimeMaxForSegment(0),
+      timeMax: getTimeMaxForSegment(0),
       currentEvent: undefined,
     },
     log: [],
@@ -375,9 +376,11 @@ function applyTimeAndMaybeFinale(state: GameState, cost: number): GameState {
   return next
 }
 
-/** TICKET-14/15: 时辰已耗尽时，进入天劫挑战页（不直接结算） */
+/** TICKET-14/15: 时辰已耗尽时，进入天劫挑战页（不直接结算）；难度随已渡劫数递增 */
 function enterFinalTrial(state: GameState): GameState {
-  const threat = computeThreat(state)
+  const baseThreat = computeThreat(state)
+  const level = state.run.tribulationLevel ?? 0
+  const threat = Math.round(baseThreat * (1 + level * 0.12))
   const resolve = computeInitialResolve(state)
   return addLog(
     {
@@ -1826,6 +1829,7 @@ export function reduceGame(
         }
 
         const totalLegacy = 1 + rewards.legacyBonus
+        const nextSegmentTime = getTimeMaxForSegment(newLevel)
         let nextState: GameState = addLog(
           {
             ...state,
@@ -1835,8 +1839,8 @@ export function reduceGame(
               ...baseRun,
               tribulationLevel: newLevel,
               finalTrial: undefined,
-              timeLeft: baseRun.timeMax ?? TIME_MAX,
-              timeMax: baseRun.timeMax ?? TIME_MAX,
+              timeLeft: nextSegmentTime,
+              timeMax: nextSegmentTime,
             },
             meta: {
               ...state.meta,
