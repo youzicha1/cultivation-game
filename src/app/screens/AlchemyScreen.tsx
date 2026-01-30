@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import type { GameAction, GameState } from '../../engine'
 import {
   alchemyMaterials,
@@ -12,6 +12,7 @@ import {
 import { getAlchemyChances, getAlchemyShortage, type AlchemySelection } from '../../engine/alchemy_calc'
 import type { HeatLevel } from '../../engine'
 import { AlchemyFurnaceGauge } from '../ui/AlchemyFurnaceGauge'
+import { AlchemyResultEffect, getAlchemyResultGrade, type AlchemyGrade } from '../ui/AlchemyResultEffect'
 import { Button } from '../ui/Button'
 import { Panel } from '../ui/Panel'
 import { StickyFooter } from '../ui/StickyFooter'
@@ -42,8 +43,26 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
   const chances = getAlchemyChances(state, selection)
 
   const [rateExpanded, setRateExpanded] = useState(false)
+  const [isBrewing, setIsBrewing] = useState(false)
+  const brewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const unlocked = recipe ? state.player.recipesUnlocked[recipe.id] : false
+  const canBrewThisBatch = unlocked && canBrew
+
+  useEffect(() => () => {
+    if (brewTimeoutRef.current) clearTimeout(brewTimeoutRef.current)
+  }, [])
+
+  const handleBrewClick = useCallback(() => {
+    if (!recipe || !canBrewThisBatch || isBrewing) return
+    setIsBrewing(true)
+    brewTimeoutRef.current = setTimeout(() => {
+      brewTimeoutRef.current = null
+      dispatch({ type: 'ALCHEMY_BREW_CONFIRM' })
+      setIsBrewing(false)
+    }, 1400)
+  }, [recipe, canBrewThisBatch, isBrewing, dispatch])
+
   const dailyEnv = state.meta?.daily
     ? getDailyEnvironmentDef(state.meta.daily.environmentId as import('../../engine').DailyEnvironmentId)
     : null
@@ -53,24 +72,26 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
       ? `材料不足：缺 ${shortages.map((s) => `${s.name}×${s.missing}`).join('、')}`
       : '可炼'
   const boomRateHigh = chances ? chances.boomRate >= BOOM_RATE_HIGH_THRESHOLD : false
-  const canBrewThisBatch = unlocked && canBrew
   const primaryButtonReason =
     !canBrewThisBatch && shortages.length > 0
       ? `材料不足：缺 ${shortages.map((s) => `${s.name}×${s.missing}`).join('、')}`
       : null
 
-  // ——— 结果弹层（TICKET-17A：居中 Modal + 继续炼丹 / 去突破） ———
+  // ——— 结果弹层（TICKET-17A：居中 Modal + 品级特效） ———
   if (outcome?.kind === 'alchemy') {
     const isBoom = outcome.boomed
     const isSuccess = outcome.successes > 0
     const hasTian = outcome.items?.tian > 0
     const hasDi = outcome.items?.di > 0
+    const resultGrade: AlchemyGrade = getAlchemyResultGrade(outcome.items, isBoom)
+    const shakeClass = resultGrade === 'tian' ? 'alchemy-page--shake-tian' : resultGrade === 'di' ? 'alchemy-page--shake-di' : ''
 
     return (
-      <div className="alchemy-page alchemy-page--with-modal">
-        <Modal>
+      <div className={`alchemy-page alchemy-page--with-modal ${shakeClass}`}>
+        <AlchemyResultEffect grade={resultGrade} hasBoom={outcome.booms > 0} />
+        <Modal className="modal-backdrop--alchemy-result">
           <div
-            className={`alchemy-outcome alchemy-outcome--${isBoom ? 'boom' : isSuccess ? 'success' : 'fail'} ${hasTian ? 'alchemy-outcome--tian' : ''} ${hasDi ? 'alchemy-outcome--di' : ''}`}
+            className={`alchemy-outcome alchemy-outcome--${isBoom ? 'boom' : isSuccess ? 'success' : 'fail'} alchemy-outcome--grade-${resultGrade} ${hasTian ? 'alchemy-outcome--tian' : ''} ${hasDi ? 'alchemy-outcome--di' : ''}`}
           >
             {hasTian && (
               <div className="alchemy-quality-banner alchemy-quality-banner--tian">
@@ -169,6 +190,12 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
   // ——— 主界面：一屏布局 + 底部固定条 ———
   return (
     <div className="alchemy-page">
+      {isBrewing && (
+        <div className="alchemy-brewing-overlay" aria-live="polite" aria-busy="true">
+          <span className="alchemy-brewing-overlay__text">炼中…</span>
+          <span className="alchemy-brewing-overlay__glow" />
+        </div>
+      )}
       <Panel title="炼丹" className="alchemy-panel">
         {/* 顶部：资源条 */}
         <header className="alchemy-resource-bar">
@@ -335,7 +362,7 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                   <AlchemyFurnaceGauge
                     successRate={chances.successRate}
                     boomRate={chances.boomRate}
-                    mode="idle"
+                    mode={isBrewing ? 'brewing' : 'idle'}
                   />
                 </div>
                 <div className="alchemy-rate-block">
@@ -405,11 +432,11 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                 variant="primary"
                 size="md"
                 className="alchemy-footer-main-btn"
-                onClick={() => dispatch({ type: 'ALCHEMY_BREW_CONFIRM' })}
-                disabled={!recipe || !canBrewThisBatch}
+                onClick={handleBrewClick}
+                disabled={!recipe || !canBrewThisBatch || isBrewing}
                 title={primaryButtonReason ?? undefined}
               >
-                炼丹
+                {isBrewing ? '炼中…' : '炼丹'}
               </Button>
               <span className="alchemy-time-hint">消耗：1 时辰</span>
               <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'home' })}>

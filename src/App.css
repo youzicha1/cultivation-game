@@ -1887,6 +1887,288 @@
   text-shadow: 0 0 16px rgba(138, 43, 226, 0.8), 0 0 32px rgba(138, 43, 226, 0.4);
 }
 
+/* ===== 点击炼丹：炼中遮罩 ===== */
+.alchemy-brewing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
+  animation: brewing-overlay-in 0.25s ease-out;
+}
+.alchemy-brewing-overlay__glow {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 180, 60, 0.4) 0%, transparent 70%);
+  animation: brewing-glow-pulse 0.8s ease-in-out infinite;
+}
+.alchemy-brewing-overlay__text {
+  position: relative;
+  z-index: 1;
+  font-size: 22px;
+  font-weight: 700;
+  color: rgba(255, 220, 140, 0.95);
+  text-shadow: 0 0 20px rgba(255, 180, 60, 0.6);
+  letter-spacing: 4px;
+  animation: brewing-text-pulse 0.6s ease-in-out infinite;
+}
+@keyframes brewing-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes brewing-glow-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+@keyframes brewing-text-pulse {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+/* ===== 炼丹结果：品级特效（粒子 + 光晕 + 震屏） ===== */
+.alchemy-result-effect {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  overflow: hidden;
+}
+.alchemy-result-effect__burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 200%;
+  height: 200%;
+  margin-left: -100%;
+  margin-top: -100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 220, 120, 0.35) 0%,
+    rgba(255, 180, 60, 0.15) 25%,
+    transparent 55%
+  );
+  animation: result-burst 1.2s ease-out forwards;
+  opacity: 0;
+}
+.alchemy-result-effect--tian .alchemy-result-effect__burst {
+  background: radial-gradient(
+    circle,
+    rgba(255, 240, 180, 0.5) 0%,
+    rgba(255, 215, 0, 0.25) 20%,
+    rgba(255, 180, 60, 0.1) 45%,
+    transparent 60%
+  );
+  animation: result-burst-tian 1.6s ease-out forwards;
+}
+.alchemy-result-effect--di .alchemy-result-effect__burst {
+  background: radial-gradient(
+    circle,
+    rgba(200, 150, 255, 0.35) 0%,
+    rgba(138, 43, 226, 0.15) 30%,
+    transparent 55%
+  );
+}
+.alchemy-result-effect--xuan .alchemy-result-effect__burst {
+  background: radial-gradient(
+    circle,
+    rgba(255, 200, 100, 0.3) 0%,
+    rgba(255, 180, 60, 0.1) 35%,
+    transparent 55%
+  );
+}
+@keyframes result-burst {
+  0% { transform: scale(0); opacity: 0.8; }
+  40% { opacity: 0.5; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes result-burst-tian {
+  0% { transform: scale(0); opacity: 0.9; }
+  30% { opacity: 0.6; }
+  70% { transform: scale(1); opacity: 0.2; }
+  100% { transform: scale(1.1); opacity: 0; }
+}
+
+.alchemy-result-effect__particles {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+.alchemy-result-effect__particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--size, 5px);
+  height: var(--size, 5px);
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  animation: result-particle-fly var(--duration, 1000ms) ease-out var(--delay, 0ms) forwards;
+  opacity: 0;
+}
+.alchemy-result-effect--tian .alchemy-result-effect__particle {
+  color: rgba(255, 240, 200, 0.95);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), rgba(255, 215, 0, 0.85));
+}
+.alchemy-result-effect--di .alchemy-result-effect__particle {
+  color: rgba(220, 180, 255, 0.9);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 230, 255, 0.9), rgba(138, 43, 226, 0.8));
+}
+.alchemy-result-effect--xuan .alchemy-result-effect__particle {
+  color: rgba(255, 220, 140, 0.9);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 240, 200, 0.9), rgba(255, 180, 60, 0.75));
+}
+.alchemy-result-effect--fan .alchemy-result-effect__particle {
+  color: rgba(180, 255, 200, 0.85);
+  background: radial-gradient(circle at 30% 30%, rgba(220, 255, 230, 0.9), rgba(100, 200, 140, 0.7));
+}
+.alchemy-result-effect--fail .alchemy-result-effect__particle {
+  color: rgba(120, 100, 100, 0.6);
+  background: rgba(80, 60, 60, 0.5);
+}
+@keyframes result-particle-fly {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+.alchemy-result-effect__stars {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+.alchemy-result-effect__star {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 12px rgba(255, 240, 200, 0.9), 0 0 24px rgba(255, 215, 0, 0.5);
+  animation: result-star-fly 1.2s ease-out var(--delay, 0ms) forwards;
+  opacity: 0;
+}
+@keyframes result-star-fly {
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 0;
+  }
+  15% { opacity: 1; transform: translate(0, 0) scale(1.2); }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+/* 震屏（天品/地品） */
+.alchemy-page--shake-tian {
+  animation: screen-shake-tian 0.7s ease-out;
+}
+.alchemy-page--shake-di {
+  animation: screen-shake-di 0.45s ease-out;
+}
+@keyframes screen-shake-tian {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  10% { transform: translate(-4px, -2px) scale(1.01); }
+  20% { transform: translate(4px, 2px) scale(1.01); }
+  30% { transform: translate(-3px, 3px) scale(1.01); }
+  40% { transform: translate(3px, -2px) scale(1.01); }
+  50% { transform: translate(-2px, -3px) scale(1.01); }
+  60% { transform: translate(2px, 2px) scale(1.01); }
+  70% { transform: translate(-1px, 1px) scale(1); }
+  80% { transform: translate(1px, -1px) scale(1); }
+}
+@keyframes screen-shake-di {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, 0); }
+}
+
+/* 品级入口：弹层与天品/地品横幅强调 */
+.alchemy-outcome--grade-tian .alchemy-outcome__card {
+  animation: outcome-card-in-tian 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.alchemy-outcome--grade-di .alchemy-outcome__card {
+  animation: outcome-card-in-di 0.5s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+}
+.alchemy-outcome--grade-xuan .alchemy-outcome__card,
+.alchemy-outcome--grade-fan .alchemy-outcome__card {
+  animation: outcome-card-in 0.4s ease-out forwards;
+}
+@keyframes outcome-card-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes outcome-card-in-di {
+  from { opacity: 0; transform: scale(0.9) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes outcome-card-in-tian {
+  from { opacity: 0; transform: scale(0.85) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.alchemy-outcome--grade-tian .alchemy-quality-banner--tian {
+  animation: tian-banner-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, quality-banner-pulse 1.2s ease-in-out 0.8s infinite;
+}
+@keyframes tian-banner-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+    filter: brightness(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+    filter: brightness(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.alchemy-outcome--grade-tian .alchemy-outcome__icon {
+  animation: tian-icon-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards;
+}
+@keyframes tian-icon-in {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 1; transform: scale(1.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alchemy-brewing-overlay__text,
+  .alchemy-brewing-overlay__glow { animation: none !important; }
+  .alchemy-result-effect__burst,
+  .alchemy-result-effect__particle,
+  .alchemy-result-effect__star { animation: none !important; }
+  .alchemy-page--shake-tian,
+  .alchemy-page--shake-di { animation: none !important; }
+  .alchemy-outcome--grade-tian .alchemy-outcome__card,
+  .alchemy-outcome--grade-di .alchemy-outcome__card,
+  .alchemy-outcome--grade-xuan .alchemy-outcome__card,
+  .alchemy-outcome--grade-fan .alchemy-outcome__card { animation: none !important; }
+  .alchemy-outcome--grade-tian .alchemy-quality-banner--tian,
+  .alchemy-outcome--grade-tian .alchemy-outcome__icon { animation: none !important; }
+}
+
 /* ========== 炼丹页：一屏布局 + 丹火暖色主题 ========== */
 .alchemy-page {
   --alchemy-bg: #0B0F12;
@@ -2313,6 +2595,9 @@
   background: rgba(11, 15, 18, 0.88);
   padding: 12px;
   box-sizing: border-box;
+}
+.modal-backdrop--alchemy-result {
+  background: rgba(11, 15, 18, 0.78);
 }
 .modal-box {
   width: 100%;
@@ -2748,62 +3033,121 @@
 }
 
 .alchemy-furnace__body {
-  fill: rgba(255, 255, 255, 0.06);
-  stroke: rgba(255, 255, 255, 0.18);
-  stroke-width: 2;
+  transition: opacity 0.2s ease;
+}
+
+.alchemy-furnace__bodyStroke {
+  stroke: rgba(180, 140, 90, 0.35);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
 }
 
 .alchemy-furnace__rim {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.22);
+  stroke: rgba(220, 180, 120, 0.35);
   stroke-width: 3;
   stroke-linecap: round;
 }
 
 .alchemy-furnace__fill {
-  fill: rgba(70, 180, 255, 0.35);
   transition: y 260ms ease;
+}
+
+.alchemy-furnace__fillShine {
+  opacity: 0.7;
+  animation: furnaceElixirShine 3s ease-in-out infinite;
+}
+
+@keyframes furnaceElixirShine {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+
+.alchemy-furnace__pill {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  transform-origin: center;
+}
+
+.alchemy-furnace__pill--1 {
+  animation: furnacePillFloat 2.8s ease-in-out infinite;
+}
+
+.alchemy-furnace__pill--2 {
+  animation: furnacePillFloat 3.2s ease-in-out 0.4s infinite;
+}
+
+.alchemy-furnace__pill--3 {
+  animation: furnacePillFloat 2.6s ease-in-out 0.8s infinite;
+}
+
+@keyframes furnacePillFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.95; }
+  50% { transform: translateY(-3px) scale(1.02); opacity: 1; }
 }
 
 .alchemy-furnace__mist {
   fill: none;
-  stroke: rgba(180, 230, 255, 0.35);
+  stroke: rgba(255, 230, 180, 0.28);
   stroke-width: 5;
   stroke-linecap: round;
   opacity: 0.6;
+  animation: furnaceMistPulse 4s ease-in-out infinite;
+}
+
+@keyframes furnaceMistPulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.7; }
 }
 
 .alchemy-furnace__glyph {
   fill: none;
-  stroke: rgba(255, 215, 120, 0.2);
+  stroke: rgba(255, 215, 120, 0.25);
   stroke-width: 2;
   stroke-linecap: round;
 }
 
-.alchemy-furnace__flame {
-  fill: rgba(255, 160, 60, 0.75);
-  filter: drop-shadow(0 0 10px rgba(255, 140, 40, 0.35));
-  transform-origin: 120px 140px;
+.alchemy-furnace__flameOuter {
+  fill: rgba(255, 200, 80, 0.5);
+  filter: drop-shadow(0 0 12px rgba(255, 180, 50, 0.4));
+  transform-origin: 120px 125px;
 }
 
-.alchemy-furnace--idle .alchemy-furnace__flame {
+.alchemy-furnace__flame {
+  fill: rgba(255, 120, 40, 0.85);
+  filter: drop-shadow(0 0 10px rgba(255, 100, 30, 0.5));
+  transform-origin: 120px 125px;
+}
+
+.alchemy-furnace--idle .alchemy-furnace__flame,
+.alchemy-furnace--idle .alchemy-furnace__flameOuter {
   animation: furnaceFlameBreath 1.9s ease-in-out infinite;
+}
+
+.alchemy-furnace--idle .alchemy-furnace__flameOuter {
+  animation-delay: 0.15s;
 }
 
 @keyframes furnaceFlameBreath {
   0% { transform: scale(0.98) rotate(-1deg); opacity: 0.85; }
-  50% { transform: scale(1.04) rotate(1deg); opacity: 1; }
+  50% { transform: scale(1.06) rotate(1deg); opacity: 1; }
   100% { transform: scale(0.98) rotate(-1deg); opacity: 0.85; }
 }
 
 .alchemy-furnace--boom0 .alchemy-furnace__flame {
   filter: drop-shadow(0 0 8px rgba(255, 140, 40, 0.25));
 }
-.alchemy-furnace--boom1 .alchemy-furnace__flame { animation-duration: 1.5s; }
-.alchemy-furnace--boom2 .alchemy-furnace__flame { animation-duration: 1.2s; }
-.alchemy-furnace--boom3 .alchemy-furnace__flame { animation-duration: 0.95s; }
+.alchemy-furnace--boom0 .alchemy-furnace__flameOuter {
+  filter: drop-shadow(0 0 10px rgba(255, 180, 50, 0.2));
+}
+.alchemy-furnace--boom1 .alchemy-furnace__flame,
+.alchemy-furnace--boom1 .alchemy-furnace__flameOuter { animation-duration: 1.5s; }
+.alchemy-furnace--boom2 .alchemy-furnace__flame,
+.alchemy-furnace--boom2 .alchemy-furnace__flameOuter { animation-duration: 1.2s; }
+.alchemy-furnace--boom3 .alchemy-furnace__flame,
+.alchemy-furnace--boom3 .alchemy-furnace__flameOuter { animation-duration: 0.95s; }
 
-.alchemy-furnace--brewing .alchemy-furnace__flame {
+.alchemy-furnace--brewing .alchemy-furnace__flame,
+.alchemy-furnace--brewing .alchemy-furnace__flameOuter {
   animation: furnaceFlameBurst 0.55s ease-out 1;
 }
 @keyframes furnaceFlameBurst {
@@ -2823,8 +3167,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .alchemy-furnace__flame { animation: none !important; }
+  .alchemy-furnace__flame,
+  .alchemy-furnace__flameOuter { animation: none !important; }
   .alchemy-furnace__fill { transition: none !important; }
+  .alchemy-furnace__fillShine,
+  .alchemy-furnace__pill,
+  .alchemy-furnace__mist { animation: none !important; }
 }
 
 .alchemy-furnace-wrap {
