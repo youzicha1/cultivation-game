@@ -1,4 +1,4 @@
-# 修仙游戏
+# 仙途暴击
 
 基于 React + TypeScript + Vite 开发的修仙类游戏。
 

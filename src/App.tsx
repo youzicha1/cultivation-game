@@ -102,7 +102,7 @@ function App() {
   return (
     <div className={`app-root ${isBreakthrough ? 'app-root--breakthrough' : ''} ${isAlchemy ? 'app-root--alchemy' : ''} ${isShop ? 'app-root--shop' : ''}`}>
       <header className="app-header">
-        <h1>修仙游戏</h1>
+        <h1>仙途暴击</h1>
         {showTimer && (
           <div className={`app-timer-bar ${timeWarning ? 'app-timer-bar--warning' : ''}`}>
             <span className="app-timer-label">时辰 {`${timeLeft}/${timeMax}`}</span>
