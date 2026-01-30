@@ -106,6 +106,12 @@ import {
   type SacrificeKind,
   type EndingId,
 } from './finalTrial'
+import {
+  applyBuy,
+  getFillMissingPlan,
+  getItemCurrentPrice,
+  type MaterialId as ShopMaterialId,
+} from './shop'
 
 export type ScreenId =
   | 'start'
@@ -124,6 +130,7 @@ export type ScreenId =
   | 'legacy'
   | 'final_trial'
   | 'final_result'
+  | 'shop'
 
 export type GameState = {
   screen: ScreenId
@@ -193,6 +200,8 @@ export type GameState = {
       previewRate: number
     }
     alchemyPlan?: { recipeId: RecipeId; batch: number; heat?: 'steady' | 'push' | 'blast' }
+    /** TICKET-18: 从炼丹页带入的缺口（坊市一键补齐用） */
+    shopMissing?: { materialId: string; need: number }[]
     lastOutcome?:
       | {
           kind: 'breakthrough'
@@ -260,7 +269,9 @@ export type GameState = {
 export type GameAction =
   | { type: 'NEW_GAME'; seed: number }
   | { type: 'LOAD_GAME'; state: GameState }
-  | { type: 'GO'; screen: ScreenId }
+  | { type: 'GO'; screen: ScreenId; shopMissing?: { materialId: string; need: number }[] }
+  | { type: 'SHOP_BUY'; itemId: MaterialId; qty: number }
+  | { type: 'SHOP_FILL_MISSING' }
   | { type: 'CULTIVATE_TICK' }
   | { type: 'EXPLORE_START' }
   | { type: 'EXPLORE_DEEPEN' }
@@ -759,7 +770,47 @@ export function reduceGame(
       return action.state
     }
     case 'GO': {
-      return { ...state, screen: action.screen }
+      const nextScreen = action.screen
+      const shopMissing = action.shopMissing
+      if (nextScreen === 'shop' && shopMissing != null && shopMissing.length > 0) {
+        return { ...state, screen: nextScreen, run: { ...baseRun, shopMissing } }
+      }
+      return { ...state, screen: nextScreen, run: { ...baseRun, shopMissing: undefined } }
+    }
+    case 'SHOP_BUY': {
+      const result = applyBuy(state, action.itemId as ShopMaterialId, action.qty)
+      if (!result) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      let nextState = addLog(
+        { ...state, player: result.newPlayer },
+        result.logMessage,
+      )
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'SHOP_FILL_MISSING': {
+      const missing = baseRun.shopMissing
+      if (!missing || missing.length === 0) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      const plan = getFillMissingPlan(state, missing)
+      if (plan.totalCost === 0) {
+        return { ...state, run: { ...baseRun, shopMissing: undefined, rngCalls } }
+      }
+      let st = state
+      for (const p of plan.plan) {
+        const unitPrice = getItemCurrentPrice(st, p.itemId)
+        const gold = st.player.spiritStones ?? 0
+        const qty = unitPrice > 0 ? Math.min(p.need, Math.floor(gold / unitPrice)) : 0
+        if (qty <= 0) continue
+        const res = applyBuy(st, p.itemId, qty)
+        if (!res) continue
+        st = addLog({ ...st, player: res.newPlayer }, res.logMessage)
+      }
+      if (!plan.canAfford) {
+        st = addLog(st, `【坊市】还差灵石×${plan.missingGold}，无法一次补齐。`)
+      }
+      return { ...st, run: { ...st.run, shopMissing: undefined, rngCalls } }
     }
     case 'CLEAR_LOG': {
       return { ...state, log: [] }

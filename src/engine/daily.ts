@@ -90,6 +90,8 @@ export type DailyModifiers = {
   alchemyBoomRateMultiplier?: number
   /** 修炼/探索/突破：受伤加值（负数=减伤） */
   damageBonus?: number
+  /** TICKET-18: 坊市每日价格乘数（按品类，1=不变） */
+  priceMultByCategory?: { herb?: number; dew?: number; ore?: number; beast?: number }
 }
 
 const ENVIRONMENTS: Record<DailyEnvironmentId, DailyEnvironmentDef> = {
@@ -172,20 +174,24 @@ const MODIFIERS: Record<DailyEnvironmentId, DailyModifiers> = {
     alchemyTianMultiplier: 1.25,
     alchemyBoomDmgReduce: 1,
     exploreDropMultiplier: 0.8,
+    priceMultByCategory: { herb: 0.9, dew: 0.95 },
   },
   explore_day: {
     exploreDropMultiplier: 1.3,
     retreatBonus: 0.1,
     breakthroughSuccessBonus: -0.05,
+    priceMultByCategory: { dew: 0.85, beast: 0.9 },
   },
   breakthrough_day: {
     breakthroughSuccessBonus: 0.08,
     breakthroughPityBonusOnFail: 1,
     alchemySuccessBonus: -0.05,
+    priceMultByCategory: { herb: 1.05 },
   },
   heart_demon_day: {
     eventTriggerBonus: 0.15,
     damageBonus: 1,
+    priceMultByCategory: { ore: 1.1 },
   },
   balanced_day: {
     alchemySuccessBonus: 0.02,
@@ -197,6 +203,7 @@ const MODIFIERS: Record<DailyEnvironmentId, DailyModifiers> = {
     breakthroughSuccessBonus: 0.05,
     damageBonus: 2,
     alchemyBoomRateMultiplier: 1.1,
+    priceMultByCategory: { ore: 1.15, beast: 1.1 },
   },
 }
 

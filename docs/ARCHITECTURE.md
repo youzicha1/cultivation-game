@@ -119,6 +119,14 @@
 - **奖励**：getFinalRewards(endingId)；ascend +3 传承 +3 碎片；retire +2 +2；demon +2 +1 且 demonPathUnlocked；dead +1 +1
 - **存档**：persistence 保存/加载 run.finalTrial（step、threat、resolve、choices），中途退出可续
 
+### 坊市/商店（TICKET-18）
+- **位置**：`src/engine/shop.ts`；ScreenId `shop`；`run.shopMissing` 可选（从炼丹页带入缺口）
+- **价格**：纯函数；当前价 = ceil(basePrice × getPriceMult(state, category))；getPriceMult 读 `state.meta.daily.environmentId` → getDailyModifiers(envId).priceMultByCategory[category] ?? 1
+- **每日修正**：DailyModifiers 新增 priceMultByCategory（herb/dew/ore/beast）；各环境在 daily.ts MODIFIERS 中配置（如 alchemy_day 草药 0.9、danger_day 矿 1.15）
+- **买入**：canBuy(state, itemId, qty) 检查 gold ≥ 总价；applyBuy 返回 newPlayer/cost/logMessage；reducer SHOP_BUY 应用并写日志
+- **一键补齐**：getFillMissingPlan(state, missing) 算总价与 missingGold；SHOP_FILL_MISSING 按顺序尽量买齐，钱不够则日志“还差灵石×X”
+- **存档**：persistence 可选保存/加载 run.shopMissing
+
 ### 测试
 - engine 层必须 100% 可测试
 - 使用依赖注入，避免硬编码依赖

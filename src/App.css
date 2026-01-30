@@ -1135,9 +1135,21 @@
   display: flex;
   flex-direction: column;
 }
-.app-main--alchemy > * {
+.app-main--alchemy > *,
+.app-main--shop > * {
   flex: 1;
   min-height: 0;
+}
+.app-root--shop {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.app-root--shop .app-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 日志：紧凑条带，与整体小按钮风格一致 */
@@ -2090,6 +2102,96 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+/* TICKET-18: 坊市页（一屏布局） */
+.shop-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.shop-page .shop-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+}
+.shop-resource-bar {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.shop-gold {
+  font-weight: 600;
+  color: var(--gold, #eab308);
+}
+.shop-mats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.shop-mat-chip {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  color: var(--text);
+}
+.shop-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.shop-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  font-size: 13px;
+}
+.shop-row-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.shop-row-name { font-weight: 600; }
+.shop-row-price { color: var(--muted); font-size: 12px; }
+.shop-row-owned { color: var(--muted); font-size: 12px; }
+.shop-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.shop-qty-btn {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 4px;
+}
+.shop-qty-value {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 600;
+}
+.shop-footer {
+  flex-shrink: 0;
+  min-height: 52px;
 }
 
 /* TICKET-17A: 通用弹层 */

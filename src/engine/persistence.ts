@@ -111,6 +111,7 @@ function normalizeLoadedState(state: GameState): GameState {
     timeMax?: number
     cultivateCount?: number
     finalTrial?: { step: 1 | 2 | 3; threat: number; resolve: number; wounds?: number; choices: string[]; rewardSeed?: number }
+    shopMissing?: { materialId: string; need: number }[]
   }
   const loadedFinalTrial = runState.finalTrial
   const finalTrial =
@@ -142,6 +143,9 @@ function normalizeLoadedState(state: GameState): GameState {
     timeLeft: typeof runState.timeLeft === 'number' ? Math.max(0, runState.timeLeft) : TIME_MAX,
     timeMax: typeof runState.timeMax === 'number' ? runState.timeMax : TIME_MAX,
     ...(finalTrial ? { finalTrial } : {}),
+    ...(Array.isArray(runState.shopMissing) && runState.shopMissing.length > 0
+      ? { shopMissing: runState.shopMissing.filter((m: any) => m && typeof m.materialId === 'string' && typeof m.need === 'number') }
+      : {}),
   }
 
   const loadedMeta: any = state.meta ?? {}

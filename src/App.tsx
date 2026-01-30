@@ -17,6 +17,7 @@ import { SummaryScreen } from './app/screens/SummaryScreen'
 import { LegacyScreen } from './app/screens/LegacyScreen'
 import { FinalTrialScreen } from './app/screens/FinalTrialScreen'
 import { FinalResultScreen } from './app/screens/FinalResultScreen'
+import { ShopScreen } from './app/screens/ShopScreen'
 
 function App() {
   const { state, dispatch, newGame, clearSave } = useGameStore()
@@ -74,6 +75,8 @@ function App() {
         return (
           <FinalResultScreen state={state} dispatch={dispatch} newGame={newGame} />
         )
+      case 'shop':
+        return <ShopScreen state={state} dispatch={dispatch} />
       default:
         return <HomeScreen state={state} dispatch={dispatch} />
     }
@@ -81,12 +84,13 @@ function App() {
 
   const isBreakthrough = state.screen === 'breakthrough'
   const isAlchemy = state.screen === 'alchemy'
-  const showTimer = ['home', 'cultivate', 'explore', 'alchemy', 'breakthrough', 'alchemy_codex', 'relics', 'legacy', 'settings', 'achievements'].includes(state.screen)
+  const isShop = state.screen === 'shop'
+  const showTimer = ['home', 'cultivate', 'explore', 'alchemy', 'breakthrough', 'alchemy_codex', 'relics', 'legacy', 'settings', 'achievements', 'shop'].includes(state.screen)
   const timeLeft = state.run.timeLeft ?? TIME_MAX
   const timeMax = state.run.timeMax ?? TIME_MAX
   const timeWarning = timeLeft <= TIME_WARNING_THRESHOLD
   return (
-    <div className={`app-root ${isBreakthrough ? 'app-root--breakthrough' : ''} ${isAlchemy ? 'app-root--alchemy' : ''}`}>
+    <div className={`app-root ${isBreakthrough ? 'app-root--breakthrough' : ''} ${isAlchemy ? 'app-root--alchemy' : ''} ${isShop ? 'app-root--shop' : ''}`}>
       <header className="app-header">
         <h1>修仙游戏</h1>
         {showTimer && (
@@ -98,7 +102,7 @@ function App() {
           </div>
         )}
       </header>
-      <main className={`app-main ${isBreakthrough ? 'app-main--breakthrough' : ''} ${isAlchemy ? 'app-main--alchemy' : ''}`}>{screen}</main>
+      <main className={`app-main ${isBreakthrough ? 'app-main--breakthrough' : ''} ${isAlchemy ? 'app-main--alchemy' : ''} ${isShop ? 'app-main--shop' : ''}`}>{screen}</main>
       <section className="app-log">
         <div className="app-log-head">
           <span className="app-log-title">日志</span>

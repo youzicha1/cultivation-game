@@ -220,8 +220,19 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
               >
                 去探索
               </Button>
-              <Button variant="ghost" size="sm" className="alchemy-goto-btn" disabled title="开发中">
-                去商店（开发中）
+              <Button
+                variant="option-green"
+                size="sm"
+                className="alchemy-goto-btn"
+                onClick={() =>
+                  dispatch({
+                    type: 'GO',
+                    screen: 'shop',
+                    shopMissing: shortages.map((s) => ({ materialId: s.materialId, need: s.missing })),
+                  })
+                }
+              >
+                去坊市
               </Button>
             </div>
           )}

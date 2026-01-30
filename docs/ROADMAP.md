@@ -117,6 +117,15 @@
 - **通用组件**：StickyFooter、Modal（后续突破/探索复用）
 - **工程**：alchemy_calc.ts、alchemy_calc.test.ts（缺口与概率）；AlchemyScreen 用 alchemy_calc；ROADMAP 更新
 
+## TICKET-18 完成项（坊市/商店 + 每日价格 + 缺口闭环）
+
+- **坊市**：买入灵草/月华露/铁砂/妖核等基础材料（4 种与炼丹配方一致）；价格 = ceil(basePrice × dailyMult)，dailyMult 来自今日天道环境
+- **每日价格**：daily.modifiers.priceMultByCategory（herb/dew/ore/beast）；例：丹火日草药 0.9、灵潮日露 0.85、煞气日矿/妖核偏贵
+- **闭环**：炼丹页“缺口”旁【去坊市】带 run.shopMissing；坊市页【按缺口补齐】一键购买（钱不够则部分补齐 + 提示还差灵石×X）
+- **引擎**：shop.ts（getShopCatalog、canBuy、applyBuy、getFillMissingPlan）；game.ts SHOP_BUY、SHOP_FILL_MISSING、GO 支持 shopMissing
+- **UI**：ShopScreen 一屏（资源条 + 商品列表可内部滚动 + StickyFooter）；persistence 可选保存 run.shopMissing
+- **工程**：shop.test.ts（价格受 daily、买入扣金加料、金钱不足不可买、qty 边界、fillPlan）；docs 更新
+
 ## 开发优先级
 
 待定，将根据游戏设计逐步确定。
