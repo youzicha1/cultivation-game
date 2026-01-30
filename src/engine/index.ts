@@ -72,6 +72,13 @@ export {
   ENDING_SUBTITLES,
 } from './finalTrial'
 export type { SacrificeKind, EndingId } from './finalTrial'
+export {
+  hasBreakthroughPrereq,
+  getRequiredKungfuForTargetRealm,
+  prevRealm as prevRealmBreakthrough,
+  REALMS as REALMS_BREAKTHROUGH,
+} from './breakthrough_requirements'
+export type { RealmId } from './breakthrough_requirements'
 export * from './tribulation/names'
 export * from './tribulation/rates'
 export * from './cultivation'

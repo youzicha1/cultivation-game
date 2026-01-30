@@ -2043,6 +2043,14 @@
   background: rgba(245, 158, 11, 0.12) !important;
 }
 
+.alchemy-gauge-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .alchemy-rate-block {
   padding: 12px;
   border-radius: 12px;
@@ -2691,4 +2699,137 @@
   font-size: 12px;
   color: var(--gold);
   text-align: center;
+}
+
+/* ===== TICKET-28: Alchemy Furnace Gauge ===== */
+.alchemy-furnace {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(10, 14, 26, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.alchemy-furnace__svgWrap {
+  width: 100%;
+  aspect-ratio: 240 / 280;
+  display: grid;
+  place-items: center;
+}
+
+.alchemy-furnace__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.alchemy-furnace__numbers {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.alchemy-furnace__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+}
+
+.alchemy-furnace__label {
+  opacity: 0.78;
+}
+
+.alchemy-furnace__value {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.alchemy-furnace__body {
+  fill: rgba(255, 255, 255, 0.06);
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 2;
+}
+
+.alchemy-furnace__rim {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.alchemy-furnace__fill {
+  fill: rgba(70, 180, 255, 0.35);
+  transition: y 260ms ease;
+}
+
+.alchemy-furnace__mist {
+  fill: none;
+  stroke: rgba(180, 230, 255, 0.35);
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+
+.alchemy-furnace__glyph {
+  fill: none;
+  stroke: rgba(255, 215, 120, 0.2);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.alchemy-furnace__flame {
+  fill: rgba(255, 160, 60, 0.75);
+  filter: drop-shadow(0 0 10px rgba(255, 140, 40, 0.35));
+  transform-origin: 120px 140px;
+}
+
+.alchemy-furnace--idle .alchemy-furnace__flame {
+  animation: furnaceFlameBreath 1.9s ease-in-out infinite;
+}
+
+@keyframes furnaceFlameBreath {
+  0% { transform: scale(0.98) rotate(-1deg); opacity: 0.85; }
+  50% { transform: scale(1.04) rotate(1deg); opacity: 1; }
+  100% { transform: scale(0.98) rotate(-1deg); opacity: 0.85; }
+}
+
+.alchemy-furnace--boom0 .alchemy-furnace__flame {
+  filter: drop-shadow(0 0 8px rgba(255, 140, 40, 0.25));
+}
+.alchemy-furnace--boom1 .alchemy-furnace__flame { animation-duration: 1.5s; }
+.alchemy-furnace--boom2 .alchemy-furnace__flame { animation-duration: 1.2s; }
+.alchemy-furnace--boom3 .alchemy-furnace__flame { animation-duration: 0.95s; }
+
+.alchemy-furnace--brewing .alchemy-furnace__flame {
+  animation: furnaceFlameBurst 0.55s ease-out 1;
+}
+@keyframes furnaceFlameBurst {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+  45% { transform: scale(1.22) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+}
+
+.alchemy-furnace--resultSuccess {
+  border-color: rgba(160, 240, 180, 0.35);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(160, 240, 180, 0.1) inset;
+}
+
+.alchemy-furnace--resultBoom {
+  border-color: rgba(255, 120, 120, 0.35);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 120, 120, 0.1) inset;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alchemy-furnace__flame { animation: none !important; }
+  .alchemy-furnace__fill { transition: none !important; }
+}
+
+.alchemy-furnace-wrap {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
 }

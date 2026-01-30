@@ -11,6 +11,7 @@ import {
 } from '../../engine'
 import { getAlchemyChances, getAlchemyShortage, type AlchemySelection } from '../../engine/alchemy_calc'
 import type { HeatLevel } from '../../engine'
+import { AlchemyFurnaceGauge } from '../ui/AlchemyFurnaceGauge'
 import { Button } from '../ui/Button'
 import { Panel } from '../ui/Panel'
 import { StickyFooter } from '../ui/StickyFooter'
@@ -330,6 +331,13 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
           <div className="alchemy-main-col alchemy-main-col--right">
             {chances && (
               <>
+                <div className="alchemy-gauge-wrap">
+                  <AlchemyFurnaceGauge
+                    successRate={chances.successRate}
+                    boomRate={chances.boomRate}
+                    mode="idle"
+                  />
+                </div>
                 <div className="alchemy-rate-block">
                   <div className="alchemy-rate-big">
                     <span className="alchemy-rate-big-value">

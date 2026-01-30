@@ -5,7 +5,10 @@ import {
   getDailyEnvironmentDef,
   getDailyModifiers,
   shouldShowClutchHint,
+  hasBreakthroughPrereq,
+  getRequiredKungfuForTargetRealm,
 } from '../../engine'
+import { relicRegistry } from '../../engine/relics'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
 
@@ -92,18 +95,17 @@ function getPresetPlan(
     if (totalPills(player.elixirs, 'foundation_pill') === 0) {
       return { useElixir: undefined, inheritanceSpent: 0, disabled: true, missingHint: '缺：筑基丹' }
     }
-    const count = foundation ? Math.min(2, foundation.count) : 0
+    const count = foundation?.count ?? 0
     const quality = foundation?.quality ?? 'fan'
     const inheritanceSpent = Math.min(3, maxInheritance)
     const missing: string[] = []
-    if (count < 2 && foundation) missing.push('筑基丹×' + (2 - count))
     if (inheritanceSpent < 3) missing.push('传承点×' + (3 - inheritanceSpent))
     return {
       useElixir: foundation ? { elixirId: 'foundation_pill', quality, count: count || 1 } : undefined,
       inheritanceSpent,
       disabled: false,
       missingHint: missing.length > 0 ? missing.join('、') : undefined,
-      reason: '筑基丹×2+传承3，梭哈一把',
+      reason: `筑基丹×${count}+传承${inheritanceSpent}，梭哈一把`,
     }
   }
 
@@ -125,7 +127,7 @@ function bestQualityAndCount(
   const e = elixirs[pillId]
   for (const q of BEST_QUALITY_FIRST) {
     const n = e[q]
-    if (n > 0) return { quality: q, count: Math.min(2, n) }
+    if (n > 0) return { quality: q, count: n }
   }
   return null
 }
@@ -317,8 +319,12 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
   }
 
   // ——— 主界面：一屏布局 + 底部固定条 ———
-  const currentPlan = plan ?? { inheritanceSpent: 0, previewRate: 0.22, useElixir: undefined }
+  const currentPlan = plan ?? { inheritanceSpent: 0, previewRate: 0, useElixir: undefined }
   const useElixir = currentPlan.useElixir
+  const targetRealmIndex = realmIndexForDisplay(state.player.realm) + 1
+  const prereqOk = hasBreakthroughPrereq(state.player.relics, targetRealmIndex)
+  const requiredKungfuId = getRequiredKungfuForTargetRealm(targetRealmIndex)
+  const requiredKungfuName = requiredKungfuId ? relicRegistry[requiredKungfuId]?.name : null
   const dailyMod = state.meta?.daily
     ? getDailyModifiers(state.meta.daily.environmentId as import('../../engine').DailyEnvironmentId)
     : undefined
@@ -369,10 +375,18 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
       {/* 中部：成功率大数字 + 临门一脚提示 */}
       <div className="breakthrough-main">
         <div className="breakthrough-rate-display">
+          {!prereqOk && requiredKungfuName && (
+            <div className="breakthrough-prereq-warn">
+              需功法「{requiredKungfuName}」方可冲关，否则成功率 0%
+            </div>
+          )}
           <div className="breakthrough-rate-big">
             <span className="breakthrough-rate-big-value">{(rate * 100).toFixed(0)}%</span>
             <span className="breakthrough-rate-big-label">成功率</span>
           </div>
+          {prereqOk && rate === 0 && (
+            <div className="breakthrough-kungfu-hint">需丹药或传承点增加成功率（基础 0%）</div>
+          )}
           {kungfuAdd > 0 && (
             <div className="breakthrough-kungfu-hint">功法加成 +{(kungfuAdd * 100).toFixed(0)}%</div>
           )}
@@ -436,7 +450,7 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
       {/* 底部固定操作条 */}
       <footer className="breakthrough-footer">
         <div className="breakthrough-footer-preview">
-          成功：境界+1 回满血；失败：保底+1 传承补偿
+          成功：境界+1 回满血；失败：高伤害，50% 概率境界跌落（凡人不再降），保底+1 传承补偿
         </div>
         <div className="breakthrough-footer-actions">
           <div className="breakthrough-confirm-row">

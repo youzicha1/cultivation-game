@@ -42,6 +42,10 @@ import {
   type DailyReward,
 } from './daily'
 import { relicRegistry, type RelicId } from './relics'
+import {
+  hasBreakthroughPrereq,
+  prevRealm as prevRealmFromReqs,
+} from './breakthrough_requirements'
 import { buildKungfaModifiers, getKungfu } from './kungfu'
 import { getKungfuModifiers } from './kungfu_modifiers'
 import { getMindBreakthroughBonus, getMindDangerIncMult, getMindAlchemySuccessBonus, cultivate, type CultivateMode, type InsightEvent } from './cultivation'
@@ -356,7 +360,7 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function clampRate(value: number): number {
-  return clamp(value, 0.05, 0.95)
+  return clamp(value, 0, 0.95)
 }
 
 function addLog(state: GameState, message: string): GameState {
@@ -442,6 +446,7 @@ function realmIndex(realm: string): number {
   return index < 0 ? 0 : index
 }
 
+/** 突破基础成功率 0%；仅丹药/传承/功法/心境等可加概率；后期境界需特定功法否则为 0 */
 export function calcBreakthroughRate(
   state: GameState,
   inheritanceSpent: number,
@@ -452,35 +457,40 @@ export function calcBreakthroughRate(
   },
   dailySuccessBonus: number = 0,
 ): number {
-  const base = 0.22 + realmIndex(state.player.realm) * 0.03
-  const inheritanceBonus = inheritanceSpent * 0.1
+  const targetRealmIndex = realmIndex(state.player.realm) + 1
+  if (!hasBreakthroughPrereq(state.player.relics, targetRealmIndex)) {
+    return 0
+  }
+
+  const base = 0
+  const inheritanceBonus = inheritanceSpent * 0.08
   const legacyCtx = buildLegacyModifiers(state.meta)
-  const pityBonusBase = state.player.pity * 0.06
-  const pityBonus = pityBonusBase + (state.player.pity >= 3 ? legacyCtx.breakthroughPityBonusRate : 0)
-  const dangerPenalty = state.run.danger > 0 ? state.run.danger * 0.02 : 0
+  const pityBonusBase = state.player.pity * 0.02
+  const pityBonus = Math.min(0.08, pityBonusBase) + (state.player.pity >= 5 ? legacyCtx.breakthroughPityBonusRate : 0)
+  const dangerPenalty = state.run.danger > 0 ? state.run.danger * 0.015 : 0
 
   const elixirBonus = (() => {
     if (!useElixir || useElixir.count <= 0) {
       return 0
     }
-    const count = clamp(useElixir.count, 0, 2)
+    const count = useElixir.count
     const spiritBonus: Record<ElixirQuality, number> = {
-      fan: 0.06,
-      xuan: 0.1,
-      di: 0.14,
-      tian: 0.2,
+      fan: 0.04,
+      xuan: 0.07,
+      di: 0.11,
+      tian: 0.16,
     }
     const foundationBonus: Record<ElixirQuality, number> = {
-      fan: 0.1,
-      xuan: 0.16,
-      di: 0.22,
-      tian: 0.3,
+      fan: 0.06,
+      xuan: 0.1,
+      di: 0.15,
+      tian: 0.22,
     }
     const per =
       useElixir.elixirId === 'foundation_pill'
         ? foundationBonus[useElixir.quality]
         : spiritBonus[useElixir.quality]
-    return per * count
+    return Math.min(0.6, per * count)
   })()
 
   const mod = getKungfuModifiers(state)
@@ -526,9 +536,8 @@ function createBreakthroughPlan(
   const inheritance = clamp(inheritanceSpent, 0, state.player.inheritancePoints)
   let normalizedUseElixir: NonNullable<GameState['run']['breakthroughPlan']>['useElixir']
   if (useElixir && useElixir.count > 0) {
-    const count = clamp(useElixir.count, 0, 2)
     const available = state.player.elixirs[useElixir.elixirId][useElixir.quality]
-    const finalCount = clamp(count, 0, available)
+    const finalCount = clamp(useElixir.count, 0, available)
     if (finalCount > 0) {
       normalizedUseElixir = {
         elixirId: useElixir.elixirId,
@@ -1480,19 +1489,21 @@ export function reduceGame(
 
       const legacyCtx = buildLegacyModifiers(stateAfterMission.meta)
       const mod = getKungfuModifiers(stateAfterMission)
-      const baseDmg = nextInt(2, 6)
-      const dmgRaw = useElixir?.elixirId === 'foundation_pill' ? baseDmg + 1 : baseDmg
-      const dmg = Math.max(1, dmgRaw + (dailyMod.damageBonus ?? 0) - legacyCtx.breakthroughFailureDamageReduction)
+      const baseDmg = nextInt(14, 26)
+      const dmgRaw = useElixir?.elixirId === 'foundation_pill' ? baseDmg + 3 : baseDmg
+      const dmg = Math.max(8, dmgRaw + (dailyMod.damageBonus ?? 0) - legacyCtx.breakthroughFailureDamageReduction)
       const pityBonus = (dailyMod.breakthroughPityBonusOnFail ?? 0) + legacyCtx.breakthroughPityBonus
       const pityGainBase = 1 + pityBonus
       const pityGainMult = mod.breakthroughPityGainMult ?? 1
       const pityGain = Math.max(0, Math.floor(pityGainBase * pityGainMult))
       const inheritanceGain = 1 + nextInt(0, 1)
+      const dropRealm = nextPlayer.realm !== '凡人' && next01() < 0.5
       nextPlayer = {
         ...nextPlayer,
         hp: nextPlayer.hp - dmg,
         inheritancePoints: nextPlayer.inheritancePoints + inheritanceGain,
         pity: nextPlayer.pity + pityGain,
+        ...(dropRealm ? { realm: prevRealmFromReqs(nextPlayer.realm) } : {}),
       }
       const deltas = buildOutcomeDeltas(beforePlayer, nextPlayer)
       let nextState: GameState = {
@@ -1502,12 +1513,12 @@ export function reduceGame(
           ...baseRun,
           turn,
           breakthroughPlan: undefined,
-          lastOutcome: {
-            kind: 'breakthrough',
-            success: false,
-            title: '心魔反噬！',
-            text: `心魔一击，但你已窥见天机。你从失败中悟得天机：传承+${inheritanceGain}，保底+${pityGain}（下次更香）`,
-            deltas,
+            lastOutcome: {
+              kind: 'breakthrough',
+              success: false,
+              title: '心魔反噬！',
+              text: `心魔一击，但你已窥见天机。传承+${inheritanceGain}，保底+${pityGain}${dropRealm ? '；境界跌落一重' : ''}`,
+              deltas,
             consumed: {
               inheritanceSpent,
               elixir: useElixir,
@@ -1515,7 +1526,7 @@ export function reduceGame(
           },
         },
       }
-      nextState = addLog(nextState, `突破失败，获得${inheritanceGain}点传承点`)
+      nextState = addLog(nextState, `突破失败，获得${inheritanceGain}点传承点${dropRealm ? '，心魔反噬境界跌落一重' : ''}`)
       // TICKET-12: 突破死亡保护（本局第一次失败不死）
       if (nextPlayer.hp <= 0 && legacyCtx.breakthroughDeathProtectionOnce > 0) {
         nextPlayer.hp = 1

@@ -130,13 +130,15 @@ describe('game reducer', () => {
     })
 
     it('legacy modifiers 生效：BR1 突破率+', () => {
+      const base = createInitialGameState(1)
       const state: GameState = {
-        ...createInitialGameState(1),
+        ...base,
+        player: { ...base.player, inheritancePoints: 2 },
         meta: { legacyUpgrades: { BR1: 1 } },
       }
-      const rate = calcBreakthroughRate(state, 0)
+      const rate = calcBreakthroughRate(state, 1)
       const stateWithout = { ...state, meta: {} }
-      const rateWithout = calcBreakthroughRate(stateWithout, 0)
+      const rateWithout = calcBreakthroughRate(stateWithout, 1)
       expect(rate).toBeGreaterThan(rateWithout)
     })
   })
@@ -170,7 +172,7 @@ describe('game reducer', () => {
     expect(next.run.danger).toBe(0)
   })
 
-  it('calcBreakthroughRate pills/inheritance/pity 会提高成功率', () => {
+  it('calcBreakthroughRate 基础 0%，pills/inheritance/pity 提高成功率', () => {
     const base = createInitialGameState(1)
     const rate0 = calcBreakthroughRate(base, 0)
     const rate2 = calcBreakthroughRate(base, 1)
@@ -198,7 +200,7 @@ describe('game reducer', () => {
     expect(rate2).toBeGreaterThan(rate0)
     expect(rate3).toBeGreaterThan(rate0)
     expect(rate4).toBeGreaterThan(rate0)
-    expect(rate0).toBeGreaterThanOrEqual(0.05)
+    expect(rate0).toBeGreaterThanOrEqual(0)
     expect(rate0).toBeLessThanOrEqual(0.95)
   })
 
@@ -263,7 +265,7 @@ describe('game reducer', () => {
     expect(next.run.breakthroughPlan).toBeUndefined()
   })
 
-  it('BREAKTHROUGH_CONFIRM 失败路径：pity+1、hp减少、inheritancePoints增加', () => {
+  it('BREAKTHROUGH_CONFIRM 失败路径：高伤害、pity+1、inheritance增加；凡人无降级', () => {
     const rng = createSequenceRng([0.99, 0.0, 0.0])
     const base = createInitialGameState(1)
     const state: GameState = {
@@ -272,6 +274,8 @@ describe('game reducer', () => {
       player: {
         ...base.player,
         pity: 1,
+        hp: 100,
+        maxHp: 100,
         elixirs: {
           ...base.player.elixirs,
           foundation_pill: { fan: 0, xuan: 0, di: 0, tian: 1 },
@@ -290,11 +294,12 @@ describe('game reducer', () => {
     const beforeHp = state.player.hp
     const next = reduceGame(state, { type: 'BREAKTHROUGH_CONFIRM' }, rng)
 
-    expect(next.player.pity).toBe(2)
+    expect(next.player.pity).toBeGreaterThan(1)
     expect(next.player.hp).toBeLessThan(beforeHp)
     expect(next.player.inheritancePoints).toBeGreaterThan(beforeInheritance)
     expect(next.run.lastOutcome?.kind === 'breakthrough' && next.run.lastOutcome.success === false).toBe(true)
     expect(next.player.elixirs.foundation_pill.tian).toBe(0)
+    expect(next.player.realm).toBe('凡人')
   })
 
   // TICKET-9: 临门一脚提示测试
@@ -403,6 +408,29 @@ describe('game reducer', () => {
     const rate3 = calcBreakthroughRate(state3, 0)
 
     expect(rate3).toBeGreaterThan(rate0)
+  })
+
+  it('筑基→金丹 无破境诀 突破率为 0', () => {
+    const base = createInitialGameState(1)
+    const stateNoKungfu: GameState = {
+      ...base,
+      player: {
+        ...base.player,
+        realm: '筑基',
+        relics: [],
+        elixirs: {
+          ...base.player.elixirs,
+          foundation_pill: { fan: 10, xuan: 10, di: 10, tian: 10 },
+        },
+        inheritancePoints: 10,
+      },
+    }
+    const rate = calcBreakthroughRate(stateNoKungfu, 3, {
+      elixirId: 'foundation_pill',
+      quality: 'tian',
+      count: 5,
+    })
+    expect(rate).toBe(0)
   })
 
   it('hp<=0 时进入 death 且 summary 有内容', () => {
