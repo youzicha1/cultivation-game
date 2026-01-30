@@ -12,9 +12,9 @@ import { createInitialState } from './state'
 import { createSequenceRng } from './rng'
 
 describe('chains', () => {
-  it('getChains 返回 3 条链', () => {
+  it('getChains 返回至少 15 条链（TICKET-21 扩容后）', () => {
     const list = getChains()
-    expect(list.length).toBe(3)
+    expect(list.length).toBeGreaterThanOrEqual(15)
   })
 
   it('getChain 返回指定链', () => {
@@ -62,25 +62,27 @@ describe('chains', () => {
 
   it('pickChainToStart 所有链已完成时返回 null', () => {
     const rng = createSequenceRng([0.0])
-    const picked = pickChainToStart(rng, { map_to_legacy: true, demon_lair: true, ancient_furnace: true }, 80)
+    const allChains = getChains()
+    const allCompleted = Object.fromEntries(allChains.map((c) => [c.chainId, true])) as Record<string, boolean>
+    const picked = pickChainToStart(rng, allCompleted, 80)
     expect(picked).toBeNull()
   })
 
   it('applyGuaranteedReward kungfu 未拥有则加入 relics', () => {
     const player = createInitialState()
-    const next = applyGuaranteedReward(player, { type: 'kungfu', id: 'fire_suppress' })
+    const { player: next } = applyGuaranteedReward(player, { type: 'kungfu', id: 'fire_suppress' })
     expect(next.relics).toContain('fire_suppress')
   })
 
   it('applyGuaranteedReward kungfu 已有则传承点+1', () => {
     const player = { ...createInitialState(), relics: ['fire_suppress'] }
-    const next = applyGuaranteedReward(player, { type: 'kungfu', id: 'fire_suppress' })
+    const { player: next } = applyGuaranteedReward(player, { type: 'kungfu', id: 'fire_suppress' })
     expect(next.inheritancePoints).toBe(player.inheritancePoints + 1)
   })
 
   it('applyGuaranteedReward epic_material_elixir 加材料与传承点', () => {
     const player = createInitialState()
-    const next = applyGuaranteedReward(player, {
+    const { player: next } = applyGuaranteedReward(player, {
       type: 'epic_material_elixir',
       materialId: 'moon_dew',
       materialCount: 2,
@@ -88,5 +90,23 @@ describe('chains', () => {
     })
     expect(next.materials.moon_dew).toBe(2)
     expect(next.inheritancePoints).toBe(1)
+  })
+
+  it('applyGuaranteedReward recipe 解锁配方', () => {
+    const player = createInitialState()
+    const { player: next } = applyGuaranteedReward(player, { type: 'recipe', recipeId: 'spirit_pill_recipe' })
+    expect(next.recipesUnlocked.spirit_pill_recipe).toBe(true)
+  })
+
+  it('applyGuaranteedReward shop_discount 返回 runDelta', () => {
+    const player = createInitialState()
+    const { runDelta } = applyGuaranteedReward(player, { type: 'shop_discount', percent: 10 })
+    expect(runDelta?.shopDiscountPercent).toBe(10)
+  })
+
+  it('applyGuaranteedReward tribulation_bonus 返回 runDelta', () => {
+    const player = createInitialState()
+    const { runDelta } = applyGuaranteedReward(player, { type: 'tribulation_bonus', dmgReductionPercent: 15 })
+    expect(runDelta?.tribulationDmgReductionPercent).toBe(15)
   })
 })

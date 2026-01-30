@@ -112,6 +112,9 @@ function normalizeLoadedState(state: GameState): GameState {
     cultivateCount?: number
     finalTrial?: { step: 1 | 2 | 3; threat: number; resolve: number; wounds?: number; choices: string[]; rewardSeed?: number }
     shopMissing?: { materialId: string; need: number }[]
+    shopDiscountPercent?: number
+    tribulationDmgReductionPercent?: number
+    earnedTitle?: string
   }
   const loadedFinalTrial = runState.finalTrial
   const finalTrial =
@@ -146,6 +149,9 @@ function normalizeLoadedState(state: GameState): GameState {
     ...(Array.isArray(runState.shopMissing) && runState.shopMissing.length > 0
       ? { shopMissing: runState.shopMissing.filter((m: any) => m && typeof m.materialId === 'string' && typeof m.need === 'number') }
       : {}),
+    ...(typeof runState.shopDiscountPercent === 'number' && runState.shopDiscountPercent >= 0 ? { shopDiscountPercent: runState.shopDiscountPercent } : {}),
+    ...(typeof runState.tribulationDmgReductionPercent === 'number' && runState.tribulationDmgReductionPercent >= 0 ? { tribulationDmgReductionPercent: runState.tribulationDmgReductionPercent } : {}),
+    ...(typeof runState.earnedTitle === 'string' && runState.earnedTitle ? { earnedTitle: runState.earnedTitle } : {}),
   }
 
   const loadedMeta: any = state.meta ?? {}

@@ -13,7 +13,7 @@ import {
   type AlchemyRatesBreakdown,
   type MaterialId,
 } from './alchemy'
-import { buildKungfaModifiers } from './kungfu'
+import { getKungfuModifiers } from './kungfu_modifiers'
 import { getDailyModifiers } from './daily'
 import type { DailyEnvironmentId } from './daily'
 
@@ -56,7 +56,8 @@ export function getAlchemyShortage(
     return { shortages: [], canBrew: false }
   }
   const batch = Math.max(1, Math.min(5, selection.batch))
-  return getMaterialShortage(recipe, batch, state.player.materials as Record<string, number>)
+  const costMult = (getKungfuModifiers(state).alchemyCostMult ?? 1)
+  return getMaterialShortage(recipe, batch, state.player.materials as Record<string, number>, costMult)
 }
 
 /**
@@ -75,9 +76,11 @@ export function getAlchemyChances(
   const dailyMod = state.meta?.daily?.environmentId
     ? getDailyModifiers(state.meta.daily.environmentId as DailyEnvironmentId)
     : undefined
+  const mod = getKungfuModifiers(state)
   const kungfuMod = {
-    alchemyBoomMul: buildKungfaModifiers(state).alchemyBoomMul,
-    alchemyQualityShift: buildKungfaModifiers(state).alchemyQualityShift,
+    alchemyBoomMul: mod.alchemyBoomMul ?? 1,
+    alchemyQualityShift: mod.alchemyQualityShift ?? 0,
+    alchemySuccessAdd: mod.alchemySuccessAdd ?? 0,
   }
 
   const rates = getAlchemyRates({

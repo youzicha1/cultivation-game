@@ -45,6 +45,15 @@
 - **装备规则**：仅可装备已拥有；不可重复装备；最多 3 槽；RELIC_EQUIP 装备/卸下有日志
 - **获取**：探索掉落表与事件中可掉功法（kungfu 类型）；已有则转化为传承点+1
 
+### Kungfu Modifiers（TICKET-22：mult/add 叠加规则）
+- **单一来源**：`src/engine/kungfu_modifiers.ts` 的 `getKungfuModifiers(state)` 合并三槽位功法的 modifiers（含 JSON 新字段 `modifiers` 与旧 `effects` 映射），供探索/炼丹/突破/天劫公式使用
+- **叠加规则**：
+  - **\*Mult 类**（如 exploreDangerIncMult、exploreRareWeightMult、alchemyBoomMul、tribulationDamageMult）：默认 1，**相乘**
+  - **\*Add 类**（如 breakthroughSuccessAdd、alchemySuccessAdd、exploreRetreatAdd）：默认 0，**相加**
+  - **\*ChoiceAdd**（如 tribulationExtraChoiceAdd）：默认 0，相加后**取整**
+- **接入点**：探索（危险增长、收手灵石/修为倍率、稀有权重）；炼丹（成功率加值、爆丹率乘数、材料消耗倍率、爆丹补偿倍率）；突破（成功率加值、失败保底增长倍率）；天劫（伤害倍率、额外选项）
+- **流派标签**：功法 JSON 支持 `tags`（如 build:tanbao / build:danxiu / build:chongguan），UI 功法页展示流派标签与 1~2 条关键效果文案
+
 ### 事件链系统（TICKET-11：content 驱动 + chain 状态 + pickEvent 优先级）
 - **内容**：`src/content/event_chains.v1.json`，3 条链（残图引路、妖祟作乱、古炉重现），每条 3 章，终章 `guaranteedReward` 必发
 - **状态**：`GameState.run.chain` = `{ activeChainId?, chapter?, completed: Record<string, boolean> }`；存档可续，收手后链条保留
@@ -78,6 +87,12 @@
   - **突破**：成功率 + legacyCtx.breakthroughRateAdd；失败伤害 - legacyCtx.breakthroughFailureDamageReduction；pity 加成 + legacyCtx.breakthroughPityBonus；pity 阈值额外成功率 + legacyCtx.breakthroughPityBonusRate；死亡保护 + legacyCtx.breakthroughDeathProtectionOnce
 - **传承点发放**：`calculateLegacyPointsReward(state)` 基础+1、通关事件链+1、突破成功+1；死亡/总结时发放
 - **UI**：LegacyScreen（三条分支Tab、节点卡片、锁定/可购买/已掌握状态、关键节点金色角标）；SummaryScreen 显示传承点奖励和近失感提示
+
+### 内容结构与校验测试（TICKET-21）
+- **事件链**：`src/content/event_chains.v1.json` 驱动；链 ID 唯一，每链 3~5 章，终章 `guaranteedReward` 必发；大奖类型：kungfu / kungfu_or_recipe / epic_material_elixir / recipe / pills / title / legacy / shop_discount / tribulation_bonus
+- **run 级奖励**：终章可写 `run.shopDiscountPercent`、`run.tribulationDmgReductionPercent`、`run.earnedTitle`；坊市价格与天劫伤害公式读取上述字段
+- **断链补偿**：死亡且存在进行中链时，发默认补偿（残页 +1、保底 +1、灵草 ×1）并写爽文日志，清空 activeChainId
+- **校验测试**：`src/engine/content_validation.test.ts` 校验链 ID 唯一、每链 ≥3 节点且 ≥1 终章大奖、guaranteedReward 中 materialId/recipeId/kungfu id 存在、shop_discount/tribulation_bonus 数值在 0–100；探索事件 ID 唯一、minDanger/maxDanger 合法、rarity 合法、effects 中 material/fragment id 存在
 
 ### content 层（内容层）
 - 事件 JSON 驱动（`src/content/explore_events.v1.json`）

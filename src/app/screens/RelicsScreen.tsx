@@ -3,6 +3,8 @@ import {
   getAllKungfu,
   getKungfu,
   getKungfuIdsByRarity,
+  getKungfuBuildLabels,
+  getKungfuKeyEffects,
   RELIC_SLOTS,
   PITY_LEGEND_KUNGFU_THRESHOLD,
   SHARD_COST_RARE,
@@ -73,7 +75,13 @@ export function RelicsScreen({ state, dispatch }: ScreenProps) {
                 {def ? (
                   <>
                     <span className={`relic-slot__name ${RARITY_CLASS[def.rarity] ?? ''}`}>{def.name}</span>
+                    {getKungfuBuildLabels(def).length > 0 && (
+                      <span className="relic-slot__build-tags">【{getKungfuBuildLabels(def).join(' / ')}】</span>
+                    )}
                     <span className="relic-slot__short-desc">{def.shortDesc}</span>
+                    {getKungfuKeyEffects(def).length > 0 && (
+                      <span className="relic-slot__key-effects">{getKungfuKeyEffects(def).join('，')}</span>
+                    )}
                     <Button variant="ghost" size="sm" onClick={() => unequip(i as 0 | 1 | 2)}>卸下</Button>
                   </>
                 ) : (
@@ -97,6 +105,9 @@ export function RelicsScreen({ state, dispatch }: ScreenProps) {
                     <li key={k.id} className="relic-list__item relic-list__item--owned">
                       <div className="relic-list__row">
                         <span className={`relic-list__name ${RARITY_CLASS[k.rarity] ?? ''}`}>{k.name}</span>
+                        {getKungfuBuildLabels(k).length > 0 && (
+                          <Chip className="app-chip--build">{getKungfuBuildLabels(k).join(' / ')}</Chip>
+                        )}
                         {isEquipped ? (
                           <Chip className="app-chip--gold">已装备</Chip>
                         ) : hasEmptySlot ? (
@@ -106,6 +117,9 @@ export function RelicsScreen({ state, dispatch }: ScreenProps) {
                         )}
                       </div>
                       <span className="relic-list__desc">{k.shortDesc}</span>
+                      {getKungfuKeyEffects(k).length > 0 && (
+                        <span className="relic-list__key-effects">效果：{getKungfuKeyEffects(k).join('，')}</span>
+                      )}
                     </li>
                   )
                 })}
@@ -122,6 +136,9 @@ export function RelicsScreen({ state, dispatch }: ScreenProps) {
                 .map((k) => (
                   <li key={k.id} className="relic-list__item relic-list__item--unowned">
                     <span className="relic-list__name relic-list__item--grey">{k.name}</span>
+                    {getKungfuBuildLabels(k).length > 0 && (
+                      <span className="relic-list__build-tags">【{getKungfuBuildLabels(k).join(' / ')}】</span>
+                    )}
                     <span className="relic-list__source-hint">{k.sourceHint}</span>
                   </li>
                 ))}

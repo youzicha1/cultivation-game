@@ -29,10 +29,24 @@ export type ChainChapterDef = {
   guaranteedReward?: GuaranteedReward
 }
 
+/** TICKET-21: 终章大奖类型扩展（材料/配方/功法/丹药/称号/传承点/坊市折扣/天劫加成） */
 export type GuaranteedReward =
   | { type: 'kungfu'; id: string }
   | { type: 'kungfu_or_recipe'; kungfuIds: string[]; recipeId: string; inheritanceFallback?: number }
   | { type: 'epic_material_elixir'; materialId: string; materialCount: number; inheritanceFallback?: number }
+  | { type: 'recipe'; recipeId: string }
+  | { type: 'pills'; count: number }
+  | { type: 'title'; id: string; name: string }
+  | { type: 'legacy'; points: number }
+  | { type: 'shop_discount'; percent: number }
+  | { type: 'tribulation_bonus'; dmgReductionPercent: number }
+
+/** 终章奖励中作用于 run 的增量（坊市折扣/天劫减伤/称号） */
+export type RunRewardDelta = {
+  shopDiscountPercent?: number
+  tribulationDmgReductionPercent?: number
+  earnedTitle?: string
+}
 
 export type ChainDef = {
   chainId: string
@@ -109,6 +123,15 @@ export function getChainTriggerRate(danger: number, debugAlwaysTrigger?: boolean
 /** 临时 debug：设为 true 时 danger>=50 必触发链（默认 false，提交前请关） */
 export const CHAIN_DEBUG_ALWAYS_TRIGGER = false
 
+/** TICKET-21: 断链补偿默认（碎片+保底+小礼包），供 game 在死亡且进行中链时应用 */
+export const DEFAULT_BREAK_COMPENSATION = {
+  fragmentRecipeId: 'spirit_pill_recipe' as RecipeId,
+  fragmentCount: 1,
+  pityPlus: 1,
+  materialId: 'spirit_herb' as MaterialId,
+  materialCount: 1,
+}
+
 /** 从未完成链中随机选一条（rng.next() 一次用于 randInt） */
 export function pickChainToStart(
   rng: Rng,
@@ -121,13 +144,14 @@ export function pickChainToStart(
   return available[idx]
 }
 
-/** 终章奖励应用到玩家（纯函数，rng 可选用于随机功法） */
+/** 终章奖励应用到玩家与 run（纯函数，rng 可选用于随机功法）；返回 runDelta 供 game 合并到 run */
 export function applyGuaranteedReward(
   player: PlayerState,
   reward: GuaranteedReward,
   rng?: Rng,
-): PlayerState {
+): { player: PlayerState; runDelta?: RunRewardDelta } {
   const next = { ...player }
+  let runDelta: RunRewardDelta | undefined
   if (reward.type === 'kungfu') {
     const id = reward.id as RelicId
     if (next.relics.includes(id)) {
@@ -135,7 +159,7 @@ export function applyGuaranteedReward(
     } else {
       next.relics = [...next.relics, id]
     }
-    return next
+    return { player: next }
   }
   if (reward.type === 'kungfu_or_recipe') {
     const notOwned = reward.kungfuIds.filter((id) => !next.relics.includes(id as RelicId))
@@ -148,13 +172,37 @@ export function applyGuaranteedReward(
     } else {
       next.inheritancePoints = (next.inheritancePoints ?? 0) + (reward.inheritanceFallback ?? 1)
     }
-    return next
+    return { player: next }
   }
   if (reward.type === 'epic_material_elixir') {
     const cur = next.materials[reward.materialId as MaterialId] ?? 0
     next.materials = { ...next.materials, [reward.materialId]: cur + reward.materialCount }
     next.inheritancePoints = (next.inheritancePoints ?? 0) + (reward.inheritanceFallback ?? 1)
-    return next
+    return { player: next }
   }
-  return next
+  if (reward.type === 'recipe') {
+    next.recipesUnlocked = { ...next.recipesUnlocked, [reward.recipeId as RecipeId]: true }
+    return { player: next }
+  }
+  if (reward.type === 'pills') {
+    next.pills = (next.pills ?? 0) + reward.count
+    return { player: next }
+  }
+  if (reward.type === 'title') {
+    runDelta = { ...runDelta, earnedTitle: reward.name }
+    return { player: next, runDelta }
+  }
+  if (reward.type === 'legacy') {
+    next.inheritancePoints = (next.inheritancePoints ?? 0) + reward.points
+    return { player: next }
+  }
+  if (reward.type === 'shop_discount') {
+    runDelta = { ...runDelta, shopDiscountPercent: reward.percent }
+    return { player: next, runDelta }
+  }
+  if (reward.type === 'tribulation_bonus') {
+    runDelta = { ...runDelta, tribulationDmgReductionPercent: reward.dmgReductionPercent }
+    return { player: next, runDelta }
+  }
+  return { player: next }
 }

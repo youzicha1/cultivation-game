@@ -27,6 +27,10 @@ export type KungfuDef = {
   shortDesc: string
   sourceHint: string
   effects: KungfuEffects
+  /** TICKET-22: 流派标签，如 ["explore","build:tanbao"] */
+  tags?: string[]
+  /** TICKET-22: 机制 modifier 键值（camelCase），与 effects 并存，叠加由 kungfu_modifiers 处理 */
+  modifiers?: Record<string, number>
 }
 
 export type KungfuModifiers = {
@@ -60,6 +64,8 @@ type KungfuFile = {
     shortDesc: string
     sourceHint: string
     effects?: Record<string, number>
+    tags?: string[]
+    modifiers?: Record<string, number>
   }>
 }
 
@@ -81,6 +87,8 @@ function validateKungfuFile(): Map<RelicId, KungfuDef> {
       shortDesc: row.shortDesc ?? '',
       sourceHint: row.sourceHint ?? '',
       effects: (row.effects as KungfuEffects) ?? {},
+      tags: Array.isArray(row.tags) ? row.tags : undefined,
+      modifiers: row.modifiers && typeof row.modifiers === 'object' ? row.modifiers : undefined,
     })
   }
   return map
@@ -121,6 +129,60 @@ export function getEquippedKungfa(state: { player: PlayerState }): KungfuDef[] {
     }
   }
   return out
+}
+
+const BUILD_TAG_LABEL: Record<string, string> = {
+  'build:tanbao': '探宝流',
+  'build:danxiu': '丹修流',
+  'build:chongguan': '冲关流',
+}
+
+/** TICKET-22: 从功法 def 取流派标签文案（用于 UI） */
+export function getKungfuBuildLabels(def: KungfuDef): string[] {
+  if (!def.tags?.length) return []
+  return def.tags
+    .filter((t) => BUILD_TAG_LABEL[t])
+    .map((t) => BUILD_TAG_LABEL[t])
+}
+
+/** TICKET-22: 从功法 modifiers 生成 1~2 条关键效果文案（用于 UI） */
+export function getKungfuKeyEffects(def: KungfuDef): string[] {
+  const m = def.modifiers
+  if (!m || typeof m !== 'object') return []
+  const lines: string[] = []
+  if (m.exploreDangerIncMult != null && m.exploreDangerIncMult !== 1) {
+    const pct = Math.round((1 - m.exploreDangerIncMult) * 100)
+    lines.push(pct > 0 ? `危险增长-${pct}%` : `危险增长+${-pct}%`)
+  }
+  if (m.exploreRareWeightMult != null && m.exploreRareWeightMult !== 1) {
+    const pct = Math.round((m.exploreRareWeightMult - 1) * 100)
+    if (pct > 0) lines.push(`稀有奇遇更常见`)
+  }
+  if (m.exploreLegendWeightMult != null && m.exploreLegendWeightMult !== 1 && m.exploreLegendWeightMult > 1) {
+    lines.push('传说掉落权重提升')
+  }
+  if (m.exploreCashoutGoldMult != null && m.exploreCashoutGoldMult > 1) {
+    lines.push('收手灵石提升')
+  }
+  if (m.alchemySuccessAdd != null && m.alchemySuccessAdd > 0) {
+    lines.push(`炼丹成功+${Math.round(m.alchemySuccessAdd * 100)}%`)
+  }
+  if (m.alchemyBoomMul != null && m.alchemyBoomMul < 1) {
+    lines.push('爆丹率降低')
+  }
+  if (m.alchemyCostMult != null && m.alchemyCostMult < 1) {
+    lines.push('材料消耗减少')
+  }
+  if (m.breakthroughSuccessAdd != null && m.breakthroughSuccessAdd > 0) {
+    lines.push(`突破成功+${Math.round(m.breakthroughSuccessAdd * 100)}%`)
+  }
+  if (m.tribulationDamageMult != null && m.tribulationDamageMult < 1) {
+    lines.push('天劫伤害降低')
+  }
+  if (m.tribulationExtraChoiceAdd != null && m.tribulationExtraChoiceAdd > 0) {
+    lines.push('天劫额外选项')
+  }
+  return lines.slice(0, 2)
 }
 
 /** 把 3 槽功法效果叠加成一个 ctx，供探索/炼丹/突破公式使用 */

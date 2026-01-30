@@ -7,7 +7,9 @@
       "rarity": "common",
       "shortDesc": "撤退更稳，高危险也能全身而退",
       "sourceHint": "探索中低危险掉落、事件奖励",
-      "effects": { "explore_retreat_add": 0.06 }
+      "effects": { "explore_retreat_add": 0.06 },
+      "tags": ["explore", "build:tanbao"],
+      "modifiers": { "exploreRetreatAdd": 0.06 }
     },
     {
       "id": "shallow_breath",
@@ -15,7 +17,9 @@
       "rarity": "common",
       "shortDesc": "深入时危险增幅略减，推进更稳",
       "sourceHint": "探索普通掉落",
-      "effects": { "explore_danger_inc_mul": 0.92 }
+      "effects": { "explore_danger_inc_mul": 0.92 },
+      "tags": ["explore", "build:tanbao"],
+      "modifiers": { "exploreDangerIncMult": 0.92 }
     },
     {
       "id": "lucky_cauldron",
@@ -23,7 +27,9 @@
       "rarity": "common",
       "shortDesc": "爆丹率降低，炼丹更安心",
       "sourceHint": "探索史诗/传说掉落",
-      "effects": { "alchemy_boom_rate_mul": 0.8 }
+      "effects": { "alchemy_boom_rate_mul": 0.8 },
+      "tags": ["alchemy", "build:danxiu"],
+      "modifiers": { "alchemyBoomMul": 0.8 }
     },
     {
       "id": "retreat_charm",
@@ -31,7 +37,9 @@
       "rarity": "rare",
       "shortDesc": "撤退成功率提升",
       "sourceHint": "探索高危险、稀有事件",
-      "effects": { "explore_retreat_add": 0.1 }
+      "effects": { "explore_retreat_add": 0.1 },
+      "tags": ["explore", "build:tanbao"],
+      "modifiers": { "exploreRetreatAdd": 0.1 }
     },
     {
       "id": "depth_vision",
@@ -39,7 +47,9 @@
       "rarity": "rare",
       "shortDesc": "深入时危险增幅明显减小",
       "sourceHint": "高危险层、连斩结算",
-      "effects": { "explore_danger_inc_mul": 0.85 }
+      "effects": { "explore_danger_inc_mul": 0.85 },
+      "tags": ["explore", "build:tanbao"],
+      "modifiers": { "exploreDangerIncMult": 0.85 }
     },
     {
       "id": "loot_fortune",
@@ -47,7 +57,9 @@
       "rarity": "rare",
       "shortDesc": "稀有与传说掉落权重提升",
       "sourceHint": "探索稀有事件、宝箱",
-      "effects": { "loot_rare_weight_mul": 1.25, "loot_legend_weight_mul": 1.2 }
+      "effects": { "loot_rare_weight_mul": 1.25, "loot_legend_weight_mul": 1.2 },
+      "tags": ["explore", "build:tanbao"],
+      "modifiers": { "exploreRareWeightMult": 1.25, "exploreLegendWeightMult": 1.2 }
     },
     {
       "id": "fire_suppress",
@@ -55,7 +67,9 @@
       "rarity": "epic",
       "shortDesc": "爆丹率大幅降低",
       "sourceHint": "高危险掉落、事件链",
-      "effects": { "alchemy_boom_rate_mul": 0.7 }
+      "effects": { "alchemy_boom_rate_mul": 0.7 },
+      "tags": ["alchemy", "build:danxiu"],
+      "modifiers": { "alchemyBoomMul": 0.7, "alchemySuccessAdd": 0.04 }
     },
     {
       "id": "heaven_shift",
@@ -63,7 +77,9 @@
       "rarity": "epic",
       "shortDesc": "炼丹品质向地/天偏移",
       "sourceHint": "史诗事件、奇遇链",
-      "effects": { "alchemy_quality_shift": 0.08 }
+      "effects": { "alchemy_quality_shift": 0.08 },
+      "tags": ["alchemy", "build:danxiu"],
+      "modifiers": { "alchemyQualityShift": 0.08, "alchemyCostMult": 0.95 }
     },
     {
       "id": "breakthrough_boost",
@@ -71,7 +87,9 @@
       "rarity": "epic",
       "shortDesc": "突破成功率固定加成",
       "sourceHint": "突破相关事件、高危险",
-      "effects": { "breakthrough_rate_add": 0.05 }
+      "effects": { "breakthrough_rate_add": 0.05 },
+      "tags": ["breakthrough", "build:chongguan"],
+      "modifiers": { "breakthroughSuccessAdd": 0.05, "tribulationDamageMult": 0.92 }
     },
     {
       "id": "tian_blessing",
@@ -79,7 +97,9 @@
       "rarity": "legendary",
       "shortDesc": "天品质概率提升",
       "sourceHint": "传说事件、传奇链",
-      "effects": { "alchemy_quality_shift": 0.12 }
+      "effects": { "alchemy_quality_shift": 0.12 },
+      "tags": ["alchemy", "build:danxiu"],
+      "modifiers": { "alchemyQualityShift": 0.12, "alchemyBoomCompMult": 1.2 }
     },
     {
       "id": "streak_guard",
@@ -87,7 +107,9 @@
       "rarity": "legendary",
       "shortDesc": "收手时保留连斩层数（仅清收益）",
       "sourceHint": "传说掉落、十连斩后",
-      "effects": {}
+      "effects": {},
+      "tags": ["explore", "build:chongguan"],
+      "modifiers": { "exploreCashoutGoldMult": 1.1, "exploreCashoutExpMult": 1.1, "breakthroughPityGainMult": 1.2 }
     },
     {
       "id": "legendary_eye",
@@ -95,7 +117,9 @@
       "rarity": "legendary",
       "shortDesc": "传说掉落权重大幅提升，撤退更稳",
       "sourceHint": "传奇事件必掉",
-      "effects": { "loot_legend_weight_mul": 1.5, "explore_retreat_add": 0.08 }
+      "effects": { "loot_legend_weight_mul": 1.5, "explore_retreat_add": 0.08 },
+      "tags": ["explore", "build:tanbao", "build:chongguan"],
+      "modifiers": { "exploreLegendWeightMult": 1.5, "exploreRetreatAdd": 0.08, "tribulationDamageMult": 0.9, "tribulationExtraChoiceAdd": 1 }
     }
   ]
 }

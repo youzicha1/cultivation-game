@@ -107,15 +107,18 @@ export function getQualityLabel(quality: ElixirQuality): string {
   return QUALITY_LABELS[quality] ?? quality
 }
 
-/** 材料缺口：当前拥有 vs 配方所需，返回缺项列表与是否可炼。UI 单一来源，用于显示「缺 X×N」。 */
+/** 材料缺口：当前拥有 vs 配方所需，返回缺项列表与是否可炼。UI 单一来源。costMult 为功法材料消耗倍率（TICKET-22）。 */
 export function getMaterialShortage(
   recipe: RecipeDef,
   batch: number,
   materials: Record<string, number>,
+  costMult: number = 1,
 ): { shortages: Array<{ materialId: MaterialId; name: string; need: number; have: number; missing: number }>; canBrew: boolean } {
+  const mult = Math.max(0.5, Math.min(1.5, costMult))
   const shortages: Array<{ materialId: MaterialId; name: string; need: number; have: number; missing: number }> = []
   for (const [mid, perBatch] of Object.entries(recipe.cost)) {
-    const need = (perBatch ?? 0) * batch
+    const perBatchEffective = Math.max(1, Math.ceil((perBatch ?? 0) * mult))
+    const need = perBatchEffective * batch
     const have = materials[mid] ?? 0
     const missing = Math.max(0, need - have)
     if (missing > 0) {
@@ -140,6 +143,7 @@ export type AlchemyRatesBreakdown = {
     masteryBonus: number
     dailyBonus: number
     heatMod: number
+    kungfuSuccessAdd?: number
     final: number
   }
   boom: {
@@ -166,8 +170,9 @@ export function getAlchemyRates(params: {
   const masteryBonus = clamp(Math.floor(totalBrews / 10) * 0.01, 0, 0.05)
   const dailyBonus = dailyMod?.alchemySuccessBonus ?? 0
   const heatMod = HEAT_SUCCESS_MODIFIER[heat]
+  const kungfuSuccessAdd = kungfuMod?.alchemySuccessAdd ?? 0
 
-  let successFinal = recipe.baseSuccess + realmBonus + pityBonus + masteryBonus + dailyBonus + heatMod
+  let successFinal = recipe.baseSuccess + realmBonus + pityBonus + masteryBonus + dailyBonus + heatMod + kungfuSuccessAdd
   successFinal = clamp(successFinal, 0.01, 0.95)
 
   const boomHeatMult = HEAT_BOOM_MULTIPLIER[heat]
@@ -186,6 +191,7 @@ export function getAlchemyRates(params: {
         masteryBonus,
         dailyBonus,
         heatMod,
+        kungfuSuccessAdd,
         final: successFinal,
       },
       boom: {
@@ -289,10 +295,13 @@ export type AlchemyDailyMod = {
   alchemyBoomRateMultiplier?: number
 }
 
-/** TICKET-10: 功法对炼丹的加成（由 game 注入） */
+/** TICKET-10: 功法对炼丹的加成（由 game 注入）；TICKET-22: 扩展 modifier */
 export type AlchemyKungfuMod = {
   alchemyBoomMul?: number
   alchemyQualityShift?: number
+  alchemySuccessAdd?: number
+  alchemyCostMult?: number
+  alchemyBoomCompMult?: number
 }
 
 /** TICKET-8: 炼丹战报（抽卡式结果） */
@@ -414,7 +423,14 @@ export function resolveBrew(
     }
   }
 
-  if (!canBrew(state.player.materials, recipe.cost, batch)) {
+  const costMult = Math.max(0.5, Math.min(1.5, kungfuMod?.alchemyCostMult ?? 1))
+  const effectiveCost: Partial<Record<string, number>> = {}
+  for (const [matId, n] of Object.entries(recipe.cost)) {
+    const need = n ?? 0
+    effectiveCost[matId] = Math.max(1, Math.ceil(need * costMult))
+  }
+
+  if (!canBrew(state.player.materials, effectiveCost, batch)) {
     const next = addLog(state, '材料不足，无法开炉。')
     return {
       next,
@@ -436,7 +452,7 @@ export function resolveBrew(
 
   let nextPlayer: PlayerState = {
     ...state.player,
-    materials: applyMaterialCost(state.player.materials, recipe.cost, batch),
+    materials: applyMaterialCost(state.player.materials, effectiveCost, batch),
   }
 
   const realmIdx = ['凡人', '炼气', '筑基', '金丹', '元婴', '化神'].indexOf(
@@ -452,12 +468,14 @@ export function resolveBrew(
   
   // TICKET-8: 炉温修正成功率
   successRate = clamp(successRate + HEAT_SUCCESS_MODIFIER[heat], 0.01, 0.95)
+  successRate = clamp(successRate + (kungfuMod?.alchemySuccessAdd ?? 0), 0.01, 0.95)
 
   // TICKET-8: 炉温修正爆丹率；TICKET-10: 功法乘数
   let boomMult = HEAT_BOOM_MULTIPLIER[heat]
   boomMult *= dailyMod?.alchemyBoomRateMultiplier ?? 1
   boomMult *= kungfuMod?.alchemyBoomMul ?? 1
   const boomDmgReduce = dailyMod?.alchemyBoomDmgReduce ?? 0
+  const boomCompMult = Math.max(0.5, Math.min(2, kungfuMod?.alchemyBoomCompMult ?? 1))
   const qualityShift = kungfuMod?.alchemyQualityShift ?? 0
 
   let totalBrews = nextPlayer.codex.totalBrews
@@ -483,7 +501,8 @@ export function resolveBrew(
     
     if (boomed) {
       totalBooms += 1
-      const dmg = Math.max(1, randInt(1, 3) - boomDmgReduce)
+      let dmg = Math.max(1, randInt(1, 3) - boomDmgReduce)
+      dmg = Math.max(1, Math.round(dmg / boomCompMult))
       hpChange -= dmg
       currentStreakBoom += 1
       currentStreakSuccess = 0

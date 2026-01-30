@@ -126,6 +126,25 @@
 - **UI**：ShopScreen 一屏（资源条 + 商品列表可内部滚动 + StickyFooter）；persistence 可选保存 run.shopMissing
 - **工程**：shop.test.ts（价格受 daily、买入扣金加料、金钱不足不可买、qty 边界、fillPlan）；docs 更新
 
+## TICKET-21 完成项（奇遇链扩容 v2）
+
+- **链与节点**：奇遇链主题 ≥12 类，总链数 ≥15 条，每条 3~5 节点，总节点 ≥60
+- **终章大奖类型**：材料 / 配方 / 功法 / 丹药 / 称号 / 传承点 / 坊市折扣 / 天劫加成（至少 6 种）
+- **断链补偿**：死亡时若有进行中链，发碎片 + 保底 + 小礼包 + 爽文日志「虽未竟全功，亦有残卷与保底相随。」
+- **内容校验**：`src/engine/content_validation.test.ts` 校验链 ID 唯一、节点唯一、reward/item 引用存在、每链 ≥3 节点且 ≥1 终章大奖、tags/rarity/danger 合法
+- **文档**：`docs/CONTENT_AUDIT.md` 扩容前后统计；`docs/ARCHITECTURE.md` 补「内容结构与校验测试」小节
+
+## TICKET-22 完成项（功法流派化 Build 成型）
+
+- **数据**：`kungfu.v1.json` 每本功法新增 `tags`（如 build:tanbao / build:danxiu / build:chongguan）与 `modifiers`（camelCase 键），旧 `effects` 保留兼容
+- **单一来源**：`getKungfuModifiers(state)` 合并三槽位 modifiers，*Mult 相乘、*Add 相加；探索/炼丹/突破/天劫各至少吃到一个 modifier
+- **探索**：危险增长倍率、收手灵石/修为倍率、稀有权重
+- **炼丹**：成功率加值、爆丹率乘数、材料消耗倍率、爆丹补偿倍率
+- **突破**：成功率加值、失败保底增长倍率
+- **天劫**：伤害倍率、额外选项
+- **UI**：功法页展示流派标签与 1~2 条关键效果文案
+- **工程**：kungfu_modifiers.ts + kungfu_modifiers.test.ts；各 calc 测试补断言；docs 更新
+
 ## 开发优先级
 
 待定，将根据游戏设计逐步确定。

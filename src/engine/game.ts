@@ -49,6 +49,7 @@ import {
 } from './daily'
 import { relicRegistry, type RelicId } from './relics'
 import { buildKungfaModifiers, getKungfu } from './kungfu'
+import { getKungfuModifiers } from './kungfu_modifiers'
 import {
   buildLegacyModifiers,
   purchaseUpgrade,
@@ -62,6 +63,7 @@ import {
   getChainTriggerRate,
   pickChainToStart,
   applyGuaranteedReward,
+  DEFAULT_BREAK_COMPENSATION,
   CHAIN_DEBUG_ALWAYS_TRIGGER,
   type ChainDef,
   type ChainChapterDef,
@@ -202,6 +204,12 @@ export type GameState = {
     alchemyPlan?: { recipeId: RecipeId; batch: number; heat?: 'steady' | 'push' | 'blast' }
     /** TICKET-18: 从炼丹页带入的缺口（坊市一键补齐用） */
     shopMissing?: { materialId: string; need: number }[]
+    /** TICKET-21: 奇遇链终章大奖——本局坊市折扣百分比（0–100） */
+    shopDiscountPercent?: number
+    /** TICKET-21: 奇遇链终章大奖——本局天劫伤害减免百分比（0–100） */
+    tribulationDmgReductionPercent?: number
+    /** TICKET-21: 奇遇链终章大奖——本局获得称号（展示用） */
+    earnedTitle?: string
     lastOutcome?:
       | {
           kind: 'breakthrough'
@@ -501,7 +509,8 @@ export function calcBreakthroughRate(
     return per * count
   })()
 
-  const kungfuAdd = buildKungfaModifiers(state).breakthroughRateAdd
+  const mod = getKungfuModifiers(state)
+  const kungfuAdd = mod.breakthroughSuccessAdd ?? 0
   const legacyAdd = buildLegacyModifiers(state.meta).breakthroughRateAdd
   return clampRate(base + inheritanceBonus + pityBonus + elixirBonus - dangerPenalty + dailySuccessBonus + kungfuAdd + legacyAdd)
 }
@@ -644,11 +653,11 @@ function generateAndApplyLoot(
   const pendingLoot: LootDrop[] = []
   let meta = state.meta ?? {}
 
-  const kungfuCtx = buildKungfaModifiers(state)
+  const mod = getKungfuModifiers(state)
   const legacyCtx = buildLegacyModifiers(meta)
   const kungfuMod = {
-    lootRareMul: kungfuCtx.lootRareMul * legacyCtx.lootRareWeightMul,
-    lootLegendMul: kungfuCtx.lootLegendMul * legacyCtx.lootLegendWeightMul,
+    lootRareMul: (mod.exploreRareWeightMult ?? 1) * legacyCtx.lootRareWeightMul,
+    lootLegendMul: (mod.exploreLegendWeightMult ?? 1) * legacyCtx.lootLegendWeightMul,
   }
   const canHaveLegendary = danger >= 70
   const pityMod = {
@@ -939,10 +948,10 @@ export function reduceGame(
         }
       }
 
-      const kungfuCtx = buildKungfaModifiers(state)
+      const mod = getKungfuModifiers(state)
       const legacyCtx = buildLegacyModifiers(state.meta)
       const rawInc = nextInt(DANGER_DEEPEN_MIN, DANGER_DEEPEN_MAX)
-      const inc = Math.max(1, Math.round(rawInc * kungfuCtx.exploreDangerIncMul * legacyCtx.exploreDangerIncMul))
+      const inc = Math.max(1, Math.round(rawInc * (mod.exploreDangerIncMult ?? 1) * legacyCtx.exploreDangerIncMul))
       nextDanger = Math.min(DANGER_MAX, nextDanger + inc)
       
       const nextStreak = (baseRun.streak ?? 0) + 1
@@ -1036,6 +1045,7 @@ export function reduceGame(
     case 'EXPLORE_CASH_OUT': {
       const danger = baseRun.danger
       const streak = baseRun.streak ?? 0
+      const mod = getKungfuModifiers(state)
       const kungfuCtx = buildKungfaModifiers(state)
       const legacyCtx = buildLegacyModifiers(state.meta)
       const retreatRate = Math.min(0.98, 0.88 + kungfuCtx.exploreRetreatAdd + legacyCtx.exploreRetreatAdd)
@@ -1046,6 +1056,8 @@ export function reduceGame(
         goldGain = Math.round(goldGain * 0.75)
         expGain = Math.round(expGain * 0.75)
       }
+      goldGain = Math.round(goldGain * (mod.exploreCashoutGoldMult ?? 1))
+      expGain = Math.round(expGain * (mod.exploreCashoutExpMult ?? 1))
       
       // TICKET-HP-1: 收手回血 = 6 + round(danger * 0.12)
       const heal = 6 + Math.round(danger * 0.12)
@@ -1142,13 +1154,17 @@ export function reduceGame(
         let nextState = resolveExploreChoice(state, syntheticEvent, action.choice, next01, nextInt)
         const chain = baseRun.chain ?? { completed: {} }
         if (ch.final && ch.guaranteedReward) {
+          const { player: nextPlayer, runDelta } = applyGuaranteedReward(nextState.player, ch.guaranteedReward, rngWithCount)
           nextState = {
             ...nextState,
-            player: applyGuaranteedReward(nextState.player, ch.guaranteedReward, rngWithCount),
+            player: nextPlayer,
             run: {
               ...nextState.run,
               currentEvent: undefined,
               chain: { ...chain, activeChainId: undefined, chapter: undefined, completed: { ...chain.completed, [current.chainId]: true } },
+              ...(runDelta?.shopDiscountPercent != null && { shopDiscountPercent: runDelta.shopDiscountPercent }),
+              ...(runDelta?.tribulationDmgReductionPercent != null && { tribulationDmgReductionPercent: runDelta.tribulationDmgReductionPercent }),
+              ...(runDelta?.earnedTitle != null && { earnedTitle: runDelta.earnedTitle }),
             },
           }
           nextState = addLog(nextState, `【金】奇遇通关《${chainDef.name}》！你获得终章大货。`)
@@ -1161,6 +1177,30 @@ export function reduceGame(
               chain: { ...chain, chapter: (current.chapter ?? 0) + 1 },
             },
           }
+        }
+        if (nextState.screen === 'death' && chain.activeChainId) {
+          const comp = DEFAULT_BREAK_COMPENSATION
+          const p = nextState.player
+          nextState = {
+            ...nextState,
+            player: {
+              ...p,
+              pity: (p.pity ?? 0) + comp.pityPlus,
+              fragments: {
+                ...p.fragments,
+                [comp.fragmentRecipeId]: (p.fragments[comp.fragmentRecipeId] ?? 0) + comp.fragmentCount,
+              },
+              materials: {
+                ...p.materials,
+                [comp.materialId]: (p.materials[comp.materialId] ?? 0) + comp.materialCount,
+              },
+            },
+            run: {
+              ...nextState.run,
+              chain: { ...(nextState.run.chain ?? { completed: {} }), activeChainId: undefined, chapter: undefined },
+            },
+          }
+          nextState = addLog(nextState, '虽未竟全功，亦有残卷与保底相随。')
         }
         if (nextState.screen !== 'death') {
           const danger = nextState.run.danger
@@ -1246,9 +1286,13 @@ export function reduceGame(
       const plan = baseRun.alchemyPlan ?? { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' as const }
       const dailyModAlc = getDailyModifiersFromState(state)
       const pityQualityShift = getAlchemyPityQualityShift(state.meta)
+      const mod = getKungfuModifiers(state)
       const kungfuMod = {
-        alchemyBoomMul: buildKungfaModifiers(state).alchemyBoomMul * buildLegacyModifiers(state.meta).alchemyBoomRateMul,
-        alchemyQualityShift: buildKungfaModifiers(state).alchemyQualityShift + buildLegacyModifiers(state.meta).alchemyQualityShiftBlast + pityQualityShift,
+        alchemyBoomMul: (mod.alchemyBoomMul ?? 1) * buildLegacyModifiers(state.meta).alchemyBoomRateMul,
+        alchemyQualityShift: (mod.alchemyQualityShift ?? 0) + buildLegacyModifiers(state.meta).alchemyQualityShiftBlast + pityQualityShift,
+        alchemySuccessAdd: mod.alchemySuccessAdd ?? 0,
+        alchemyCostMult: mod.alchemyCostMult ?? 1,
+        alchemyBoomCompMult: mod.alchemyBoomCompMult ?? 1,
       }
       let { next, outcome } = resolveBrew(
         state,
@@ -1445,16 +1489,20 @@ export function reduceGame(
       }
 
       const legacyCtx = buildLegacyModifiers(stateAfterMission.meta)
+      const mod = getKungfuModifiers(stateAfterMission)
       const baseDmg = nextInt(2, 6)
       const dmgRaw = useElixir?.elixirId === 'foundation_pill' ? baseDmg + 1 : baseDmg
       const dmg = Math.max(1, dmgRaw + (dailyMod.damageBonus ?? 0) - legacyCtx.breakthroughFailureDamageReduction)
       const pityBonus = (dailyMod.breakthroughPityBonusOnFail ?? 0) + legacyCtx.breakthroughPityBonus
+      const pityGainBase = 1 + pityBonus
+      const pityGainMult = mod.breakthroughPityGainMult ?? 1
+      const pityGain = Math.max(0, Math.floor(pityGainBase * pityGainMult))
       const inheritanceGain = 1 + nextInt(0, 1)
       nextPlayer = {
         ...nextPlayer,
         hp: nextPlayer.hp - dmg,
         inheritancePoints: nextPlayer.inheritancePoints + inheritanceGain,
-        pity: nextPlayer.pity + 1 + pityBonus,
+        pity: nextPlayer.pity + pityGain,
       }
       const deltas = buildOutcomeDeltas(beforePlayer, nextPlayer)
       let nextState: GameState = {
@@ -1468,7 +1516,7 @@ export function reduceGame(
             kind: 'breakthrough',
             success: false,
             title: '心魔反噬！',
-            text: `心魔一击，但你已窥见天机。你从失败中悟得天机：传承+${inheritanceGain}，保底+${1 + pityBonus}（下次更香）`,
+            text: `心魔一击，但你已窥见天机。你从失败中悟得天机：传承+${inheritanceGain}，保底+${pityGain}（下次更香）`,
             deltas,
             consumed: {
               inheritanceSpent,
@@ -1661,7 +1709,12 @@ export function reduceGame(
         return { ...state, run: { ...state.run, rngCalls } }
       }
       const step = ft.step
-      const dmgBase = getDmgBase(ft.threat, step)
+      const mod = getKungfuModifiers(state)
+      let dmgBase = getDmgBase(ft.threat, step)
+      dmgBase = Math.max(1, Math.round(dmgBase * (mod.tribulationDamageMult ?? 1)))
+      const tribulationReduction = baseRun.tribulationDmgReductionPercent ?? 0
+      const applyDmgReduction = (dmg: number) =>
+        Math.max(1, Math.round(dmg * (1 - tribulationReduction / 100)))
       let newHp = basePlayer.hp
       let newResolve = ft.resolve
       let newChoices = [...ft.choices]
@@ -1670,19 +1723,21 @@ export function reduceGame(
 
       if (action.choice === 'steady') {
         const { dmg, resolveDelta } = applySteadyDamage(dmgBase, ft.resolve)
-        newHp = Math.max(0, basePlayer.hp - dmg)
+        const effectiveDmg = applyDmgReduction(dmg)
+        newHp = Math.max(0, basePlayer.hp - effectiveDmg)
         newResolve = ft.resolve + resolveDelta
         newChoices = [...newChoices, '稳']
-        logMsg = `【第${step}雷·稳】承受伤害 ${dmg}，道心 +${resolveDelta}。`
+        logMsg = `【第${step}雷·稳】承受伤害 ${effectiveDmg}，道心 +${resolveDelta}。`
       } else if (action.choice === 'gamble') {
         const roll = next01()
         const { dmg, resolveDelta, success } = applyGamble(dmgBase, ft.resolve, roll)
-        newHp = Math.max(0, basePlayer.hp - dmg)
+        const effectiveDmg = applyDmgReduction(dmg)
+        newHp = Math.max(0, basePlayer.hp - effectiveDmg)
         newResolve = ft.resolve + resolveDelta
         newChoices = [...newChoices, success ? '搏成' : '搏败']
         logMsg = success
-          ? `【第${step}雷·搏】逆天成功！伤害 ${dmg}，道心 +${resolveDelta}。`
-          : `【第${step}雷·搏】逆天失败，承受 ${dmg} 伤害。`
+          ? `【第${step}雷·搏】逆天成功！伤害 ${effectiveDmg}，道心 +${resolveDelta}。`
+          : `【第${step}雷·搏】逆天失败，承受 ${effectiveDmg} 伤害。`
       } else if (action.choice === 'sacrifice') {
         const kind = action.sacrificeKind ?? 'pills'
         if (!canSacrifice(state, kind)) {
@@ -1698,13 +1753,14 @@ export function reduceGame(
           nextPlayer = { ...nextPlayer, materials: { ...nextPlayer.materials, [ded.material.id]: cur - ded.material.count } }
         }
         const sacResult = applySacrificeDamage(dmgBase, kind)
+        const effectiveDmg = applyDmgReduction(sacResult.dmg)
         const healAmount = sacResult.heal
         const resolveDeltaSac = sacResult.resolveDelta
-        newHp = Math.max(0, nextPlayer.hp - sacResult.dmg + healAmount)
+        newHp = Math.max(0, nextPlayer.hp - effectiveDmg + healAmount)
         newResolve = ft.resolve + resolveDeltaSac
         newChoices = [...newChoices, '献祭']
         nextPlayer = { ...nextPlayer, hp: newHp }
-        logMsg = `【第${step}雷·献祭】消耗资源，承受伤害 ${dmg}${healAmount ? `，回血 +${healAmount}` : ''}，道心 +${newResolve - ft.resolve}。`
+        logMsg = `【第${step}雷·献祭】消耗资源，承受伤害 ${effectiveDmg}${healAmount ? `，回血 +${healAmount}` : ''}，道心 +${newResolve - ft.resolve}。`
       } else {
         return { ...state, run: { ...state.run, rngCalls } }
       }

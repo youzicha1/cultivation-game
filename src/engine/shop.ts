@@ -29,13 +29,16 @@ export function getShopCatalogDef(): ShopItemDef[] {
   return [...SHOP_CATALOG]
 }
 
-/** 当前价 = ceil(basePrice * dailyMult)，dailyMult 来自今日环境 */
+/** 当前价 = ceil(basePrice * dailyMult * (1 - shopDiscount/100))，dailyMult 来自今日环境，TICKET-21 奇遇链终章可带坊市折扣 */
 function getPriceMult(state: GameState, category: ShopCategory): number {
   const envId = state.meta?.daily?.environmentId as DailyEnvironmentId | undefined
-  if (!envId) return 1
-  const mod = getDailyModifiers(envId)
-  const mult = mod.priceMultByCategory?.[category]
-  return mult != null ? mult : 1
+  let mult = 1
+  if (envId) {
+    const mod = getDailyModifiers(envId)
+    mult = mod.priceMultByCategory?.[category] ?? 1
+  }
+  const discount = state.run.shopDiscountPercent ?? 0
+  return mult * Math.max(0, 1 - discount / 100)
 }
 
 export type ShopCatalogItem = ShopItemDef & {
