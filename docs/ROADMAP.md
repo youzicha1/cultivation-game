@@ -107,6 +107,16 @@
 - **UI**：FinalTrialScreen（天劫条 3 段、HP/resolve/threat、第 X 雷 + 三选项）；FinalResultScreen（结局标题、战报、传承点/碎片、开新一局/去传承升级）
 - **工程**：finalTrial.ts（computeThreat、computeInitialResolve、伤害公式、computeEndingId、getFinalRewards）；finalTrial.test.ts；game.test.ts（FINAL_TRIAL_CHOOSE、step 推进、搏 rng）；persistence 保存/加载 finalTrial；docs 更新
 
+## TICKET-17A 完成项（炼丹页一屏化 + 爽文 UI + 开奖弹层）
+
+- **一屏布局**：1366×768 / 390×844 下无需下滑即可见顶部资源条、配方/炉温/批量、成功率大数字、底部 StickyFooter（状态提示 + 炼丹 + 返回）
+- **材料缺口**：缺什么、缺多少一眼可见；缺项在材料列表中高亮；「去探索」「去商店（开发中）」入口
+- **主题**：丹火暖色（火焰橙/灵玉绿/爆丹红/紫稀有），面板暖金微光，主按钮橙金、触控≥44px
+- **概率单一来源**：`src/engine/alchemy_calc.ts` 的 `getAlchemyChances(state, selection)` 返回 successRate、boomRate、breakdown；`getAlchemyShortage(state, selection)` 返回缺口；UI 仅展示上述返回值
+- **开奖弹层**：点击炼丹后居中 Modal，成丹/爆丹、获得物品+品质（灰/蓝/紫/金），主按钮「继续炼丹」、次按钮「去突破」
+- **通用组件**：StickyFooter、Modal（后续突破/探索复用）
+- **工程**：alchemy_calc.ts、alchemy_calc.test.ts（缺口与概率）；AlchemyScreen 用 alchemy_calc；ROADMAP 更新
+
 ## 开发优先级
 
 待定，将根据游戏设计逐步确定。

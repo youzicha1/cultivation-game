@@ -3,19 +3,17 @@ import type { GameAction, GameState } from '../../engine'
 import {
   alchemyMaterials,
   alchemyRecipes,
-  buildKungfaModifiers,
-  getAlchemyRates,
   getDailyEnvironmentDef,
-  getDailyModifiers,
-  getMaterialShortage,
   getRecipe,
   PITY_ALCHEMY_THRESHOLD,
-  PITY_ALCHEMY_HARD,
   PITY_DEBUG_SHOW_VALUES,
 } from '../../engine'
+import { getAlchemyChances, getAlchemyShortage, type AlchemySelection } from '../../engine/alchemy_calc'
 import type { HeatLevel } from '../../engine'
 import { Button } from '../ui/Button'
 import { Panel } from '../ui/Panel'
+import { StickyFooter } from '../ui/StickyFooter'
+import { Modal } from '../ui/Modal'
 
 type ScreenProps = {
   state: GameState
@@ -37,35 +35,13 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
   const batch = Math.max(1, Math.min(5, plan.batch))
   const heat = plan.heat ?? 'push'
 
-  const realmOrder = ['凡人', '炼气', '筑基', '金丹', '元婴', '化神']
-  const realmIndex = Math.max(0, realmOrder.indexOf(state.player.realm))
+  const selection: AlchemySelection = { recipeId: plan.recipeId, batch, heat }
+  const { shortages, canBrew } = getAlchemyShortage(state, selection)
+  const chances = getAlchemyChances(state, selection)
 
   const [rateExpanded, setRateExpanded] = useState(false)
 
   const unlocked = recipe ? state.player.recipesUnlocked[recipe.id] : false
-  const { shortages, canBrew } = recipe
-    ? getMaterialShortage(recipe, batch, state.player.materials as Record<string, number>)
-    : { shortages: [] as Array<{ materialId: string; name: string; need: number; have: number; missing: number }>, canBrew: false }
-
-  const dailyMod = state.meta?.daily
-    ? getDailyModifiers(state.meta.daily.environmentId as import('../../engine').DailyEnvironmentId)
-    : undefined
-  const kungfuMod = {
-    alchemyBoomMul: buildKungfaModifiers(state).alchemyBoomMul,
-    alchemyQualityShift: buildKungfaModifiers(state).alchemyQualityShift,
-  }
-  const rates = recipe
-    ? getAlchemyRates({
-        recipe,
-        realmIndex,
-        pity: state.player.pity,
-        totalBrews: state.player.codex.totalBrews,
-        heat,
-        dailyMod,
-        kungfuMod,
-      })
-    : null
-
   const dailyEnv = state.meta?.daily
     ? getDailyEnvironmentDef(state.meta.daily.environmentId as import('../../engine').DailyEnvironmentId)
     : null
@@ -74,11 +50,14 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
     shortages.length > 0
       ? `材料不足：缺 ${shortages.map((s) => `${s.name}×${s.missing}`).join('、')}`
       : '可炼'
-  const boomRateHigh = rates ? rates.finalBoomRate >= BOOM_RATE_HIGH_THRESHOLD : false
-
+  const boomRateHigh = chances ? chances.boomRate >= BOOM_RATE_HIGH_THRESHOLD : false
   const canBrewThisBatch = unlocked && canBrew
+  const primaryButtonReason =
+    !canBrewThisBatch && shortages.length > 0
+      ? `材料不足：缺 ${shortages.map((s) => `${s.name}×${s.missing}`).join('、')}`
+      : null
 
-  // ——— 结果弹层（居中浮层，不替换整页，主按钮仍在底部） ———
+  // ——— 结果弹层（TICKET-17A：居中 Modal + 继续炼丹 / 去突破） ———
   if (outcome?.kind === 'alchemy') {
     const isBoom = outcome.boomed
     const isSuccess = outcome.successes > 0
@@ -87,8 +66,7 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
 
     return (
       <div className="alchemy-page alchemy-page--with-modal">
-        <div className="alchemy-page__mask" />
-        <div className="alchemy-page__result-modal">
+        <Modal>
           <div
             className={`alchemy-outcome alchemy-outcome--${isBoom ? 'boom' : isSuccess ? 'success' : 'fail'} ${hasTian ? 'alchemy-outcome--tian' : ''} ${hasDi ? 'alchemy-outcome--di' : ''}`}
           >
@@ -162,14 +140,14 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                   size="md"
                   onClick={() => dispatch({ type: 'OUTCOME_CONTINUE', to: 'alchemy' })}
                 >
-                  再炼一次
+                  继续炼丹
                 </Button>
                 <Button
                   variant="option-blue"
                   size="sm"
-                  onClick={() => dispatch({ type: 'ALCHEMY_OPEN_CODEX' })}
+                  onClick={() => dispatch({ type: 'OUTCOME_CONTINUE', to: 'breakthrough' })}
                 >
-                  图鉴
+                  去突破
                 </Button>
                 <Button
                   variant="ghost"
@@ -181,7 +159,7 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
               </div>
             </div>
           </div>
-        </div>
+        </Modal>
       </div>
     )
   }
@@ -241,6 +219,9 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                 onClick={() => dispatch({ type: 'GO', screen: 'explore' })}
               >
                 去探索
+              </Button>
+              <Button variant="ghost" size="sm" className="alchemy-goto-btn" disabled title="开发中">
+                去商店（开发中）
               </Button>
             </div>
           )}
@@ -308,10 +289,7 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
             <div className="alchemy-label">批量</div>
             <div className="alchemy-batch-row">
               {[1, 2, 3, 4, 5].map((b) => {
-                const shortForB =
-                  recipe != null
-                    ? getMaterialShortage(recipe, b, state.player.materials as Record<string, number>)
-                    : { canBrew: false as const, shortages: [] as Array<{ name: string; missing: number }> }
+                const shortForB = getAlchemyShortage(state, { recipeId: plan.recipeId, batch: b, heat })
                 const disabled = !unlocked || !shortForB.canBrew
                 const selected = batch === b
                 return (
@@ -338,17 +316,17 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
           </div>
 
           <div className="alchemy-main-col alchemy-main-col--right">
-            {rates && (
+            {chances && (
               <>
                 <div className="alchemy-rate-block">
                   <div className="alchemy-rate-big">
                     <span className="alchemy-rate-big-value">
-                      {(rates.finalSuccessRate * 100).toFixed(0)}%
+                      {(chances.successRate * 100).toFixed(0)}%
                     </span>
                     <span className="alchemy-rate-big-label">成功率</span>
                   </div>
                   <div className="alchemy-rate-boom">
-                    爆丹 {(rates.finalBoomRate * 100).toFixed(1)}%
+                    爆丹 {(chances.boomRate * 100).toFixed(1)}%
                   </div>
                   <button
                     type="button"
@@ -364,22 +342,22 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                     <div className="alchemy-breakdown-section">
                       <div className="alchemy-breakdown-title">成功率</div>
                       <ul>
-                        <li>基础：{(rates.breakdown.success.base * 100).toFixed(0)}%</li>
-                        <li>境界：+{(rates.breakdown.success.realmBonus * 100).toFixed(0)}%</li>
-                        <li>保底：+{(rates.breakdown.success.pityBonus * 100).toFixed(0)}%</li>
-                        <li>熟练：+{(rates.breakdown.success.masteryBonus * 100).toFixed(0)}%</li>
-                        <li>每日：+{(rates.breakdown.success.dailyBonus * 100).toFixed(0)}%</li>
-                        <li>炉温：{(rates.breakdown.success.heatMod >= 0 ? '+' : '')}{(rates.breakdown.success.heatMod * 100).toFixed(0)}%</li>
-                        <li><strong>最终：{(rates.breakdown.success.final * 100).toFixed(1)}%</strong></li>
+                        <li>基础：{(chances.breakdown.success.base * 100).toFixed(0)}%</li>
+                        <li>境界：+{(chances.breakdown.success.realmBonus * 100).toFixed(0)}%</li>
+                        <li>保底：+{(chances.breakdown.success.pityBonus * 100).toFixed(0)}%</li>
+                        <li>熟练：+{(chances.breakdown.success.masteryBonus * 100).toFixed(0)}%</li>
+                        <li>每日：+{(chances.breakdown.success.dailyBonus * 100).toFixed(0)}%</li>
+                        <li>炉温：{(chances.breakdown.success.heatMod >= 0 ? '+' : '')}{(chances.breakdown.success.heatMod * 100).toFixed(0)}%</li>
+                        <li><strong>最终：{(chances.breakdown.success.final * 100).toFixed(1)}%</strong></li>
                       </ul>
                     </div>
                     <div className="alchemy-breakdown-section">
                       <div className="alchemy-breakdown-title">爆丹率</div>
                       <ul>
-                        <li>基础：{(rates.breakdown.boom.base * 100).toFixed(1)}%</li>
-                        <li>炉温×{rates.breakdown.boom.heatMultiplier}</li>
-                        <li>每日×{rates.breakdown.boom.dailyMultiplier}</li>
-                        <li><strong>最终：{(rates.breakdown.boom.final * 100).toFixed(1)}%</strong></li>
+                        <li>基础：{(chances.breakdown.boom.base * 100).toFixed(1)}%</li>
+                        <li>炉温×{chances.breakdown.boom.heatMultiplier}</li>
+                        <li>每日×{chances.breakdown.boom.dailyMultiplier}</li>
+                        <li><strong>最终：{(chances.breakdown.boom.final * 100).toFixed(1)}%</strong></li>
                       </ul>
                     </div>
                   </div>
@@ -389,34 +367,37 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
           </div>
         </div>
 
-        {/* 底部固定操作条 */}
-        <footer className="alchemy-footer">
-          <div className="alchemy-footer-hint">
-            {!unlocked && recipe && '未解锁该配方'}
-            {unlocked && shortageText}
-            {boomRateHigh && canBrewThisBatch && (
-              <span className="alchemy-footer-risk">爆丹率较高，小心反噬</span>
-            )}
-          </div>
-          <div className="alchemy-footer-actions">
-            <div className="alchemy-brew-row">
+        {/* TICKET-17A: 底部固定操作条（StickyFooter） */}
+        <StickyFooter
+          className="alchemy-footer"
+          hint={
+            <>
+              {!unlocked && recipe && '未解锁该配方'}
+              {unlocked && shortageText}
+              {boomRateHigh && canBrewThisBatch && (
+                <span className="alchemy-footer-risk">风险：爆丹率 {((chances?.boomRate ?? 0) * 100).toFixed(0)}%（建议稳火）</span>
+              )}
+            </>
+          }
+          actions={
+            <>
               <Button
                 variant="primary"
                 size="md"
                 className="alchemy-footer-main-btn"
                 onClick={() => dispatch({ type: 'ALCHEMY_BREW_CONFIRM' })}
                 disabled={!recipe || !canBrewThisBatch}
-                title={!canBrewThisBatch && shortages.length > 0 ? shortageText : undefined}
+                title={primaryButtonReason ?? undefined}
               >
                 炼丹
               </Button>
               <span className="alchemy-time-hint">消耗：1 时辰</span>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'home' })}>
-              返回
-            </Button>
-          </div>
-        </footer>
+              <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'home' })}>
+                返回
+              </Button>
+            </>
+          }
+        />
       </Panel>
     </div>
   )

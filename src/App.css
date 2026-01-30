@@ -1983,10 +1983,13 @@
 
 .alchemy-footer {
   flex-shrink: 0;
+  min-height: 56px;
   padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
 .alchemy-footer-hint {
@@ -2016,9 +2019,21 @@
   box-shadow: 0 0 20px var(--alchemy-glow);
 }
 .alchemy-footer-main-btn:disabled {
-  opacity: 0.6;
-  background: rgba(255, 255, 255, 0.15);
+  opacity: 0.85;
+  background: rgba(255, 255, 255, 0.12);
   color: var(--alchemy-muted);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  cursor: not-allowed;
+}
+.alchemy-footer .sticky-footer__hint {
+  flex: 1;
+  min-width: 0;
+}
+.alchemy-footer .sticky-footer__actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* 炼丹结果弹层 */
@@ -2051,6 +2066,52 @@
   gap: 8px;
   justify-content: center;
   margin-top: 14px;
+}
+
+/* TICKET-17A: 通用底部操作条 */
+.sticky-footer {
+  flex-shrink: 0;
+  padding: 10px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+}
+.sticky-footer__hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--alchemy-muted, #9CA3AF);
+}
+.sticky-footer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* TICKET-17A: 通用弹层 */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11, 15, 18, 0.88);
+  padding: 12px;
+  box-sizing: border-box;
+}
+.modal-box {
+  width: 100%;
+  max-width: 400px;
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  box-shadow: 0 0 32px rgba(245, 158, 11, 0.15);
 }
 
 /* 陨落页：感官刺激 */
