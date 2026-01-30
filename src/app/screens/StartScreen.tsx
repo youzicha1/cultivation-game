@@ -12,7 +12,12 @@ type ScreenProps = {
 
 export function StartScreen({ state, dispatch, newGame }: ScreenProps) {
   const isDead = state.summary?.endingId === 'death'
-  const isTribulationEnded = state.summary?.endingId === 'tribulation' || state.meta?.tribulationFinaleTriggered === true
+  const isTribulationEnded =
+    state.summary?.endingId === 'tribulation' ||
+    state.summary?.endingId === 'ascend' ||
+    state.summary?.endingId === 'retire' ||
+    state.summary?.endingId === 'demon' ||
+    state.meta?.tribulationFinaleTriggered === true
   const runEnded = isDead || isTribulationEnded
   const hasSave = state.run.turn > 0 || (state.player.exp > 0 || state.player.spiritStones > 0)
 

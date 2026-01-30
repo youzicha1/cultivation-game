@@ -69,6 +69,31 @@ describe('persistence', () => {
     expect(loaded!.run.timeMax).toBe(24)
   })
 
+  it('TICKET-15: 保存/加载后 finalTrial 不丢', () => {
+    const state = createInitialGameState(1)
+    const withFinalTrial = {
+      ...state,
+      screen: 'final_trial' as const,
+      run: {
+        ...state.run,
+        finalTrial: {
+          step: 2 as 1 | 2 | 3,
+          threat: 90,
+          resolve: 45,
+          choices: ['稳'],
+        },
+      },
+    }
+    saveToStorage(withFinalTrial)
+    const loaded = loadFromStorage()
+    expect(loaded).not.toBeNull()
+    expect(loaded!.screen).toBe('final_trial')
+    expect(loaded!.run.finalTrial?.step).toBe(2)
+    expect(loaded!.run.finalTrial?.threat).toBe(90)
+    expect(loaded!.run.finalTrial?.resolve).toBe(45)
+    expect(loaded!.run.finalTrial?.choices).toEqual(['稳'])
+  })
+
   it('TICKET-10: 保存/加载后 relics 与 equippedRelics 不丢', () => {
     const state = createInitialGameState(456)
     const withRelics = {

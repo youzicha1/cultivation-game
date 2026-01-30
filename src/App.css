@@ -2099,6 +2099,49 @@
 }
 .death-outcome .page-actions { margin-top: 12px; }
 
+/* TICKET-15: 天劫挑战 + 结局 */
+.final-trial-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text);
+}
+.final-trial-stat { padding: 4px 8px; background: var(--panel2); border-radius: 6px; }
+.final-trial-progress {
+  display: flex;
+  gap: 6px;
+}
+.final-trial-segment {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+}
+.final-trial-segment--active { background: #d97706; border-color: #f59e0b; }
+.final-trial-segment--done { background: #65a30d; border-color: #84cc16; }
+.final-trial-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+.final-trial-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.final-result-hero { margin-bottom: 8px; }
+.final-result-cause {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0;
+}
+.final-result-stats { margin: 8px 0; }
+.final-result-rewards { font-size: 13px; color: var(--muted); }
+.final-result-rewards-title { font-weight: 600; color: var(--text); margin: 0 0 6px; }
+.final-result-demon { color: #a6a; margin-top: 8px; }
+
 /* 图鉴列表：紧凑行 */
 .codex-list {
   display: flex;

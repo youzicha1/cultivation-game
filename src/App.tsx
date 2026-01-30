@@ -15,6 +15,8 @@ import { SettingsScreen } from './app/screens/SettingsScreen'
 import { StartScreen } from './app/screens/StartScreen'
 import { SummaryScreen } from './app/screens/SummaryScreen'
 import { LegacyScreen } from './app/screens/LegacyScreen'
+import { FinalTrialScreen } from './app/screens/FinalTrialScreen'
+import { FinalResultScreen } from './app/screens/FinalResultScreen'
 
 function App() {
   const { state, dispatch, newGame, clearSave } = useGameStore()
@@ -66,6 +68,12 @@ function App() {
         return <LegacyScreen state={state} dispatch={dispatch} />
       case 'ending':
         return <SummaryScreen state={state} dispatch={dispatch} />
+      case 'final_trial':
+        return <FinalTrialScreen state={state} dispatch={dispatch} />
+      case 'final_result':
+        return (
+          <FinalResultScreen state={state} dispatch={dispatch} newGame={newGame} />
+        )
       default:
         return <HomeScreen state={state} dispatch={dispatch} />
     }

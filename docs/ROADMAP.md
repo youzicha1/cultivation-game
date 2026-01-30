@@ -98,6 +98,15 @@
 - **UI**：顶部“时辰 x/24”；≤4 时红字“天劫将至！再贪就来不及了。”；探索/炼丹/突破处“消耗：1 时辰”
 - **工程**：time.ts（getActionTimeCost、applyTimeCost、shouldTriggerTribulationFinale）；time.test.ts；game.test.ts（TICKET-14 用例）；persistence 保存/加载 timeLeft/timeMax；DEBUG_SET_TIME_LEFT + 设置页可选调试按钮
 
+## TICKET-15 完成项（终局天劫挑战 + 多结局）
+
+- **流程**：时辰耗尽后进入「天劫挑战」页（screen=final_trial），3 回合抉择（稳/搏/献祭），完成后根据 hp/resolve/threat 判定结局并进入「结局」页（screen=final_result）
+- **状态**：`run.finalTrial` = { step: 1|2|3, threat, resolve, wounds?, choices[], rewardSeed? }；threat 由本局表现纯函数计算（境界、danger、丹品质、通关链），clamp [60,140]
+- **三选项**：稳（守心渡劫，伤害低、resolve+2）、搏（逆天一搏，rng 成功伤害低 resolve+6、失败伤害高）、献祭（消耗灵石/丹药/材料/传承点换伤害减免或回血或 resolve）
+- **结局**：ascend（飞升）、retire（归隐）、demon（入魔）、dead（战死）；每种结局均有传承点+碎片奖励（爽文补偿），入魔解锁魔道天赋
+- **UI**：FinalTrialScreen（天劫条 3 段、HP/resolve/threat、第 X 雷 + 三选项）；FinalResultScreen（结局标题、战报、传承点/碎片、开新一局/去传承升级）
+- **工程**：finalTrial.ts（computeThreat、computeInitialResolve、伤害公式、computeEndingId、getFinalRewards）；finalTrial.test.ts；game.test.ts（FINAL_TRIAL_CHOOSE、step 推进、搏 rng）；persistence 保存/加载 finalTrial；docs 更新
+
 ## 开发优先级
 
 待定，将根据游戏设计逐步确定。

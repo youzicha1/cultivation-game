@@ -88,6 +88,24 @@ import {
   applyTimeCost,
   shouldTriggerTribulationFinale,
 } from './time'
+import {
+  computeThreat,
+  computeInitialResolve,
+  getDmgBase,
+  applySteadyDamage,
+  applyGamble,
+  GAMBLE_SUCCESS_RATE,
+  applySacrificeDamage,
+  canSacrifice,
+  getSacrificeDeduction,
+  getSacrificeHeal,
+  getSacrificeResolveDelta,
+  computeEndingId,
+  getFinalRewards,
+  ENDING_TITLES,
+  type SacrificeKind,
+  type EndingId,
+} from './finalTrial'
 
 export type ScreenId =
   | 'start'
@@ -104,6 +122,8 @@ export type ScreenId =
   | 'achievements'
   | 'ending'
   | 'legacy'
+  | 'final_trial'
+  | 'final_result'
 
 export type GameState = {
   screen: ScreenId
@@ -142,6 +162,15 @@ export type GameState = {
     timeMax?: number
     /** TICKET-14: 可选 晨/昼/暮/劫 */
     dayPhase?: string
+    /** TICKET-15: 天劫挑战（3 回合） */
+    finalTrial?: {
+      step: 1 | 2 | 3
+      threat: number
+      resolve: number
+      wounds?: number
+      choices: string[]
+      rewardSeed?: number
+    }
     currentEvent?: {
       id: string
       title: string
@@ -223,6 +252,8 @@ export type GameState = {
     kungfaShards?: number
     /** TICKET-14: 本局已触发天劫收官，防止“继续游戏”后重复刷传承点 */
     tribulationFinaleTriggered?: boolean
+    /** TICKET-15: 入魔结局解锁魔修分支 */
+    demonPathUnlocked?: boolean
   }
 }
 
@@ -264,6 +295,11 @@ export type GameAction =
   | { type: 'CLEAR_SHARD_EXCHANGE_TOAST' }
   | { type: 'KUNGFU_SHARD_EXCHANGE'; kungfuId: string; rarity: 'rare' | 'epic' | 'legendary' }
   | { type: 'DEBUG_SET_TIME_LEFT'; value: number }
+  | {
+      type: 'FINAL_TRIAL_CHOOSE'
+      choice: 'steady' | 'gamble' | 'sacrifice'
+      sacrificeKind?: SacrificeKind
+    }
 
 export function createInitialGameState(seed: number): GameState {
   return {
@@ -340,23 +376,46 @@ function triggerTribulationFinale(state: GameState): GameState {
   return next
 }
 
-/** TICKET-14: 扣减时辰并判断是否触发收官（统一入口） */
+/** TICKET-14/15: 扣减时辰并判断是否进入天劫挑战（统一入口） */
 function applyTimeAndMaybeFinale(state: GameState, cost: number): GameState {
   const next = applyTimeCost(state, cost)
   if (shouldTriggerTribulationFinale(next)) {
-    return triggerTribulationFinale(next)
+    return enterFinalTrial(next)
   }
   return next
 }
 
-/** TICKET-14: 时辰已耗尽时，不执行动作、直接触发天劫收官（用于各耗时辰动作开头） */
+/** TICKET-14/15: 时辰已耗尽时，进入天劫挑战页（不直接结算） */
+function enterFinalTrial(state: GameState): GameState {
+  const threat = computeThreat(state)
+  const resolve = computeInitialResolve(state)
+  return addLog(
+    {
+      ...state,
+      screen: 'final_trial',
+      run: {
+        ...state.run,
+        finalTrial: {
+          step: 1,
+          threat,
+          resolve,
+          wounds: 0,
+          choices: [],
+        },
+      },
+    },
+    `【天劫】时辰耗尽！天雷将至，共 3 道。威胁 ${threat}，道心 ${resolve}。`,
+  )
+}
+
+/** TICKET-14: 时辰已耗尽时，不执行动作、直接进入天劫挑战（用于各耗时辰动作开头） */
 function tryTribulationFinaleIfNoTime(state: GameState): GameState | null {
   const timeLeft = state.run.timeLeft ?? TIME_MAX
   if (timeLeft > 0) return null
   if (state.meta?.tribulationFinaleTriggered) return null
   const next = applyTimeCost(state, 0)
   if (!shouldTriggerTribulationFinale(next)) return null
-  return triggerTribulationFinale(next)
+  return enterFinalTrial(next)
 }
 
 /** TICKET-12: 计算本局传承点奖励 */
@@ -1545,12 +1604,121 @@ export function reduceGame(
       const { shardExchangeJustClaimed: _, ...restRun } = baseRun
       return { ...state, run: { ...restRun, rngCalls } }
     }
+    case 'FINAL_TRIAL_CHOOSE': {
+      const ft = baseRun.finalTrial
+      if (!ft || ft.step < 1 || ft.step > 3) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      const step = ft.step
+      const dmgBase = getDmgBase(ft.threat, step)
+      let newHp = basePlayer.hp
+      let newResolve = ft.resolve
+      let newChoices = [...ft.choices]
+      let nextPlayer = { ...basePlayer }
+      let logMsg = ''
+
+      if (action.choice === 'steady') {
+        const { dmg, resolveDelta } = applySteadyDamage(dmgBase, ft.resolve)
+        newHp = Math.max(0, basePlayer.hp - dmg)
+        newResolve = ft.resolve + resolveDelta
+        newChoices = [...newChoices, '稳']
+        logMsg = `【第${step}雷·稳】承受伤害 ${dmg}，道心 +${resolveDelta}。`
+      } else if (action.choice === 'gamble') {
+        const roll = next01()
+        const { dmg, resolveDelta, success } = applyGamble(dmgBase, ft.resolve, roll)
+        newHp = Math.max(0, basePlayer.hp - dmg)
+        newResolve = ft.resolve + resolveDelta
+        newChoices = [...newChoices, success ? '搏成' : '搏败']
+        logMsg = success
+          ? `【第${step}雷·搏】逆天成功！伤害 ${dmg}，道心 +${resolveDelta}。`
+          : `【第${step}雷·搏】逆天失败，承受 ${dmg} 伤害。`
+      } else if (action.choice === 'sacrifice') {
+        const kind = action.sacrificeKind ?? 'pills'
+        if (!canSacrifice(state, kind)) {
+          let st = addLog(state, `献祭资源不足（${kind}），无法献祭。`)
+          return { ...st, run: { ...st.run, rngCalls } }
+        }
+        const ded = getSacrificeDeduction(kind)
+        if (ded.spiritStones != null) nextPlayer = { ...nextPlayer, spiritStones: nextPlayer.spiritStones - ded.spiritStones }
+        if (ded.pills != null) nextPlayer = { ...nextPlayer, pills: nextPlayer.pills - ded.pills }
+        if (ded.inheritancePoints != null) nextPlayer = { ...nextPlayer, inheritancePoints: nextPlayer.inheritancePoints - ded.inheritancePoints }
+        if (ded.material) {
+          const cur = nextPlayer.materials[ded.material.id as keyof typeof nextPlayer.materials] ?? 0
+          nextPlayer = { ...nextPlayer, materials: { ...nextPlayer.materials, [ded.material.id]: cur - ded.material.count } }
+        }
+        const sacResult = applySacrificeDamage(dmgBase, kind)
+        const healAmount = sacResult.heal
+        const resolveDeltaSac = sacResult.resolveDelta
+        newHp = Math.max(0, nextPlayer.hp - sacResult.dmg + healAmount)
+        newResolve = ft.resolve + resolveDeltaSac
+        newChoices = [...newChoices, '献祭']
+        nextPlayer = { ...nextPlayer, hp: newHp }
+        logMsg = `【第${step}雷·献祭】消耗资源，承受伤害 ${dmg}${healAmount ? `，回血 +${healAmount}` : ''}，道心 +${newResolve - ft.resolve}。`
+      } else {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+
+      if (action.choice !== 'sacrifice') {
+        nextPlayer = { ...nextPlayer, hp: newHp }
+      }
+
+      const nextStep = step + 1
+      if (nextStep > 3) {
+        const endingId: EndingId = computeEndingId(newHp, newResolve, ft.threat)
+        const rewards = getFinalRewards(endingId)
+        const baseLegacy = 1
+        const totalLegacy = baseLegacy + rewards.legacyBonus
+        let nextState: GameState = addLog(
+          {
+            ...state,
+            player: nextPlayer,
+            screen: 'final_result',
+            run: {
+              ...baseRun,
+              finalTrial: { ...ft, step: 3, resolve: newResolve, choices: newChoices },
+            },
+            summary: {
+              cause: ENDING_TITLES[endingId],
+              turns: state.run.turn,
+              endingId,
+            },
+            meta: {
+              ...state.meta,
+              legacyPoints: (state.meta?.legacyPoints ?? 0) + totalLegacy,
+              kungfaShards: (state.meta?.kungfaShards ?? 0) + rewards.shardsBonus,
+              tribulationFinaleTriggered: true,
+              ...(rewards.demonUnlock ? { demonPathUnlocked: true } : {}),
+            },
+          },
+          logMsg + ` 天劫结束：${ENDING_TITLES[endingId]} 传承点 +${totalLegacy}，碎片 +${rewards.shardsBonus}。`,
+        )
+        return { ...nextState, run: { ...nextState.run, rngCalls } }
+      }
+
+      let nextState: GameState = addLog(
+        {
+          ...state,
+          player: nextPlayer,
+          run: {
+            ...baseRun,
+            finalTrial: {
+              ...ft,
+              step: nextStep as 1 | 2 | 3,
+              resolve: newResolve,
+              choices: newChoices,
+            },
+          },
+        },
+        logMsg,
+      )
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
     case 'DEBUG_SET_TIME_LEFT': {
       const timeMax = baseRun.timeMax ?? TIME_MAX
       const timeLeft = Math.max(0, Math.min(timeMax, action.value))
       let nextState: GameState = { ...state, run: { ...baseRun, timeLeft, timeMax } }
       if (shouldTriggerTribulationFinale(nextState)) {
-        nextState = triggerTribulationFinale(nextState)
+        nextState = enterFinalTrial(nextState)
       }
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }

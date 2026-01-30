@@ -106,7 +106,31 @@ function normalizeLoadedState(state: GameState): GameState {
         }
       : { completed: {} as Record<string, boolean> }
 
-  const runState = state.run as { timeLeft?: number; timeMax?: number; cultivateCount?: number }
+  const runState = state.run as {
+    timeLeft?: number
+    timeMax?: number
+    cultivateCount?: number
+    finalTrial?: { step: 1 | 2 | 3; threat: number; resolve: number; wounds?: number; choices: string[]; rewardSeed?: number }
+  }
+  const loadedFinalTrial = runState.finalTrial
+  const finalTrial =
+    loadedFinalTrial &&
+    typeof loadedFinalTrial.step === 'number' &&
+    loadedFinalTrial.step >= 1 &&
+    loadedFinalTrial.step <= 3 &&
+    typeof loadedFinalTrial.threat === 'number' &&
+    typeof loadedFinalTrial.resolve === 'number' &&
+    Array.isArray(loadedFinalTrial.choices)
+      ? {
+          step: loadedFinalTrial.step as 1 | 2 | 3,
+          threat: loadedFinalTrial.threat,
+          resolve: loadedFinalTrial.resolve,
+          wounds: typeof loadedFinalTrial.wounds === 'number' ? loadedFinalTrial.wounds : undefined,
+          choices: loadedFinalTrial.choices,
+          rewardSeed: typeof loadedFinalTrial.rewardSeed === 'number' ? loadedFinalTrial.rewardSeed : undefined,
+        }
+      : undefined
+
   const run = {
     ...state.run,
     depth: typeof state.run.depth === 'number' ? state.run.depth : 0,
@@ -117,6 +141,7 @@ function normalizeLoadedState(state: GameState): GameState {
     cultivateCount: typeof runState.cultivateCount === 'number' ? runState.cultivateCount : 0,
     timeLeft: typeof runState.timeLeft === 'number' ? Math.max(0, runState.timeLeft) : TIME_MAX,
     timeMax: typeof runState.timeMax === 'number' ? runState.timeMax : TIME_MAX,
+    ...(finalTrial ? { finalTrial } : {}),
   }
 
   const loadedMeta: any = state.meta ?? {}
@@ -130,6 +155,7 @@ function normalizeLoadedState(state: GameState): GameState {
     pityLegendKungfa: typeof loadedMeta.pityLegendKungfa === 'number' ? loadedMeta.pityLegendKungfa : 0,
     kungfaShards: typeof loadedMeta.kungfaShards === 'number' ? loadedMeta.kungfaShards : 0,
     ...(loadedMeta.tribulationFinaleTriggered === true ? { tribulationFinaleTriggered: true } : {}),
+    ...(loadedMeta.demonPathUnlocked === true ? { demonPathUnlocked: true } : {}),
   }
 
   return {

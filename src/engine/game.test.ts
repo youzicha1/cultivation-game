@@ -789,15 +789,17 @@ describe('game reducer', () => {
       const next = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
       expect(next.run.timeLeft).toBe(9)
     })
-    it('时辰耗尽触发收官：timeLeft=1 修炼后 screen=ending', () => {
+    it('时辰耗尽进入天劫挑战：timeLeft=1 修炼后 screen=final_trial', () => {
       const rng = createSequenceRng([0.9, 0.5])
       const base = createInitialGameState(1)
       const state: GameState = { ...base, run: { ...base.run, timeLeft: 1, timeMax: TIME_MAX } }
       const next = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
       expect(next.run.timeLeft).toBe(0)
-      expect(next.screen).toBe('ending')
-      expect(next.summary?.cause).toContain('天劫')
-      expect(next.meta?.legacyPoints).toBeGreaterThan(base.meta?.legacyPoints ?? 0)
+      expect(next.screen).toBe('final_trial')
+      expect(next.run.finalTrial).toBeDefined()
+      expect(next.run.finalTrial?.step).toBe(1)
+      expect(next.run.finalTrial?.threat).toBeGreaterThanOrEqual(60)
+      expect(next.run.finalTrial?.resolve).toBeGreaterThan(0)
     })
     it('GO / RELIC_EQUIP 不消耗时辰', () => {
       const rng = createSequenceRng([])
@@ -808,13 +810,14 @@ describe('game reducer', () => {
       const afterEquip = reduceGame(afterGo, { type: 'RELIC_EQUIP', slotIndex: 0, relicId: null }, rng)
       expect(afterEquip.run.timeLeft).toBe(5)
     })
-    it('DEBUG_SET_TIME_LEFT 可减时辰，耗尽触发收官', () => {
+    it('DEBUG_SET_TIME_LEFT 可减时辰，耗尽进入天劫挑战', () => {
       const rng = createSequenceRng([])
       const base = createInitialGameState(1)
       const state: GameState = { ...base, screen: 'home', run: { ...base.run, timeLeft: 3, timeMax: TIME_MAX } }
       const next = reduceGame(state, { type: 'DEBUG_SET_TIME_LEFT', value: 0 }, rng)
       expect(next.run.timeLeft).toBe(0)
-      expect(next.screen).toBe('ending')
+      expect(next.screen).toBe('final_trial')
+      expect(next.run.finalTrial?.step).toBe(1)
     })
     it('已触发天劫后“继续游戏”再消耗时辰：不再触发收官、传承点不增加（防刷）', () => {
       const rng = createSequenceRng([0.9, 0.5])
@@ -832,6 +835,61 @@ describe('game reducer', () => {
       expect(afterCultivate.screen).toBe('home')
       expect(afterCultivate.meta?.legacyPoints).toBe(pointsBefore)
       expect(afterCultivate.meta?.tribulationFinaleTriggered).toBe(true)
+    })
+  })
+
+  describe('TICKET-15 天劫挑战 + 多结局', () => {
+    function stateWithFinalTrial(step: 1 | 2 | 3, hp: number, resolve: number, threat: number): GameState {
+      const base = createInitialGameState(1)
+      return {
+        ...base,
+        screen: 'final_trial',
+        player: { ...base.player, hp, maxHp: 100 },
+        run: {
+          ...base.run,
+          finalTrial: { step, threat, resolve, choices: [] },
+        },
+      }
+    }
+
+    it('FINAL_TRIAL_CHOOSE 稳：step 1 -> 2，hp 减伤，resolve 增', () => {
+      const rng = createSequenceRng([])
+      const state = stateWithFinalTrial(1, 80, 40, 80)
+      const next = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      expect(next.run.finalTrial?.step).toBe(2)
+      expect(next.run.finalTrial?.resolve).toBe(42)
+      expect(next.run.finalTrial?.choices).toContain('稳')
+      expect(next.player.hp).toBeLessThan(80)
+      expect(next.screen).toBe('final_trial')
+    })
+
+    it('三回合稳后进入 final_result，endingId 与奖励', () => {
+      const rng = createSequenceRng([])
+      let state = stateWithFinalTrial(1, 200, 80, 60)
+      state = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      state = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      const next = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
+      expect(next.screen).toBe('final_result')
+      expect(next.summary?.endingId).toBeDefined()
+      expect(['ascend', 'retire', 'demon', 'dead']).toContain(next.summary?.endingId)
+      expect(next.meta?.tribulationFinaleTriggered).toBe(true)
+      expect(next.meta?.legacyPoints).toBeGreaterThan(0)
+    })
+
+    it('搏：rng 成功时伤害低、resolve 大加', () => {
+      const rngSuccess = createSequenceRng([0.0])
+      const state = stateWithFinalTrial(1, 100, 30, 80)
+      const next = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'gamble' }, rngSuccess)
+      expect(next.run.finalTrial?.choices).toContain('搏成')
+      expect(next.run.finalTrial?.resolve).toBe(36)
+    })
+
+    it('搏：rng 失败时伤害高', () => {
+      const rngFail = createSequenceRng([0.99])
+      const state = stateWithFinalTrial(1, 100, 30, 80)
+      const next = reduceGame(state, { type: 'FINAL_TRIAL_CHOOSE', choice: 'gamble' }, rngFail)
+      expect(next.run.finalTrial?.choices).toContain('搏败')
+      expect(next.player.hp).toBeLessThan(100)
     })
   })
 
