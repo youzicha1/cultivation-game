@@ -56,6 +56,19 @@ describe('persistence', () => {
     expect(loaded!.meta?.kungfaShards).toBe(50)
   })
 
+  it('TICKET-14: 保存/加载后 timeLeft/timeMax 不丢', () => {
+    const state = createInitialGameState(1)
+    const withTime = {
+      ...state,
+      run: { ...state.run, timeLeft: 12, timeMax: 24 },
+    }
+    saveToStorage(withTime)
+    const loaded = loadFromStorage()
+    expect(loaded).not.toBeNull()
+    expect(loaded!.run.timeLeft).toBe(12)
+    expect(loaded!.run.timeMax).toBe(24)
+  })
+
   it('TICKET-10: 保存/加载后 relics 与 equippedRelics 不丢', () => {
     const state = createInitialGameState(456)
     const withRelics = {

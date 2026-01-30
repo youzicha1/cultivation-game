@@ -12,6 +12,7 @@ import { createSequenceRng } from './rng'
 import { buildLegacyModifiers } from './legacy'
 import { buildKungfaModifiers, getKungfuIdsByRarity } from './kungfu'
 import { SHARD_COST_RARE } from './pity'
+import { TIME_MAX } from './time'
 
 describe('game reducer', () => {
   it('修炼会增加经验且正常结束', () => {
@@ -24,6 +25,8 @@ describe('game reducer', () => {
     expect(next.player.hp).toBe(Math.min(state.player.maxHp, state.player.hp + 4))
     expect(next.run.turn).toBe(state.run.turn + 1)
     expect(next.run.cultivateCount).toBe(1)
+    // TICKET-14: 修炼消耗 1 时辰
+    expect(next.run.timeLeft).toBe((state.run.timeLeft ?? TIME_MAX) - 1)
   })
 
   it('走火入魔可致死并进入 death', () => {
@@ -770,6 +773,65 @@ describe('game reducer', () => {
       expect(next.player.relics).toContain(kungfuId)
       expect(next.meta?.kungfaShards).toBe(0)
       expect(next.run.shardExchangeJustClaimed).toBeDefined()
+    })
+  })
+
+  describe('TICKET-14 天劫倒计时', () => {
+    it('初始 timeLeft=timeMax', () => {
+      const state = createInitialGameState(1)
+      expect(state.run.timeLeft).toBe(TIME_MAX)
+      expect(state.run.timeMax).toBe(TIME_MAX)
+    })
+    it('CULTIVATE_TICK 消耗 1 时辰，timeLeft 递减', () => {
+      const rng = createSequenceRng([0.9, 0.5])
+      const base = createInitialGameState(1)
+      const state: GameState = { ...base, run: { ...base.run, timeLeft: 10, timeMax: TIME_MAX } }
+      const next = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
+      expect(next.run.timeLeft).toBe(9)
+    })
+    it('时辰耗尽触发收官：timeLeft=1 修炼后 screen=ending', () => {
+      const rng = createSequenceRng([0.9, 0.5])
+      const base = createInitialGameState(1)
+      const state: GameState = { ...base, run: { ...base.run, timeLeft: 1, timeMax: TIME_MAX } }
+      const next = reduceGame(state, { type: 'CULTIVATE_TICK' }, rng)
+      expect(next.run.timeLeft).toBe(0)
+      expect(next.screen).toBe('ending')
+      expect(next.summary?.cause).toContain('天劫')
+      expect(next.meta?.legacyPoints).toBeGreaterThan(base.meta?.legacyPoints ?? 0)
+    })
+    it('GO / RELIC_EQUIP 不消耗时辰', () => {
+      const rng = createSequenceRng([])
+      const base = createInitialGameState(1)
+      const state: GameState = { ...base, run: { ...base.run, timeLeft: 5, timeMax: TIME_MAX } }
+      const afterGo = reduceGame(state, { type: 'GO', screen: 'relics' }, rng)
+      expect(afterGo.run.timeLeft).toBe(5)
+      const afterEquip = reduceGame(afterGo, { type: 'RELIC_EQUIP', slotIndex: 0, relicId: null }, rng)
+      expect(afterEquip.run.timeLeft).toBe(5)
+    })
+    it('DEBUG_SET_TIME_LEFT 可减时辰，耗尽触发收官', () => {
+      const rng = createSequenceRng([])
+      const base = createInitialGameState(1)
+      const state: GameState = { ...base, screen: 'home', run: { ...base.run, timeLeft: 3, timeMax: TIME_MAX } }
+      const next = reduceGame(state, { type: 'DEBUG_SET_TIME_LEFT', value: 0 }, rng)
+      expect(next.run.timeLeft).toBe(0)
+      expect(next.screen).toBe('ending')
+    })
+    it('已触发天劫后“继续游戏”再消耗时辰：不再触发收官、传承点不增加（防刷）', () => {
+      const rng = createSequenceRng([0.9, 0.5])
+      const base = createInitialGameState(1)
+      const afterFinale: GameState = {
+        ...base,
+        screen: 'ending',
+        run: { ...base.run, timeLeft: 0, timeMax: TIME_MAX },
+        meta: { ...base.meta!, tribulationFinaleTriggered: true, legacyPoints: 5 },
+      }
+      const pointsBefore = afterFinale.meta!.legacyPoints!
+      const backToHome = reduceGame(afterFinale, { type: 'GO', screen: 'home' }, rng)
+      expect(backToHome.screen).toBe('home')
+      const afterCultivate = reduceGame(backToHome, { type: 'CULTIVATE_TICK' }, rng)
+      expect(afterCultivate.screen).toBe('home')
+      expect(afterCultivate.meta?.legacyPoints).toBe(pointsBefore)
+      expect(afterCultivate.meta?.tribulationFinaleTriggered).toBe(true)
     })
   })
 

@@ -91,6 +91,13 @@
 - **碎片兑换**：kungfaShards 30/60/100 兑换指定稀有/史诗/传奇功法；功法页兑换区 + 兑换成功弹层“你以碎片换得《xxx》”
 - **工程**：pity.test.ts（保底与碎片纯函数）；game.test.ts（KUNGFU_SHARD_EXCHANGE、CLEAR_SHARD_EXCHANGE_TOAST）；persistence（meta.pity*、kungfaShards 保存/加载）；docs 更新
 
+## TICKET-14 完成项（天劫倒计时 · 局长节拍器）
+
+- **时辰**：`run.timeLeft` / `run.timeMax`（默认 24），每局重置；关键动作各消耗 1 时辰（修炼、探索深入、事件选项、炼丹、突破）
+- **收官**：时辰耗尽自动进入 ending、天劫文案 + 传承点奖励，单局时长稳定约 15~25 分钟
+- **UI**：顶部“时辰 x/24”；≤4 时红字“天劫将至！再贪就来不及了。”；探索/炼丹/突破处“消耗：1 时辰”
+- **工程**：time.ts（getActionTimeCost、applyTimeCost、shouldTriggerTribulationFinale）；time.test.ts；game.test.ts（TICKET-14 用例）；persistence 保存/加载 timeLeft/timeMax；DEBUG_SET_TIME_LEFT + 设置页可选调试按钮
+
 ## 开发优先级
 
 待定，将根据游戏设计逐步确定。

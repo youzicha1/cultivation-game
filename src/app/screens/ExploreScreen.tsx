@@ -152,15 +152,18 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
               <div className="explore-cashout-pity-hint">此时收手，更容易吃到传奇保底</div>
             )}
             <div className="page-actions page-actions--wrap">
-              <Button
-                variant="option-green"
-                size="sm"
-                onClick={() => dispatch({ type: 'EXPLORE_DEEPEN' })}
-                disabled={danger >= 100}
-                title={danger >= 100 ? '危险值已达上限，无法继续深入' : ''}
-              >
-                继续深入
-              </Button>
+              <div className="explore-deepen-row">
+                <Button
+                  variant="option-green"
+                  size="sm"
+                  onClick={() => dispatch({ type: 'EXPLORE_DEEPEN' })}
+                  disabled={danger >= 100}
+                  title={danger >= 100 ? '危险值已达上限，无法继续深入' : ''}
+                >
+                  继续深入
+                </Button>
+                <span className="explore-time-hint">本次深入将消耗 1 时辰</span>
+              </div>
               <Button variant="option-blue" size="sm" onClick={() => dispatch({ type: 'EXPLORE_CASH_OUT' })}>
                 见好就收
               </Button>

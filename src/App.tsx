@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import './App.css'
 import { useGameStore } from './app/store/useGameStore'
+import { TIME_MAX, TIME_WARNING_THRESHOLD } from './engine'
 import { AchievementsScreen } from './app/screens/AchievementsScreen'
 import { AlchemyScreen } from './app/screens/AlchemyScreen'
 import { AlchemyCodexScreen } from './app/screens/AlchemyCodexScreen'
@@ -72,10 +73,22 @@ function App() {
 
   const isBreakthrough = state.screen === 'breakthrough'
   const isAlchemy = state.screen === 'alchemy'
+  const showTimer = ['home', 'cultivate', 'explore', 'alchemy', 'breakthrough', 'alchemy_codex', 'relics', 'legacy', 'settings', 'achievements'].includes(state.screen)
+  const timeLeft = state.run.timeLeft ?? TIME_MAX
+  const timeMax = state.run.timeMax ?? TIME_MAX
+  const timeWarning = timeLeft <= TIME_WARNING_THRESHOLD
   return (
     <div className={`app-root ${isBreakthrough ? 'app-root--breakthrough' : ''} ${isAlchemy ? 'app-root--alchemy' : ''}`}>
       <header className="app-header">
         <h1>修仙游戏</h1>
+        {showTimer && (
+          <div className={`app-timer-bar ${timeWarning ? 'app-timer-bar--warning' : ''}`}>
+            <span className="app-timer-label">时辰 {`${timeLeft}/${timeMax}`}</span>
+            {timeWarning && (
+              <span className="app-timer-warning">天劫将至！再贪就来不及了。</span>
+            )}
+          </div>
+        )}
       </header>
       <main className={`app-main ${isBreakthrough ? 'app-main--breakthrough' : ''} ${isAlchemy ? 'app-main--alchemy' : ''}`}>{screen}</main>
       <section className="app-log">

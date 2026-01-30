@@ -12,8 +12,10 @@ type ScreenProps = {
 
 export function StartScreen({ state, dispatch, newGame }: ScreenProps) {
   const isDead = state.summary?.endingId === 'death'
+  const isTribulationEnded = state.summary?.endingId === 'tribulation' || state.meta?.tribulationFinaleTriggered === true
+  const runEnded = isDead || isTribulationEnded
   const hasSave = state.run.turn > 0 || (state.player.exp > 0 || state.player.spiritStones > 0)
-  
+
   return (
     <Panel title="修仙之路">
       <Stack gap={10}>
@@ -23,12 +25,15 @@ export function StartScreen({ state, dispatch, newGame }: ScreenProps) {
         {isDead && (
           <div className="start-dead-hint">身死道消，本局已结束。请开始新游戏。</div>
         )}
+        {isTribulationEnded && !isDead && (
+          <div className="start-dead-hint">天劫已至，本局已结束。请开始新游戏。</div>
+        )}
         <div className="page-actions">
-          <Button 
-            variant="primary" 
-            size="sm" 
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => dispatch({ type: 'GO', screen: 'home' })}
-            disabled={isDead || !hasSave}
+            disabled={runEnded || !hasSave}
           >
             继续游戏
           </Button>

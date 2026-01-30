@@ -82,6 +82,12 @@ import {
   PITY_LEGEND_LOOT_HARD,
   PITY_LEGEND_KUNGFU_THRESHOLD,
 } from './pity'
+import {
+  TIME_MAX,
+  TIME_WARNING_THRESHOLD,
+  applyTimeCost,
+  shouldTriggerTribulationFinale,
+} from './time'
 
 export type ScreenId =
   | 'start'
@@ -130,6 +136,12 @@ export type GameState = {
     }
     /** TICKET-HP-1: 本局修炼次数（用于疲劳递减） */
     cultivateCount?: number
+    /** TICKET-14: 天劫倒计时（剩余时辰） */
+    timeLeft?: number
+    /** TICKET-14: 本局总时辰 */
+    timeMax?: number
+    /** TICKET-14: 可选 晨/昼/暮/劫 */
+    dayPhase?: string
     currentEvent?: {
       id: string
       title: string
@@ -209,6 +221,8 @@ export type GameState = {
     pityLegendLoot?: number
     pityLegendKungfa?: number
     kungfaShards?: number
+    /** TICKET-14: 本局已触发天劫收官，防止“继续游戏”后重复刷传承点 */
+    tribulationFinaleTriggered?: boolean
   }
 }
 
@@ -249,6 +263,7 @@ export type GameAction =
   | { type: 'CLEAR_DAILY_REWARD_TOAST' }
   | { type: 'CLEAR_SHARD_EXCHANGE_TOAST' }
   | { type: 'KUNGFU_SHARD_EXCHANGE'; kungfuId: string; rarity: 'rare' | 'epic' | 'legendary' }
+  | { type: 'DEBUG_SET_TIME_LEFT'; value: number }
 
 export function createInitialGameState(seed: number): GameState {
   return {
@@ -266,6 +281,8 @@ export function createInitialGameState(seed: number): GameState {
       chainProgress: {},
       chain: { completed: {} },
       cultivateCount: 0,
+      timeLeft: TIME_MAX,
+      timeMax: TIME_MAX,
       currentEvent: undefined,
     },
     log: [],
@@ -295,6 +312,51 @@ function addLog(state: GameState, message: string): GameState {
     nextLog.splice(0, nextLog.length - 50)
   }
   return { ...state, log: nextLog }
+}
+
+/** TICKET-14: 时辰耗尽后触发收官结算（天劫） */
+function triggerTribulationFinale(state: GameState): GameState {
+  const base = calculateLegacyPointsReward(state)
+  const extra = Math.min(3, Math.max(1, Math.floor((state.run.danger ?? 0) / 30) + 1))
+  const total = base + extra
+  const next = addLog(
+    {
+      ...state,
+      screen: 'ending',
+      summary: {
+        cause: '天劫将至，强制收官。你在天劫前做到了本局所能及。',
+        turns: state.run.turn,
+        endingId: 'tribulation',
+        nearMissHints: ['下一局可更强，传承树等你。'],
+      },
+      meta: {
+        ...state.meta,
+        legacyPoints: (state.meta?.legacyPoints ?? 0) + total,
+        tribulationFinaleTriggered: true,
+      },
+    },
+    `【天劫】时辰耗尽！收官结算：传承点 +${total}（基础${base}，天劫加成${extra}）。下一局可更强！`,
+  )
+  return next
+}
+
+/** TICKET-14: 扣减时辰并判断是否触发收官（统一入口） */
+function applyTimeAndMaybeFinale(state: GameState, cost: number): GameState {
+  const next = applyTimeCost(state, cost)
+  if (shouldTriggerTribulationFinale(next)) {
+    return triggerTribulationFinale(next)
+  }
+  return next
+}
+
+/** TICKET-14: 时辰已耗尽时，不执行动作、直接触发天劫收官（用于各耗时辰动作开头） */
+function tryTribulationFinaleIfNoTime(state: GameState): GameState | null {
+  const timeLeft = state.run.timeLeft ?? TIME_MAX
+  if (timeLeft > 0) return null
+  if (state.meta?.tribulationFinaleTriggered) return null
+  const next = applyTimeCost(state, 0)
+  if (!shouldTriggerTribulationFinale(next)) return null
+  return triggerTribulationFinale(next)
 }
 
 /** TICKET-12: 计算本局传承点奖励 */
@@ -664,6 +726,8 @@ export function reduceGame(
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'CULTIVATE_TICK': {
+      const finale = tryTribulationFinaleIfNoTime(state)
+      if (finale) return { ...finale, run: { ...finale.run, rngCalls } }
       const dailyModCult = getDailyModifiersFromState(state)
       const cultivateCount = (baseRun.cultivateCount ?? 0) + 1
       
@@ -711,6 +775,7 @@ export function reduceGame(
         nextState = addLog(nextState, `修炼获得经验 ${expGain}，生命+${heal}${fatigueMsg}`)
       }
 
+      nextState = applyTimeAndMaybeFinale(nextState, 1)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'EXPLORE_START': {
@@ -733,6 +798,8 @@ export function reduceGame(
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'EXPLORE_DEEPEN': {
+      const finaleDeepen = tryTribulationFinaleIfNoTime(state)
+      if (finaleDeepen) return { ...finaleDeepen, run: { ...finaleDeepen.run, rngCalls } }
       // danger=100 时无法继续深入
       if (baseRun.danger >= DANGER_MAX) {
         let nextState: GameState = {
@@ -789,6 +856,7 @@ export function reduceGame(
             },
           }
           nextState = addLog(nextState, `继续深入，危险值 +${inc} → ${nextDanger}。奇遇·《${chainDef.name}》 ${chain.chapter}/${chainDef.chapters.length}：${ch.title}`)
+          nextState = applyTimeAndMaybeFinale(nextState, 1)
           return { ...nextState, run: { ...nextState.run, rngCalls } }
         }
       }
@@ -813,6 +881,7 @@ export function reduceGame(
               },
             }
             nextState = addLog(nextState, `继续深入，危险值 +${inc} → ${nextDanger}。【奇遇】《${picked.name}》 1/${picked.chapters.length}：${ch1.title}`)
+            nextState = applyTimeAndMaybeFinale(nextState, 1)
             return { ...nextState, run: { ...nextState.run, rngCalls } }
           }
         }
@@ -840,6 +909,7 @@ export function reduceGame(
       } else {
         nextState = addLog(nextState, `继续深入，危险值 +${inc} → ${nextDanger}。遭遇：${event.title}`)
       }
+      nextState = applyTimeAndMaybeFinale(nextState, 1)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'EXPLORE_DISMISS_EVENT': {
@@ -936,6 +1006,8 @@ export function reduceGame(
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'EXPLORE_CHOOSE': {
+      const finaleChoose = tryTribulationFinaleIfNoTime(state)
+      if (finaleChoose) return { ...finaleChoose, run: { ...finaleChoose.run, rngCalls } }
       const current = baseRun.currentEvent
       if (!current) {
         return { ...state, run: { ...state.run, rngCalls } }
@@ -996,6 +1068,7 @@ export function reduceGame(
             run: { ...stateWithEventLoot.run, pendingLoot: eventDrops.length > 0 ? eventDrops : undefined },
           }
         }
+        nextState = applyTimeAndMaybeFinale(nextState, 1)
         return { ...nextState, run: { ...nextState.run, rngCalls } }
       }
 
@@ -1034,6 +1107,7 @@ export function reduceGame(
           },
         }
       }
+      nextState = applyTimeAndMaybeFinale(nextState, 1)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'ALCHEMY_OPEN': {
@@ -1057,6 +1131,8 @@ export function reduceGame(
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'ALCHEMY_BREW_CONFIRM': {
+      const finaleBrew = tryTribulationFinaleIfNoTime(state)
+      if (finaleBrew) return { ...finaleBrew, run: { ...finaleBrew.run, rngCalls } }
       const plan = baseRun.alchemyPlan ?? { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' as const }
       const dailyModAlc = getDailyModifiersFromState(state)
       const pityQualityShift = getAlchemyPityQualityShift(state.meta)
@@ -1156,6 +1232,7 @@ export function reduceGame(
           meta: { ...nextState.meta, legacyPoints: (nextState.meta?.legacyPoints ?? 0) + 1 },
         }
       }
+      nextState = applyTimeAndMaybeFinale(nextState, 1)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'ALCHEMY_OPEN_CODEX': {
@@ -1184,6 +1261,8 @@ export function reduceGame(
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'BREAKTHROUGH_CONFIRM': {
+      const finaleBreak = tryTribulationFinaleIfNoTime(state)
+      if (finaleBreak) return { ...finaleBreak, run: { ...finaleBreak.run, rngCalls } }
       const plan: NonNullable<GameState['run']['breakthroughPlan']> =
         baseRun.breakthroughPlan ?? createBreakthroughPlan(state, 0, undefined)
       const inheritanceSpent = plan.inheritanceSpent
@@ -1251,6 +1330,7 @@ export function reduceGame(
           },
         }
         nextState = addLog(nextState, `突破成功，境界提升至${nextPlayer.realm}`)
+        nextState = applyTimeAndMaybeFinale(nextState, 1)
         return { ...nextState, run: { ...nextState.run, rngCalls } }
       }
 
@@ -1305,6 +1385,7 @@ export function reduceGame(
           meta: { ...nextState.meta, legacyPoints: (nextState.meta?.legacyPoints ?? 0) + calculateLegacyPointsReward(nextState) },
         }
       }
+      nextState = applyTimeAndMaybeFinale(nextState, 1)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'OUTCOME_CONTINUE': {
@@ -1463,6 +1544,15 @@ export function reduceGame(
     case 'CLEAR_SHARD_EXCHANGE_TOAST': {
       const { shardExchangeJustClaimed: _, ...restRun } = baseRun
       return { ...state, run: { ...restRun, rngCalls } }
+    }
+    case 'DEBUG_SET_TIME_LEFT': {
+      const timeMax = baseRun.timeMax ?? TIME_MAX
+      const timeLeft = Math.max(0, Math.min(timeMax, action.value))
+      let nextState: GameState = { ...state, run: { ...baseRun, timeLeft, timeMax } }
+      if (shouldTriggerTribulationFinale(nextState)) {
+        nextState = triggerTribulationFinale(nextState)
+      }
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     default: {
       return { ...state, run: { ...state.run, rngCalls } }

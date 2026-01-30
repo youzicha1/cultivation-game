@@ -1105,6 +1105,20 @@
   color: transparent;
 }
 
+/* TICKET-14: 天劫倒计时条 */
+.app-timer-bar {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.app-timer-bar--warning {
+  color: #ef4444;
+  font-weight: 600;
+}
+.app-timer-warning {
+  margin-left: 8px;
+}
+
 .app-main {
   display: grid;
   gap: 12px;

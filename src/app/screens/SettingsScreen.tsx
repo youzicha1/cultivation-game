@@ -1,4 +1,5 @@
 import type { GameAction, GameState } from '../../engine'
+import { TIME_MAX, TIME_DEBUG_BUTTON } from '../../engine'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
 import { Panel } from '../ui/Panel'
@@ -11,6 +12,7 @@ type ScreenProps = {
 }
 
 export function SettingsScreen({ state, dispatch, clearSave }: ScreenProps) {
+  const timeLeft = state.run.timeLeft ?? TIME_MAX
   return (
     <Panel title="设置">
       <Stack gap={10}>
@@ -34,6 +36,15 @@ export function SettingsScreen({ state, dispatch, clearSave }: ScreenProps) {
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'start' })}>
             回到开局
           </Button>
+          {TIME_DEBUG_BUTTON && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => dispatch({ type: 'DEBUG_SET_TIME_LEFT', value: Math.max(0, timeLeft - 5) })}
+            >
+              [调试] 减少 5 时辰
+            </Button>
+          )}
         </div>
       </Stack>
     </Panel>

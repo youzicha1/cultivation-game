@@ -443,14 +443,17 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
           成功：境界+1 回满血；失败：保底+1 传承补偿
         </div>
         <div className="breakthrough-footer-actions">
-          <Button
-            variant="primary"
-            size="md"
-            className="breakthrough-footer-main-btn"
-            onClick={() => dispatch({ type: 'BREAKTHROUGH_CONFIRM' })}
-          >
-            开始突破
-          </Button>
+          <div className="breakthrough-confirm-row">
+            <Button
+              variant="primary"
+              size="md"
+              className="breakthrough-footer-main-btn"
+              onClick={() => dispatch({ type: 'BREAKTHROUGH_CONFIRM' })}
+            >
+              开始突破
+            </Button>
+            <span className="breakthrough-time-hint">消耗：1 时辰</span>
+          </div>
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'home' })}>
             返回
           </Button>

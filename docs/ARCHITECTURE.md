@@ -101,6 +101,15 @@
 - **lastOutcome**：结算页数据，用于展示成功/失败的强反馈（包含数值变化 deltas）
 - **pity 保底机制**：突破失败累积 pity，提高后续成功率，成功时清零
 
+### 天劫倒计时（TICKET-14：局长节拍器）
+- **位置**：`src/engine/time.ts`；`GameState.run.timeLeft` / `timeMax`
+- **概念**：用“时辰”（行动步数）控制单局长度，不依赖现实时间；每局重置，约 20~35 次关键行动后时辰耗尽
+- **消耗**：修炼、探索深入、探索事件选项、炼丹（一次）、突破（一次）各消耗 1 时辰；返回/查看/装备/领取等不消耗
+- **耗尽**：`timeLeft === 0` 时触发收官结算（screen=ending、summary 天劫文案、传承点奖励），单局稳定在约 15~25 分钟
+- **统一入口**：`applyTimeCost(state, cost)` 扣减；`shouldTriggerTribulationFinale(state)` 判断；reducer 关键 action 末尾调用 `applyTimeAndMaybeFinale(state, 1)`
+- **UI**：主界面顶部“时辰 x/24”；剩余 ≤4 时红字“天劫将至！再贪就来不及了。”；探索/炼丹/突破按钮旁“消耗：1 时辰”
+- **调试**：`TIME_DEBUG_BUTTON = true` 时设置页显示“[调试] 减少 5 时辰”；`DEBUG_SET_TIME_LEFT` action 可设 timeLeft
+
 ### 测试
 - engine 层必须 100% 可测试
 - 使用依赖注入，避免硬编码依赖

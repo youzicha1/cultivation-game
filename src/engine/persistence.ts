@@ -1,6 +1,7 @@
 import { createSeededRng, type Rng } from './rng'
 import type { GameState } from './game'
 import { createInitialState } from './state'
+import { TIME_MAX } from './time'
 
 const SAVE_KEY = 'cultivation_save_v1'
 const SAVE_VERSION = 1
@@ -105,6 +106,7 @@ function normalizeLoadedState(state: GameState): GameState {
         }
       : { completed: {} as Record<string, boolean> }
 
+  const runState = state.run as { timeLeft?: number; timeMax?: number; cultivateCount?: number }
   const run = {
     ...state.run,
     depth: typeof state.run.depth === 'number' ? state.run.depth : 0,
@@ -112,7 +114,9 @@ function normalizeLoadedState(state: GameState): GameState {
     streak: typeof state.run.streak === 'number' ? state.run.streak : 0,
     chainProgress: state.run.chainProgress && typeof state.run.chainProgress === 'object' ? state.run.chainProgress : {},
     chain,
-    cultivateCount: typeof (state.run as { cultivateCount?: number }).cultivateCount === 'number' ? (state.run as { cultivateCount: number }).cultivateCount : 0,
+    cultivateCount: typeof runState.cultivateCount === 'number' ? runState.cultivateCount : 0,
+    timeLeft: typeof runState.timeLeft === 'number' ? Math.max(0, runState.timeLeft) : TIME_MAX,
+    timeMax: typeof runState.timeMax === 'number' ? runState.timeMax : TIME_MAX,
   }
 
   const loadedMeta: any = state.meta ?? {}
@@ -125,6 +129,7 @@ function normalizeLoadedState(state: GameState): GameState {
     pityLegendLoot: typeof loadedMeta.pityLegendLoot === 'number' ? loadedMeta.pityLegendLoot : 0,
     pityLegendKungfa: typeof loadedMeta.pityLegendKungfa === 'number' ? loadedMeta.pityLegendKungfa : 0,
     kungfaShards: typeof loadedMeta.kungfaShards === 'number' ? loadedMeta.kungfaShards : 0,
+    ...(loadedMeta.tribulationFinaleTriggered === true ? { tribulationFinaleTriggered: true } : {}),
   }
 
   return {

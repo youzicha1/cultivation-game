@@ -399,16 +399,19 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
             )}
           </div>
           <div className="alchemy-footer-actions">
-            <Button
-              variant="primary"
-              size="md"
-              className="alchemy-footer-main-btn"
-              onClick={() => dispatch({ type: 'ALCHEMY_BREW_CONFIRM' })}
-              disabled={!recipe || !canBrewThisBatch}
-              title={!canBrewThisBatch && shortages.length > 0 ? shortageText : undefined}
-            >
-              炼丹
-            </Button>
+            <div className="alchemy-brew-row">
+              <Button
+                variant="primary"
+                size="md"
+                className="alchemy-footer-main-btn"
+                onClick={() => dispatch({ type: 'ALCHEMY_BREW_CONFIRM' })}
+                disabled={!recipe || !canBrewThisBatch}
+                title={!canBrewThisBatch && shortages.length > 0 ? shortageText : undefined}
+              >
+                炼丹
+              </Button>
+              <span className="alchemy-time-hint">消耗：1 时辰</span>
+            </div>
             <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'home' })}>
               返回
             </Button>
