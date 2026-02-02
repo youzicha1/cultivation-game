@@ -16,7 +16,13 @@
     { "id": "snake_saliva", "name": "蛇涎果" },
     { "id": "demon_core", "name": "魔核" },
     { "id": "soul_infant", "name": "魂婴果" },
-    { "id": "bodhi_seed", "name": "菩提子" }
+    { "id": "bodhi_seed", "name": "菩提子" },
+    { "id": "leize_marrow", "name": "雷泽灵髓" },
+    { "id": "meteor_iron", "name": "天外陨铁" },
+    { "id": "nine_turn_vine", "name": "九转玄藤" },
+    { "id": "furnace_jade", "name": "炉心碎玉" },
+    { "id": "fate_stone", "name": "命纹石" },
+    { "id": "purple_sand", "name": "紫府灵砂" }
   ],
   "elixirs": [
     { "id": "qi_pill", "name": "回气丹", "desc": "恢复气血，修炼必备。" },

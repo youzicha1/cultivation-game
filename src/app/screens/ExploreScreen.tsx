@@ -1,8 +1,10 @@
 import type { GameAction, GameState } from '../../engine'
 import {
   getChain,
+  getChainTargetMaterial,
   getDailyEnvironmentDef,
   getExploreMultiplier,
+  getMaterialName,
   PITY_LEGEND_LOOT_THRESHOLD,
   PITY_DEBUG_SHOW_VALUES,
 } from '../../engine'
@@ -131,9 +133,12 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
             )}
             {state.run.chain?.activeChainId != null && state.run.chain?.chapter != null && (() => {
               const chain = getChain(state.run.chain!.activeChainId!)
+              const targetMaterialId = chain ? getChainTargetMaterial(chain) : undefined
+              const targetMaterialName = targetMaterialId ? getMaterialName(targetMaterialId) : null
               return chain ? (
                 <div className="explore-chain-progress">
                   奇遇进度：{`${state.run.chain.chapter}/${chain.chapters.length}`}（继续深入可推进）
+                  {targetMaterialName && <div className="explore-chain-target">目标材料：{targetMaterialName}</div>}
                   <div className="explore-chain-hint">终章必有大货</div>
                 </div>
               ) : null

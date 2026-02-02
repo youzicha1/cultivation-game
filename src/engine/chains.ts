@@ -48,11 +48,19 @@ export type RunRewardDelta = {
   earnedTitle?: string
 }
 
+/** TICKET-37: 链解锁条件（起点条件） */
+export type ChainUnlock = {
+  minDanger?: number
+  minRealm?: number
+  minTribulationPassed?: number
+}
+
 export type ChainDef = {
   chainId: string
   name: string
   desc: string
   chapters: ChainChapterDef[]
+  unlock?: ChainUnlock
 }
 
 type ChainsFile = {
@@ -69,6 +77,7 @@ type ChainsFile = {
       final?: boolean
       guaranteedReward?: GuaranteedReward
     }>
+    unlock?: { minDanger?: number; minRealm?: number; minTribulationPassed?: number }
   }>
 }
 
@@ -89,6 +98,7 @@ function validateChainsFile(): ChainDef[] {
       final: ch.final,
       guaranteedReward: ch.guaranteedReward,
     })),
+    unlock: c.unlock,
   }))
 }
 
@@ -132,13 +142,61 @@ export const DEFAULT_BREAK_COMPENSATION = {
   materialCount: 1,
 }
 
-/** 从未完成链中随机选一条（rng.next() 一次用于 randInt） */
+/** TICKET-37: 链触发条件判定（danger/境界/已通关劫数） */
+export type ChainTriggerContext = {
+  danger: number
+  realmIndex?: number
+  tribulationPassed?: number
+}
+
+export function canChainTrigger(chain: ChainDef, ctx: ChainTriggerContext): boolean {
+  const u = chain.unlock
+  if (!u) return true
+  if (u.minDanger != null && ctx.danger < u.minDanger) return false
+  if (u.minRealm != null && (ctx.realmIndex ?? 0) < u.minRealm) return false
+  if (u.minTribulationPassed != null && (ctx.tribulationPassed ?? 0) < u.minTribulationPassed) return false
+  return true
+}
+
+/** 终章奖励为材料时返回 materialId，供 UI 显示目标材料 */
+export function getChainTargetMaterial(chain: ChainDef): string | undefined {
+  const finalCh = chain.chapters.find((ch) => ch.final && ch.guaranteedReward)
+  const r = finalCh?.guaranteedReward
+  if (r?.type === 'epic_material_elixir') return r.materialId
+  return undefined
+}
+
+/** TICKET-37: 链进度视图（目标材料 + 当前进度），供奇遇链页/日志展示 */
+export function getChainProgressView(activeChainId: string | undefined, chapter: number | undefined): {
+  activeChainId: string | undefined
+  chapter: number
+  totalChapters: number
+  targetMaterialId: string | undefined
+  chainName: string
+} | null {
+  if (!activeChainId || chapter == null) return null
+  const chain = getChain(activeChainId)
+  if (!chain) return null
+  const totalChapters = chain.chapters.length
+  const targetMaterialId = getChainTargetMaterial(chain)
+  return {
+    activeChainId,
+    chapter,
+    totalChapters,
+    targetMaterialId,
+    chainName: chain.name,
+  }
+}
+
+/** 从未完成且满足条件的链中随机选一条（rng.next() 一次用于 randInt） */
 export function pickChainToStart(
   rng: Rng,
   completedChainIds: Record<string, boolean>,
-  _danger: number,
+  ctx: ChainTriggerContext,
 ): ChainDef | null {
-  const available = getChainsRegistry().filter((c) => !completedChainIds[c.chainId])
+  const available = getChainsRegistry().filter(
+    (c) => !completedChainIds[c.chainId] && canChainTrigger(c, ctx),
+  )
   if (available.length === 0) return null
   const idx = randInt(rng, 0, available.length - 1)
   return available[idx]

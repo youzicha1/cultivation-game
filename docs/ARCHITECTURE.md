@@ -114,9 +114,10 @@
 - **持久化**：`getPersistentAchievements()` / `savePersistentAchievements(state)` 独立 key 存储 claimed 与 statsLifetime；新开局时合并进新 state
 
 ### 事件链系统（TICKET-11：content 驱动 + chain 状态 + pickEvent 优先级）
-- **内容**：`src/content/event_chains.v1.json`，3 条链（残图引路、妖祟作乱、古炉重现），每条 3 章，终章 `guaranteedReward` 必发
+- **内容**：`src/content/event_chains.v1.json`，多条链，每条 2～4 章（TICKET-37 定向材料链可为 2 段），终章 `guaranteedReward` 必发
 - **状态**：`GameState.run.chain` = `{ activeChainId?, chapter?, completed: Record<string, boolean> }`；存档可续，收手后链条保留
-- **触发**：`getChainTriggerRate(danger)` 基础 8%、danger≥50 12%、danger≥75 18%；无进行中链时 roll < rate 则 `pickChainToStart` 从未完成链中随机一条并进入第 1 章
+- **触发**：`getChainTriggerRate(danger)` 基础 8%、danger≥50 12%、danger≥75 18%；无进行中链时 roll < rate 则 `pickChainToStart(rng, completed, ctx)` 从未完成且满足条件的链中随机一条并进入第 1 章
+- **TICKET-37 定向材料链**：≥12 条终章掉落材料的链（天材地宝：雷泽灵髓/天外陨铁/九转玄藤/炉心碎玉/命纹石/紫府灵砂）；链可选 `unlock`：`minDanger`/`minRealm`/`minTribulationPassed`；`canChainTrigger(chain, ctx)` 判定是否可触发；`getChainTargetMaterial(chain)`、`getChainProgressView(activeChainId, chapter)` 供 UI 显示目标材料与当前进度；天材地宝仅链/高危事件出，常规材料继续可坊市购买
 - **优先级**：有 `activeChain` 时 EXPLORE_DEEPEN 直接进入当前章事件；无则先 roll 链触发，再 fallback 普通 `pickExploreEvent`
 - **结算**：每章仍走 `resolveExploreChoice`（A/B 效果）；终章额外 `applyGuaranteedReward`（功法/配方/材料/传承点），清空 activeChain、`completed[chainId]=true`，日志【金】奇遇通关
 - **调试**：`CHAIN_DEBUG_ALWAYS_TRIGGER` 设为 true 时 danger≥50 必触发链（默认 false）

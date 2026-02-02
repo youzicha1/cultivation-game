@@ -52,10 +52,9 @@ describe('chains', () => {
     expect(getChainTriggerRate(30, true)).toBe(0.08)
   })
 
-  it('pickChainToStart 未完成链时从可用链中随机选一条', () => {
-    // pickChainToStart 只负责选链，不检查触发率（触发率检查在 game.ts 中）
+  it('pickChainToStart 未完成链且满足条件时从可用链中随机选一条', () => {
     const rng = createSequenceRng([0.0])
-    const picked = pickChainToStart(rng, {}, 80)
+    const picked = pickChainToStart(rng, {}, { danger: 80 })
     expect(picked).not.toBeNull()
     expect(picked?.chainId).toBeDefined()
   })
@@ -64,7 +63,7 @@ describe('chains', () => {
     const rng = createSequenceRng([0.0])
     const allChains = getChains()
     const allCompleted = Object.fromEntries(allChains.map((c) => [c.chainId, true])) as Record<string, boolean>
-    const picked = pickChainToStart(rng, allCompleted, 80)
+    const picked = pickChainToStart(rng, allCompleted, { danger: 80 })
     expect(picked).toBeNull()
   })
 

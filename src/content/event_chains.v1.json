@@ -342,6 +342,126 @@
         { "chapter": 2, "title": "护盾", "text": "奇缘化为一层护盾，可减天劫伤害。", "choices": { "A": { "text": "凝盾", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你凝成护盾，天劫可期。", "effects": [] }, "onFail": { "log": "护盾有瑕，仍可一用。", "effects": [] } }, "B": { "text": "稳凝护盾", "successRateBase": 0.85, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你稳凝护盾，天劫伤害可减。", "effects": [] }, "onFail": { "log": "护盾归你，心满意足。", "effects": [] } } } },
         { "chapter": 3, "title": "终缘", "text": "天劫前夜终缘：本局天劫伤害减免一成五。", "final": true, "choices": { "A": { "text": "受终缘", "successRateBase": 0.78, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你受终缘，天劫伤害减一成五。", "effects": [] }, "onFail": { "log": "终缘有缺，仍可一用。", "effects": [] } }, "B": { "text": "恭敬受终缘", "successRateBase": 0.92, "successRateDangerFactor": 0, "onSuccess": { "log": "终缘加身，天劫可渡。", "effects": [] }, "onFail": { "log": "终缘归你，心满意足。", "effects": [] } } }, "guaranteedReward": { "type": "tribulation_bonus", "dmgReductionPercent": 15 } }
       ]
+    },
+    {
+      "chainId": "leize_marrow_chain",
+      "name": "雷泽寻髓链",
+      "desc": "雷泽深处有灵髓，终章可得雷泽灵髓。",
+      "unlock": { "minDanger": 25, "minTribulationPassed": 0 },
+      "chapters": [
+        { "chapter": 1, "title": "雷泽入口", "text": "雷泽边缘雷光隐隐，传闻深处有灵髓凝成。", "choices": { "A": { "text": "深入雷泽", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你深入雷泽，寻得灵髓线索。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "雷光灼人，略退。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "沿泽边探", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你沿泽边探查，得见灵髓所在。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] }, "onFail": { "log": "略费周折。", "effects": [] } } } },
+        { "chapter": 2, "title": "灵髓潭", "text": "雷泽深处一潭灵髓，雷光淬炼，正是雷泽灵髓。", "final": true, "choices": { "A": { "text": "取灵髓", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "雷泽灵髓入手，天品可期。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "取到少许，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "稳取灵髓", "successRateBase": 0.85, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你稳取雷泽灵髓，全身而退。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "灵髓归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "leize_marrow", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "meteor_iron_chain",
+      "name": "陨星坠落链",
+      "desc": "天外陨星坠地，终章可得天外陨铁。",
+      "unlock": { "minDanger": 28, "minTribulationPassed": 0 },
+      "chapters": [
+        { "chapter": 1, "title": "陨坑", "text": "远处陨坑灵光未散，似有异铁。", "choices": { "A": { "text": "直入陨坑", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你入陨坑，见天外陨铁。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "辐射灼人，略退。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "等散再入", "successRateBase": 0.8, "successRateDangerFactor": -0.02, "onSuccess": { "log": "灵光散后你入坑取铁。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 7 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "天外陨铁", "text": "陨铁凝于坑心，正是炼器天材。", "final": true, "choices": { "A": { "text": "取陨铁", "successRateBase": 0.7, "successRateDangerFactor": -0.03, "onSuccess": { "log": "天外陨铁入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到部分。", "effects": [] } }, "B": { "text": "恭敬取铁", "successRateBase": 0.88, "successRateDangerFactor": -0.01, "onSuccess": { "log": "天外陨铁尽归你手。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "陨铁归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "meteor_iron", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "nine_turn_vine_chain",
+      "name": "玄藤化龙链",
+      "desc": "古藤九转可化龙，终章可得九转玄藤。",
+      "unlock": { "minDanger": 30, "minTribulationPassed": 0 },
+      "chapters": [
+        { "chapter": 1, "title": "古藤", "text": "绝壁之上一株古藤，九节隐隐，似有化龙之象。", "choices": { "A": { "text": "攀藤取节", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你攀藤而上，得见九转玄藤。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "藤滑失手，略伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } }, "B": { "text": "以灵感藤", "successRateBase": 0.75, "successRateDangerFactor": -0.04, "onSuccess": { "log": "玄藤应灵，一节可摘。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "九转玄藤", "text": "九转玄藤入手，天品丹方可期。", "final": true, "choices": { "A": { "text": "摘玄藤", "successRateBase": 0.65, "successRateDangerFactor": -0.05, "onSuccess": { "log": "九转玄藤入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到一段。", "effects": [] } }, "B": { "text": "诚心摘藤", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "九转玄藤尽归。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] }, "onFail": { "log": "玄藤归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "nine_turn_vine", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "furnace_jade_chain",
+      "name": "古炉残卷链",
+      "desc": "古炉残卷指炉心，终章可得炉心碎玉。",
+      "unlock": { "minDanger": 32, "minTribulationPassed": 0 },
+      "chapters": [
+        { "chapter": 1, "title": "残卷", "text": "丹房废墟中得一页残卷，载炉心碎玉所在。", "choices": { "A": { "text": "按卷寻炉", "successRateBase": 0.62, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你寻到古炉遗址。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "遗址难寻，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "先参残卷", "successRateBase": 0.8, "successRateDangerFactor": -0.03, "onSuccess": { "log": "参透残卷，炉心位置了然。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "炉心", "text": "古炉炉心处凝有一枚碎玉，正是炉心碎玉。", "final": true, "choices": { "A": { "text": "取碎玉", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "炉心碎玉入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到碎玉。", "effects": [] } }, "B": { "text": "恭敬取玉", "successRateBase": 0.86, "successRateDangerFactor": -0.02, "onSuccess": { "log": "炉心碎玉尽归。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "碎玉归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "furnace_jade", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "fate_stone_chain",
+      "name": "天命碑影链",
+      "desc": "天命碑下藏命纹，终章可得命纹石。",
+      "unlock": { "minDanger": 35, "minTribulationPassed": 0 },
+      "chapters": [
+        { "chapter": 1, "title": "碑林", "text": "荒原碑林中有天命碑，碑影下似有命纹石。", "choices": { "A": { "text": "闯碑林", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你至天命碑下。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "碑阵反噬，略伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "辨阵再入", "successRateBase": 0.76, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你辨阵而入，得见命纹石。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "命纹石", "text": "天命碑影中凝成命纹石，天品丹材。", "final": true, "choices": { "A": { "text": "取命纹石", "successRateBase": 0.66, "successRateDangerFactor": -0.05, "onSuccess": { "log": "命纹石入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到一枚。", "effects": [] } }, "B": { "text": "诚心取石", "successRateBase": 0.84, "successRateDangerFactor": -0.02, "onSuccess": { "log": "命纹石尽归。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "命纹石归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "fate_stone", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "purple_sand_chain",
+      "name": "紫府遗藏链",
+      "desc": "紫府遗藏现世，终章可得紫府灵砂。",
+      "unlock": { "minDanger": 38, "minTribulationPassed": 0 },
+      "chapters": [
+        { "chapter": 1, "title": "遗藏入口", "text": "紫气东来处现遗藏入口，内蕴紫府灵砂。", "choices": { "A": { "text": "入遗藏", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你入紫府遗藏。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "禁制所阻，略退。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] } }, "B": { "text": "破禁而入", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你破禁入内，得见紫府灵砂。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "紫府灵砂", "text": "遗藏深处紫府灵砂成堆，天品丹材。", "final": true, "choices": { "A": { "text": "取灵砂", "successRateBase": 0.7, "successRateDangerFactor": -0.04, "onSuccess": { "log": "紫府灵砂入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "取到一份。", "effects": [] } }, "B": { "text": "尽收灵砂", "successRateBase": 0.85, "successRateDangerFactor": -0.02, "onSuccess": { "log": "紫府灵砂尽归。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] }, "onFail": { "log": "灵砂归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "purple_sand", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "leize_marrow_chain_2",
+      "name": "雷泽异闻链",
+      "desc": "雷泽异闻再寻髓，终章可得雷泽灵髓。",
+      "unlock": { "minDanger": 45, "minTribulationPassed": 1 },
+      "chapters": [
+        { "chapter": 1, "title": "异闻", "text": "听闻雷泽深处另有灵髓凝处。", "choices": { "A": { "text": "再探雷泽", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你再入雷泽，寻得第二处灵髓。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "雷泽凶险，略退。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "稳扎稳打", "successRateBase": 0.75, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你稳入雷泽，得灵髓。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "第二髓", "text": "雷泽灵髓再入手。", "final": true, "choices": { "A": { "text": "取灵髓", "successRateBase": 0.65, "successRateDangerFactor": -0.05, "onSuccess": { "log": "雷泽灵髓再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "稳取", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "灵髓归你。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "leize_marrow", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "meteor_iron_chain_2",
+      "name": "陨星余烬链",
+      "desc": "陨星余烬中再寻铁，终章可得天外陨铁。",
+      "unlock": { "minDanger": 48, "minTribulationPassed": 1 },
+      "chapters": [
+        { "chapter": 1, "title": "余烬", "text": "另一处陨坑余烬未冷，或还有陨铁。", "choices": { "A": { "text": "入余烬", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你于余烬中得陨铁。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "灼伤略退。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } }, "B": { "text": "待冷再取", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "冷后取到天外陨铁。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "再得陨铁", "text": "天外陨铁再入手。", "final": true, "choices": { "A": { "text": "取铁", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "天外陨铁再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "稳取", "successRateBase": 0.86, "successRateDangerFactor": -0.02, "onSuccess": { "log": "陨铁归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "meteor_iron", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "nine_turn_vine_chain_2",
+      "name": "玄藤第二株链",
+      "desc": "绝壁另有玄藤一株，终章可得九转玄藤。",
+      "unlock": { "minDanger": 50, "minTribulationPassed": 2 },
+      "chapters": [
+        { "chapter": 1, "title": "第二株", "text": "另一绝壁上有九转玄藤第二株。", "choices": { "A": { "text": "攀取", "successRateBase": 0.52, "successRateDangerFactor": -0.07, "onSuccess": { "log": "你攀至玄藤处。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "险坠，略伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "稳攀", "successRateBase": 0.74, "successRateDangerFactor": -0.04, "onSuccess": { "log": "九转玄藤再得。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "再得玄藤", "text": "九转玄藤再入手。", "final": true, "choices": { "A": { "text": "摘藤", "successRateBase": 0.64, "successRateDangerFactor": -0.05, "onSuccess": { "log": "九转玄藤再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "诚摘", "successRateBase": 0.83, "successRateDangerFactor": -0.02, "onSuccess": { "log": "玄藤归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "nine_turn_vine", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "furnace_jade_chain_2",
+      "name": "炉心残迹链",
+      "desc": "另一古炉残迹中亦有炉心碎玉。",
+      "unlock": { "minDanger": 52, "minTribulationPassed": 2 },
+      "chapters": [
+        { "chapter": 1, "title": "残迹", "text": "丹脉残迹中再现炉心碎玉线索。", "choices": { "A": { "text": "探残迹", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你于残迹中得炉心碎玉。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "略退。", "effects": [] } }, "B": { "text": "稳探", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "炉心碎玉再得。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "再得碎玉", "text": "炉心碎玉再入手。", "final": true, "choices": { "A": { "text": "取玉", "successRateBase": 0.66, "successRateDangerFactor": -0.04, "onSuccess": { "log": "炉心碎玉再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "稳取", "successRateBase": 0.84, "successRateDangerFactor": -0.02, "onSuccess": { "log": "碎玉归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "furnace_jade", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "fate_stone_chain_2",
+      "name": "命纹第二碑链",
+      "desc": "碑林深处另有命纹石。",
+      "unlock": { "minDanger": 55, "minTribulationPassed": 2 },
+      "chapters": [
+        { "chapter": 1, "title": "深碑", "text": "碑林深处天命碑下还有命纹石。", "choices": { "A": { "text": "入深处", "successRateBase": 0.56, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你至深碑，得命纹石。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "碑阵伤，略退。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "破阵再入", "successRateBase": 0.76, "successRateDangerFactor": -0.04, "onSuccess": { "log": "命纹石再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "再得命纹石", "text": "命纹石再入手。", "final": true, "choices": { "A": { "text": "取石", "successRateBase": 0.65, "successRateDangerFactor": -0.05, "onSuccess": { "log": "命纹石再得。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "稳取", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "命纹石归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "fate_stone", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
+    },
+    {
+      "chainId": "purple_sand_chain_2",
+      "name": "紫府第二藏链",
+      "desc": "紫府第二处遗藏，终章可得紫府灵砂。",
+      "unlock": { "minDanger": 58, "minTribulationPassed": 3 },
+      "chapters": [
+        { "chapter": 1, "title": "第二藏", "text": "紫气再现，第二处紫府遗藏。", "choices": { "A": { "text": "入藏", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你入第二遗藏。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "禁制阻，略退。", "effects": [] } }, "B": { "text": "破禁入", "successRateBase": 0.76, "successRateDangerFactor": -0.04, "onSuccess": { "log": "紫府灵砂再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
+        { "chapter": 2, "title": "再得灵砂", "text": "紫府灵砂再入手。", "final": true, "choices": { "A": { "text": "取砂", "successRateBase": 0.66, "successRateDangerFactor": -0.05, "onSuccess": { "log": "紫府灵砂再得。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "尽收", "successRateBase": 0.84, "successRateDangerFactor": -0.02, "onSuccess": { "log": "灵砂归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "purple_sand", "materialCount": 1, "inheritanceFallback": 1 } }
+      ]
     }
   ]
 }

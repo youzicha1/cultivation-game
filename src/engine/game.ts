@@ -1054,7 +1054,12 @@ export function reduceGame(
       const triggerRoll = rngWithCount.next()
       const triggerRate = getChainTriggerRate(nextDanger, CHAIN_DEBUG_ALWAYS_TRIGGER)
       if (triggerRoll < triggerRate) {
-        const picked = pickChainToStart(rngWithCount, chain.completed, nextDanger)
+        const chainCtx = {
+          danger: nextDanger,
+          realmIndex: realmIndex(basePlayer.realm),
+          tribulationPassed: baseRun.tribulationLevel ?? 0,
+        }
+        const picked = pickChainToStart(rngWithCount, chain.completed, chainCtx)
         if (picked) {
           const ch1 = getChapter(picked.chainId, 1)
           if (ch1) {

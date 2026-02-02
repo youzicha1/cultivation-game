@@ -1,13 +1,13 @@
 /**
  * TICKET-21: 奇遇链与探索事件内容校验测试
  * - 链 ID 唯一、节点（章）ID 每链内唯一
- * - 每条链至少 3 节点、至少 1 个终章大奖
+ * - 每条链至少 2 节点（TICKET-37 定向材料链可为 2～4 段）、至少 1 个终章大奖
  * - reward/item/eventId 引用存在（material/recipe/kungfu）
  * - tags/rarity/danger 合法
  */
 
 import { describe, expect, it } from 'vitest'
-import { getChains, type GuaranteedReward } from './chains'
+import { getChains, getChainTargetMaterial, canChainTrigger, type GuaranteedReward } from './chains'
 import type { MaterialId } from './alchemy'
 import { getRecipe, alchemyRecipes, alchemyMaterials } from './alchemy'
 import { RELIC_IDS, type RelicId } from './relics'
@@ -40,10 +40,10 @@ describe('event_chains content validation', () => {
     expect(set.size).toBe(ids.length)
   })
 
-  it('每条链至少 3 节点', () => {
+  it('每条链至少 2 节点（TICKET-37 定向材料链可为 2～4 段）', () => {
     const chains = getChains()
     for (const c of chains) {
-      expect(c.chapters.length).toBeGreaterThanOrEqual(3)
+      expect(c.chapters.length).toBeGreaterThanOrEqual(2)
     }
   })
 
@@ -61,6 +61,29 @@ describe('event_chains content validation', () => {
     for (const c of chains) {
       const finals = c.chapters.filter((ch) => ch.final && ch.guaranteedReward)
       expect(finals.length).toBeGreaterThanOrEqual(1)
+    }
+  })
+
+  it('TICKET-37: 定向材料链（终章掉落材料）≥12 条', () => {
+    const chains = getChains()
+    const materialChains = chains.filter((c) => getChainTargetMaterial(c) != null)
+    expect(materialChains.length).toBeGreaterThanOrEqual(12)
+  })
+
+  it('TICKET-37: 定向材料链终章 reward materialId 存在', () => {
+    const chains = getChains()
+    for (const c of chains) {
+      const mid = getChainTargetMaterial(c)
+      if (mid) expect(MATERIAL_IDS).toContain(mid)
+    }
+  })
+
+  it('TICKET-37: 链解锁条件 minDanger/minTribulationPassed 时低 danger/trib 不触发', () => {
+    const chains = getChains()
+    const withUnlock = chains.filter((c) => c.unlock && (c.unlock.minDanger != null || c.unlock.minTribulationPassed != null))
+    for (const c of withUnlock) {
+      const ctxLow = { danger: 0, tribulationPassed: 0 }
+      expect(canChainTrigger(c, ctxLow)).toBe(false)
     }
   })
 

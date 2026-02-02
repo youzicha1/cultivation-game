@@ -191,6 +191,13 @@
 - **单一来源**：getTribulationTurnView(state) 输出 UI 所需一切；startTribulation(state, rng)、applyTribulationAction(state, action, rng, pill?)；RNG 可 mock。
 - **UI**：FinalTrialScreen 重做——状态条（HP/护盾/回合/debuff）、天道意图卡、四行动按钮（吞丹展开丹药面板）、回合日志；数据仅来自 getTribulationTurnView。
 
+## TICKET-37 完成项（奇遇链：定向材料链 + 条件解锁 + 目标材料 UI）
+
+- **内容**：6 种天材地宝材料（雷泽灵髓/天外陨铁/九转玄藤/炉心碎玉/命纹石/紫府灵砂）入 `alchemy_recipes.v1.json`；≥12 条定向获取链入 `event_chains.v1.json`，每条 2～4 段、终章 `guaranteedReward` 材料、可选 `unlock`（minDanger/minTribulationPassed）
+- **引擎**：`chains.ts` — `ChainUnlock`、`canChainTrigger(chain, ctx)`、`getChainTargetMaterial`、`getChainProgressView`；`pickChainToStart(rng, completed, ctx)` 按 ctx 过滤；奖励 `applyGuaranteedReward` 写入背包
+- **UI**：ExploreScreen 奇遇进度区显示「目标材料：XXX」与当前进度
+- **测试**：content_validation 链 id 唯一、定向材料链≥12、reward materialId 存在、解锁条件低 danger/trib 不触发；chain_reachability_smoke 可控 rng 走完雷泽寻髓链拿到雷泽灵髓
+
 ## TICKET-36 完成项（天劫意图扩容：≥12 种、稀有意图、可读可防、counter 生效）
 
 - **内容**：`src/content/tribulation_intents.v1.json` 意图 ≥12 种（含 ≥3 稀有）；字段 id/name/rarity/tags/effectSpec/telegraphText/counterHint/minTier/baseWeight；普通意图（雷击/连劈/蓄力重雷/雷云压制/破盾/抽灵/心魔侵蚀/天火/雷链）、稀有意图（天罚·锁命/九霄·三连判定/紫电·穿透）minTier≥6。
