@@ -8,7 +8,7 @@ describe('alchemy_calc', () => {
   describe('getAlchemyShortage', () => {
     it('缺口计算正确：need - have = missing', () => {
       const state = createInitialGameState(1)
-      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' }
+      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wu' }
       const { shortages, canBrew } = getAlchemyShortage(state, selection)
       expect(shortages.every((s) => s.missing === Math.max(0, s.need - s.have) && s.missing > 0)).toBe(true)
       expect(canBrew).toBe(shortages.length === 0)
@@ -23,7 +23,7 @@ describe('alchemy_calc', () => {
           materials: { ...state.player.materials, spirit_herb: 2, moon_dew: 1 },
         },
       }
-      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 2, heat: 'push' }
+      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 2, heat: 'wu' }
       const { shortages, canBrew } = getAlchemyShortage(withMaterials, selection)
       expect(shortages.some((s) => s.materialId === 'spirit_herb' && s.need === 4)).toBe(true)
       expect(shortages.some((s) => s.materialId === 'moon_dew' && s.need === 2)).toBe(true)
@@ -39,7 +39,7 @@ describe('alchemy_calc', () => {
           materials: { ...state.player.materials, spirit_herb: 10, moon_dew: 10 },
         },
       }
-      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' }
+      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wu' }
       const { shortages, canBrew } = getAlchemyShortage(withMaterials, selection)
       expect(shortages.length).toBe(0)
       expect(canBrew).toBe(true)
@@ -49,7 +49,7 @@ describe('alchemy_calc', () => {
   describe('getAlchemyChances', () => {
     it('successRate 与 boomRate 在 0..1，breakdown 可预期', () => {
       const state = createInitialGameState(1)
-      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' }
+      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wu' }
       const result = getAlchemyChances(state, selection)
       expect(result).not.toBeNull()
       expect(result!.successRate).toBeGreaterThanOrEqual(0)
@@ -62,18 +62,18 @@ describe('alchemy_calc', () => {
       expect(result!.breakdown.boom.final).toBe(result!.boomRate)
     })
 
-    it('稳火时爆丹率低于冲火', () => {
+    it('文火时爆丹率低于武火', () => {
       const state = createInitialGameState(1)
-      const steady = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'steady' })
-      const push = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' })
-      expect(steady!.boomRate).toBeLessThanOrEqual(push!.boomRate)
+      const wen = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wen' })
+      const wu = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wu' })
+      expect(wen!.boomRate).toBeLessThanOrEqual(wu!.boomRate)
     })
 
-    it('爆火时爆丹率高于冲火', () => {
+    it('真火时爆丹率高于武火', () => {
       const state = createInitialGameState(1)
-      const blast = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'blast' })
-      const push = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' })
-      expect(blast!.boomRate).toBeGreaterThanOrEqual(push!.boomRate)
+      const zhen = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'zhen' })
+      const wu = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wu' })
+      expect(zhen!.boomRate).toBeGreaterThanOrEqual(wu!.boomRate)
     })
 
     it('无效 recipeId 返回 null', () => {
@@ -81,7 +81,7 @@ describe('alchemy_calc', () => {
       const result = getAlchemyChances(state, {
         recipeId: 'invalid_recipe' as any,
         batch: 1,
-        heat: 'push',
+        heat: 'wu',
       })
       expect(result).toBeNull()
     })
@@ -89,7 +89,7 @@ describe('alchemy_calc', () => {
     it('TICKET-22: 装备丹修功法后 successRate 更高', () => {
       const stateNoKungfu = createInitialGameState(1)
       const stateWithDanxiu = makeState({ player: { relics: ['fire_suppress'], equippedRelics: ['fire_suppress', null, null] } } as Partial<GameState>, 1)
-      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' }
+      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wu' }
       const chancesNo = getAlchemyChances(stateNoKungfu, selection)
       const chancesWith = getAlchemyChances(stateWithDanxiu, selection)
       expect(chancesWith!.successRate).toBeGreaterThan(chancesNo!.successRate)
@@ -98,7 +98,7 @@ describe('alchemy_calc', () => {
 
     it('TICKET-22: 装备向天诀时 getAlchemyShortage 使用 alchemyCostMult', () => {
       const stateWithHeaven = makeState({ player: { relics: ['heaven_shift'], equippedRelics: ['heaven_shift', null, null] } } as Partial<GameState>, 1)
-      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' }
+      const selection: AlchemySelection = { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wu' }
       const { shortages } = getAlchemyShortage(stateWithHeaven, selection)
       expect(shortages.length).toBeGreaterThanOrEqual(0)
       expect(shortages.every((s) => s.need >= 1 && s.missing >= 0)).toBe(true)

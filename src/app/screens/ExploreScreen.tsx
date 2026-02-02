@@ -162,7 +162,7 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
                 >
                   继续深入
                 </Button>
-                <span className="explore-time-hint">本次深入将消耗 1 时辰</span>
+                <span className="explore-time-hint">不消耗时辰，仅推进危险与事件</span>
               </div>
               <Button variant="option-blue" size="sm" onClick={() => dispatch({ type: 'EXPLORE_CASH_OUT' })}>
                 见好就收

@@ -4,6 +4,8 @@ import {
   createInitialGameState,
   createRngFromState,
   createSeededRng,
+  getPersistentAchievements,
+  getPersistentKungfu,
   loadFromStorage,
   reduceGame,
   saveToStorage,
@@ -40,9 +42,17 @@ export function useGameStore() {
   const newGame = useCallback(() => {
     const seed = createSeed()
     rngRef.current = createSeededRng(seed)
+    const persistent = getPersistentKungfu()
+    const ach = getPersistentAchievements()
     clearStorage()
-    const newState = createInitialGameState(seed)
-    // 新开局时直接进入主界面
+    let newState = createInitialGameState(seed, persistent ?? undefined)
+    if (ach) {
+      newState = {
+        ...newState,
+        achievements: { claimed: ach.claimed },
+        meta: { ...newState.meta, statsLifetime: ach.statsLifetime },
+      }
+    }
     setState({ ...newState, screen: 'home' })
   }, [])
 

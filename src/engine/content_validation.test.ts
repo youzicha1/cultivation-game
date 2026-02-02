@@ -9,13 +9,20 @@
 import { describe, expect, it } from 'vitest'
 import { getChains, type GuaranteedReward } from './chains'
 import type { MaterialId } from './alchemy'
-import { getRecipe, alchemyRecipes } from './alchemy'
+import { getRecipe, alchemyRecipes, alchemyMaterials } from './alchemy'
 import { RELIC_IDS, type RelicId } from './relics'
 import exploreEventsFile from '../content/explore_events.v1.json'
 import type { ExploreEventsFile } from './events'
 import kungfuFile from '../content/kungfu.v1.json'
+import {
+  achievementDefs as achievementDefsList,
+  achievementGroups as achievementGroupsList,
+  METRIC_KEYS as ACH_METRIC_KEYS,
+  STREAK_KEYS as ACH_STREAK_KEYS,
+  FLAG_KEYS as ACH_FLAG_KEYS,
+} from './achievements'
 
-const MATERIAL_IDS: MaterialId[] = ['spirit_herb', 'iron_sand', 'beast_core', 'moon_dew']
+const MATERIAL_IDS: MaterialId[] = alchemyMaterials.map((m) => m.id)
 const VALID_RARITY = ['common', 'rare', 'legendary'] as const
 const VALID_KUNGFU_RARITY = ['common', 'rare', 'epic', 'legendary'] as const
 const DANGER_MIN = 0
@@ -243,5 +250,65 @@ describe('alchemy_recipes content validation', () => {
       const sum = (r.qualityBase.fan + r.qualityBase.xuan + r.qualityBase.di + r.qualityBase.tian)
       expect(Math.abs(sum - 1)).toBeLessThan(1e-6)
     }
+  })
+})
+
+describe('achievements content validation', () => {
+  const metricSet = new Set(ACH_METRIC_KEYS)
+  const streakSet = new Set(ACH_STREAK_KEYS)
+  const flagSet = new Set(ACH_FLAG_KEYS)
+  const groupIds = new Set(achievementGroupsList.map((g) => g.id))
+
+  it('成就 id 唯一', () => {
+    const ids = achievementDefsList.map((a) => a.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('成就 group 合法', () => {
+    for (const a of achievementDefsList) {
+      expect(groupIds.has(a.group)).toBe(true)
+    }
+  })
+
+  it('成就 tier 在 1..6', () => {
+    for (const a of achievementDefsList) {
+      expect(a.tier).toBeGreaterThanOrEqual(1)
+      expect(a.tier).toBeLessThanOrEqual(6)
+    }
+  })
+
+  it('criteria.key 在白名单', () => {
+    function checkCriteria(c: { type: string; key?: string; value?: number; conditions?: Array<{ type: string; key?: string; value?: number }> }) {
+      if (c.type === 'counter' && c.key) {
+        expect(metricSet.has(c.key as any)).toBe(true)
+        expect(c.value).toBeGreaterThanOrEqual(0)
+      }
+      if (c.type === 'streak' && c.key) {
+        expect(streakSet.has(c.key as any)).toBe(true)
+        expect(c.value).toBeGreaterThanOrEqual(0)
+      }
+      if (c.type === 'flag' && c.key) {
+        expect(flagSet.has(c.key as any)).toBe(true)
+      }
+      if (c.type === 'all' && c.conditions) {
+        for (const cond of c.conditions) checkCriteria(cond)
+      }
+    }
+    for (const a of achievementDefsList) {
+      checkCriteria(a.criteria as any)
+    }
+  })
+
+  it('reward 非负', () => {
+    for (const a of achievementDefsList) {
+      const r = a.reward ?? {}
+      if (r.spiritStones != null) expect(r.spiritStones).toBeGreaterThanOrEqual(0)
+      if (r.legacyPoints != null) expect(r.legacyPoints).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it('成就总数 ≥ 60，8 组', () => {
+    expect(achievementDefsList.length).toBeGreaterThanOrEqual(60)
+    expect(achievementGroupsList.length).toBe(8)
   })
 })

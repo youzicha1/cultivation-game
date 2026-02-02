@@ -99,7 +99,7 @@ function getPresetPlan(
     const quality = foundation?.quality ?? 'fan'
     const inheritanceSpent = Math.min(3, maxInheritance)
     const missing: string[] = []
-    if (inheritanceSpent < 3) missing.push('传承点×' + (3 - inheritanceSpent))
+    if (inheritanceSpent < 3) missing.push('献祭传承×' + (3 - inheritanceSpent))
     return {
       useElixir: foundation ? { elixirId: 'foundation_pill', quality, count: count || 1 } : undefined,
       inheritanceSpent,
@@ -214,7 +214,7 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
                   )}
                   {outcome.deltas.inheritancePoints !== 0 && (
                     <div className="breakthrough-delta-item">
-                      <span className="breakthrough-delta-label">传承点</span>
+                      <span className="breakthrough-delta-label">献祭传承</span>
                       <span className={`breakthrough-delta-value ${outcome.deltas.inheritancePoints > 0 ? 'breakthrough-delta-value--up' : 'breakthrough-delta-value--down'}`}>
                         {outcome.deltas.inheritancePoints > 0 ? '↑' : '↓'} {Math.abs(outcome.deltas.inheritancePoints)}
                       </span>
@@ -237,7 +237,7 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
                   <div className="breakthrough-battle-report__label">消耗</div>
                   <div className="breakthrough-battle-report__consumed">
                     {outcome.consumed.inheritanceSpent > 0 && (
-                      <span className="breakthrough-consumed-item">传承点×{outcome.consumed.inheritanceSpent}</span>
+                      <span className="breakthrough-consumed-item">献祭传承×{outcome.consumed.inheritanceSpent}</span>
                     )}
                     {outcome.consumed.elixir && (
                       <span className="breakthrough-consumed-item">
@@ -254,7 +254,7 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
                   <div className="breakthrough-compensation-title">你从失败中悟得天机</div>
                   <div className="breakthrough-compensation-items">
                     {outcome.deltas.inheritancePoints > 0 && (
-                      <span className="breakthrough-compensation-item">传承+{outcome.deltas.inheritancePoints}</span>
+                      <span className="breakthrough-compensation-item">献祭传承+{outcome.deltas.inheritancePoints}（本局突破用）</span>
                     )}
                     {outcome.deltas.pity > 0 && (
                       <span className="breakthrough-compensation-item">保底+{outcome.deltas.pity}（下次更香）</span>
@@ -364,10 +364,13 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
           {state.player.realm} → {nextRealmDisplay(state.player.realm)}
         </h2>
         {dailyEnv && <div className="breakthrough-daily-hint">今日：{dailyEnv.name}</div>}
+        <div className="breakthrough-realm-why" title="境界影响炼丹成功率、天劫难度与化解力、本局传承页点数结算">
+          境界有什么用？每升一境：炼丹成功率+2%；天劫化解力+4、难度+6；本局结束时传承页点数+1。金丹/元婴/化神需对应功法方可冲关。
+        </div>
         <div className="breakthrough-resource-chips">
           <Chip className="app-chip--gold">境界 {state.player.realm}</Chip>
           <Chip className="app-chip--hp">生命 {`${state.player.hp}/${state.player.maxHp}`}</Chip>
-          <Chip className="app-chip--inherit">传承 {state.player.inheritancePoints}</Chip>
+          <Chip className="app-chip--inherit" title="本局献祭用，突破时消耗可提高成功率；与传承页跨局点数不同">献祭传承 {state.player.inheritancePoints}</Chip>
           <Chip className="app-chip--pity">保底 {state.player.pity}</Chip>
         </div>
       </header>
@@ -385,7 +388,7 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
             <span className="breakthrough-rate-big-label">成功率</span>
           </div>
           {prereqOk && rate === 0 && (
-            <div className="breakthrough-kungfu-hint">需丹药或传承点增加成功率（基础 0%）</div>
+            <div className="breakthrough-kungfu-hint">需丹药或献祭传承增加成功率（基础 0%）</div>
           )}
           {kungfuAdd > 0 && (
             <div className="breakthrough-kungfu-hint">功法加成 +{(kungfuAdd * 100).toFixed(0)}%</div>
@@ -450,7 +453,8 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
       {/* 底部固定操作条 */}
       <footer className="breakthrough-footer">
         <div className="breakthrough-footer-preview">
-          成功：境界+1 回满血；失败：高伤害，50% 概率境界跌落（凡人不再降），保底+1 传承补偿
+          <div>成功：境界+1 回满血；失败：高伤害，50% 概率境界跌落（凡人不再降），保底+1、献祭传承补偿（本局用）</div>
+          <div className="breakthrough-why-hint">境界越高：炼丹成功率微幅提升；天劫化解力与难度同步提升；本局结算时传承页点数更多。冲关是为了走得更远、渡劫拿更多传承点与碎片。</div>
         </div>
         <div className="breakthrough-footer-actions">
           <div className="breakthrough-confirm-row">

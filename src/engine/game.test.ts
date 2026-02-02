@@ -587,7 +587,7 @@ describe('game reducer', () => {
       realmIndex: 0,
       pity: 0,
       totalBrews: 0,
-      heat: 'push',
+      heat: 'wu',
       kungfuMod,
     })
     const noKungfu = getAlchemyRates({
@@ -595,7 +595,7 @@ describe('game reducer', () => {
       realmIndex: 0,
       pity: 0,
       totalBrews: 0,
-      heat: 'push',
+      heat: 'wu',
     })
     expect(rates.finalBoomRate).toBeLessThan(noKungfu.finalBoomRate)
   })
@@ -815,17 +815,19 @@ describe('game reducer', () => {
       const next = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
       expect(next.run.timeLeft).toBe(9)
     })
-    it('时辰耗尽进入天劫挑战：timeLeft=1 修炼后 screen=final_trial', () => {
-      const rng = createSequenceRng([0.9, 0.5])
+    it('时辰耗尽进入天劫挑战：timeLeft=1 修炼后 screen=final_trial（TICKET-29 回合制 tribulation）', () => {
+      const rng = createSequenceRng([0.9, 0.5, 0]) // 最后一格供 startTribulation pickIntent
       const base = createInitialGameState(1)
       const state: GameState = { ...base, run: { ...base.run, timeLeft: 1, timeMax: TIME_MAX } }
       const next = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
       expect(next.run.timeLeft).toBe(0)
       expect(next.screen).toBe('final_trial')
-      expect(next.run.finalTrial).toBeDefined()
-      expect(next.run.finalTrial?.step).toBe(1)
-      expect(next.run.finalTrial?.threat).toBeGreaterThanOrEqual(90)
-      expect(next.run.finalTrial?.resolve).toBeGreaterThan(0)
+      expect(next.run.tribulation).toBeDefined()
+      expect(next.run.tribulation?.turn).toBe(0)
+      expect(next.run.tribulation?.totalTurns).toBeGreaterThanOrEqual(3)
+      expect(next.run.tribulation?.totalTurns).toBeLessThanOrEqual(5)
+      expect(next.run.tribulation?.currentIntent).toBeDefined()
+      expect(next.run.tribulation?.currentIntent.name).toBeDefined()
     })
     it('GO / RELIC_EQUIP 不消耗时辰', () => {
       const rng = createSequenceRng([])
@@ -836,14 +838,15 @@ describe('game reducer', () => {
       const afterEquip = reduceGame(afterGo, { type: 'RELIC_EQUIP', slotIndex: 0, relicId: null }, rng)
       expect(afterEquip.run.timeLeft).toBe(5)
     })
-    it('DEBUG_SET_TIME_LEFT 可减时辰，耗尽进入天劫挑战', () => {
-      const rng = createSequenceRng([])
+    it('DEBUG_SET_TIME_LEFT 可减时辰，耗尽进入天劫挑战（TICKET-29 需 1 次 rng 抽意图）', () => {
+      const rng = createSequenceRng([0])
       const base = createInitialGameState(1)
       const state: GameState = { ...base, screen: 'home', run: { ...base.run, timeLeft: 3, timeMax: TIME_MAX } }
       const next = reduceGame(state, { type: 'DEBUG_SET_TIME_LEFT', value: 0 }, rng)
       expect(next.run.timeLeft).toBe(0)
       expect(next.screen).toBe('final_trial')
-      expect(next.run.finalTrial?.step).toBe(1)
+      expect(next.run.tribulation?.turn).toBe(0)
+      expect(next.run.tribulation?.totalTurns).toBeGreaterThanOrEqual(3)
     })
     it('已触发天劫后“继续游戏”再消耗时辰：不再触发收官、传承点不增加（防刷）', () => {
       const rng = createSequenceRng([0.9, 0.5])

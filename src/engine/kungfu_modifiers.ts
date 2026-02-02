@@ -18,6 +18,7 @@ const EFFECT_TO_MODIFIER: Record<string, string> = {
   alchemy_boom_rate_mul: 'alchemyBoomMul',
   alchemy_quality_shift: 'alchemyQualityShift',
   breakthrough_rate_add: 'breakthroughSuccessAdd',
+  tribulation_surge_rate_add: 'tribulationSurgeRateAdd',
 }
 
 function isMultKey(key: string): boolean {

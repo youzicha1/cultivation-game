@@ -166,6 +166,9 @@ export function HomeScreen({ state, dispatch }: ScreenProps) {
           <Button variant="primary" size="sm" onClick={() => dispatch({ type: 'BREAKTHROUGH_OPEN' })}>
             突破
           </Button>
+          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'shop' })}>
+            坊市
+          </Button>
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'relics' })}>
             功法
           </Button>

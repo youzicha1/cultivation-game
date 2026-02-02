@@ -530,6 +530,15 @@
   color: var(--muted);
   margin-bottom: 6px;
 }
+.breakthrough-realm-why {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  background: var(--panel-bg);
+  border-radius: 6px;
+  line-height: 1.35;
+}
 .breakthrough-resource-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1053,6 +1062,13 @@
   text-align: center;
   margin-bottom: 10px;
 }
+.breakthrough-footer-preview .breakthrough-why-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  opacity: 0.9;
+  line-height: 1.3;
+}
 .breakthrough-footer-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1454,10 +1470,36 @@
 .cultivate-mode--breath { background: rgba(34, 197, 94, 0.15); color: #22c55e; border-color: rgba(34, 197, 94, 0.4); }
 .cultivate-mode--pulse { background: rgba(249, 115, 22, 0.15); color: #f97316; border-color: rgba(249, 115, 22, 0.4); }
 .cultivate-mode--insight { background: rgba(168, 85, 247, 0.15); color: #a855f7; border-color: rgba(168, 85, 247, 0.4); }
-.cultivate-mode-hint {
+.cultivate-mode-desc {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.cultivate-mode-desc__title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.cultivate-mode-desc__list {
+  margin: 0 0 8px;
+  padding-left: 1.2em;
+}
+.cultivate-mode-desc__list li {
+  margin-bottom: 6px;
+}
+.cultivate-mode-desc__list li:last-child {
+  margin-bottom: 0;
+}
+.cultivate-mode-desc__foot {
+  margin: 0;
   font-size: 11px;
   color: var(--muted);
-  margin: 0;
 }
 .cultivate-toast {
   display: flex;
@@ -2319,6 +2361,129 @@
   margin: 8px 0 6px;
 }
 .alchemy-label:first-child { margin-top: 0; }
+.alchemy-heat-recommended {
+  font-size: 10px;
+  color: var(--alchemy-muted);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+/* 丹方书卷按钮：卷轴样式 */
+.alchemy-recipe-scroll-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid rgba(180, 140, 80, 0.6);
+  border-radius: 4px;
+  background: linear-gradient(135deg, #2a2218 0%, #1a1510 50%, #251d14 100%);
+  color: #e8d5a3;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 235, 180, 0.08), 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.alchemy-recipe-scroll-btn:hover {
+  border-color: rgba(220, 180, 100, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 235, 180, 0.12), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.alchemy-recipe-scroll-icon {
+  font-size: 18px;
+  filter: drop-shadow(0 0 2px rgba(200, 160, 80, 0.5));
+}
+.alchemy-recipe-scroll-label {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 丹方选择弹层 */
+.alchemy-recipe-picker-backdrop .modal-box {
+  max-width: 360px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #1f1a12 0%, #161210 100%);
+  border: 1px solid rgba(180, 140, 80, 0.5);
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(200, 160, 80, 0.2);
+}
+.alchemy-recipe-picker {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+.alchemy-recipe-picker-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e8d5a3;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+.alchemy-recipe-picker-hint {
+  font-size: 11px;
+  color: var(--alchemy-muted);
+  margin: 0;
+  text-align: center;
+}
+.alchemy-recipe-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.alchemy-recipe-picker-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(140, 120, 80, 0.4);
+  border-radius: 6px;
+  background: rgba(30, 26, 20, 0.8);
+  color: #d4c4a0;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.alchemy-recipe-picker-item:hover:not(:disabled) {
+  border-color: rgba(200, 160, 80, 0.6);
+  background: rgba(50, 42, 28, 0.9);
+}
+.alchemy-recipe-picker-item--selected {
+  border-color: var(--alchemy-fire);
+  background: rgba(245, 158, 11, 0.12);
+  color: #f0e0b0;
+}
+.alchemy-recipe-picker-item--locked {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.alchemy-recipe-picker-item-name {
+  font-weight: 600;
+  color: #e8d5a3;
+}
+.alchemy-recipe-picker-item-effect {
+  font-size: 11px;
+  color: var(--alchemy-muted);
+  line-height: 1.3;
+}
+.alchemy-recipe-picker-item-heat {
+  font-size: 10px;
+  color: rgba(200, 180, 120, 0.9);
+}
+.alchemy-recipe-picker-item-frag {
+  font-size: 10px;
+  color: var(--muted);
+}
 .alchemy-recipe-row,
 .alchemy-heat-row,
 .alchemy-batch-row {
@@ -2697,6 +2862,49 @@
   flex-direction: column;
   gap: 8px;
 }
+
+/* TICKET-29: 天劫回合制 UI */
+.tribulation-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+.tribulation-stat { padding: 4px 8px; background: var(--panel2); border-radius: 6px; }
+.tribulation-debuffs { color: #f59e0b; }
+.tribulation-intent-card {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel2);
+}
+.tribulation-intent-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.tribulation-intent-damage { font-size: 13px; color: var(--muted); }
+.tribulation-intent-add { font-size: 12px; color: #f59e0b; margin-top: 4px; }
+.tribulation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.tribulation-actions .app-btn { min-height: 44px; }
+.tribulation-pill-panel {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tribulation-pill-panel-title { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.tribulation-log { font-size: 12px; color: var(--muted); margin-top: 8px; }
+.tribulation-log summary { cursor: pointer; }
+.tribulation-log-list { margin: 6px 0 0; padding-left: 18px; }
+@media (prefers-reduced-motion: reduce) {
+  .tribulation-intent-card { transition: none; }
+}
+
 .final-result-hero { margin-bottom: 8px; }
 .final-result-cause {
   font-size: 14px;
@@ -2895,6 +3103,119 @@
   color: var(--muted);
 }
 .achievement-list__item--unlocked {
+  color: var(--gold);
+}
+
+/* TICKET-28: 成就 v2 — 分组 Tab + 卡片 + 进度条 + 一键领取 */
+.achievements-v2 .achievements-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.achievements-tab {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.achievements-tab--active {
+  background: var(--primary);
+  color: var(--bg);
+  border-color: var(--primary);
+}
+.achievements-tab-count {
+  margin-left: 4px;
+  opacity: 0.8;
+}
+.achievements-claim-all {
+  min-height: 44px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+.achievements-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.achievements-card {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+}
+.achievements-card--claimable {
+  border-color: var(--gold);
+  background: rgba(255, 193, 7, 0.08);
+}
+.achievements-card--claimed {
+  opacity: 0.85;
+}
+.achievements-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.achievements-card-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+.achievements-card-tier {
+  font-size: 11px;
+  color: var(--muted);
+}
+.achievements-card-desc {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.achievements-progress {
+  position: relative;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--bg);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.achievements-progress-bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 4px;
+  transition: width 0.2s;
+}
+.achievements-progress-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text);
+}
+.achievements-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.achievements-reward {
+  font-size: 12px;
+  color: var(--muted);
+}
+.achievements-claimed-badge {
+  font-size: 12px;
   color: var(--gold);
 }
 
@@ -3160,7 +3481,7 @@
   filter:
     drop-shadow(0 0 16px rgba(255, 180, 50, 0.5))
     drop-shadow(0 0 28px rgba(255, 140, 30, 0.25));
-  transform-origin: 120px 125px;
+  transform-origin: 120px 40px;
 }
 
 .alchemy-furnace__flame {
@@ -3168,7 +3489,7 @@
   filter:
     drop-shadow(0 0 14px rgba(255, 120, 40, 0.6))
     drop-shadow(0 0 22px rgba(255, 80, 20, 0.35));
-  transform-origin: 120px 125px;
+  transform-origin: 120px 40px;
 }
 
 .alchemy-furnace__flameCore {
@@ -3176,7 +3497,7 @@
   filter:
     drop-shadow(0 0 12px rgba(255, 240, 180, 0.8))
     drop-shadow(0 0 20px rgba(255, 220, 120, 0.4));
-  transform-origin: 120px 130px;
+  transform-origin: 120px 38px;
 }
 
 /* Idle：炉火呼吸 + 焰心闪烁 */

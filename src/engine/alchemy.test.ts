@@ -25,7 +25,7 @@ describe('alchemy', () => {
       1,
       () => rng.next(),
       () => 1,
-      'push',
+      'wu',
     )
 
     expect(next.player.materials.spirit_herb).toBe(10)
@@ -51,7 +51,7 @@ describe('alchemy', () => {
       1,
       () => rng.next(),
       () => 1,
-      'push',
+      'wu',
     )
 
     expect(next.player.materials.spirit_herb).toBe(0)
@@ -106,7 +106,7 @@ describe('alchemy', () => {
       1,
       () => rng.next(),
       () => 1,
-      'push',
+      'wu',
     )
 
     expect(next.player.elixirs.qi_pill.fan).toBe(1)
@@ -133,7 +133,7 @@ describe('alchemy', () => {
       1,
       () => rng.next(),
       () => 1,
-      'push',
+      'wu',
     )
 
     expect(next.player.elixirs.qi_pill.tian).toBe(1)
@@ -141,7 +141,7 @@ describe('alchemy', () => {
   })
 
   // TICKET-8: 炉温测试
-  it('heat=steady 会降低 boomRate', () => {
+  it('heat=wen 会降低 boomRate', () => {
     const base = createInitialGameState(1)
     const state = {
       ...base,
@@ -152,7 +152,7 @@ describe('alchemy', () => {
       },
       log: [],
     }
-    // qi_pill_recipe boomRate 约 0.06；roll 0.05 时 push 会爆(0.05<0.06)，steady 不爆(0.06*0.70=0.042, 0.05>0.042)
+    // qi_pill_recipe boomRate 约 0.06；roll 0.05 时 wu 会爆(0.05<0.06)，wen 不爆(0.06*0.70=0.042, 0.05>0.042)
     const rngPush = createSequenceRng([0.05, 0.0, 0.0])
     const { next: nextPush } = resolveBrew(
       state,
@@ -160,7 +160,7 @@ describe('alchemy', () => {
       1,
       () => rngPush.next(),
       () => 1,
-      'push',
+      'wu',
     )
     const rngSteady = createSequenceRng([0.05, 0.0, 0.0])
     const { next: nextSteady } = resolveBrew(
@@ -169,13 +169,13 @@ describe('alchemy', () => {
       1,
       () => rngSteady.next(),
       () => 1,
-      'steady',
+      'wen',
     )
     expect(nextPush.player.codex.totalBooms).toBe(1)
     expect(nextSteady.player.codex.totalBooms).toBe(0)
   })
 
-  it('heat=blast 会提高 di/tian 出现概率', () => {
+  it('heat=zhen 会提高 di/tian 出现概率', () => {
     const base = createInitialGameState(1)
     const state = {
       ...base,
@@ -186,7 +186,7 @@ describe('alchemy', () => {
       },
       log: [],
     }
-    // 固定 rng 序列：不爆(0.99)，成功(0.0)，品质roll高值(0.95) -> 在 blast 下更容易出 di/tian
+    // 固定 rng 序列：不爆(0.99)，成功(0.0)，品质roll高值(0.95) -> 在 zhen 下更容易出 di/tian
     const rngBlast = createSequenceRng([0.99, 0.0, 0.95])
     const { outcome: outcomeBlast } = resolveBrew(
       state,
@@ -194,9 +194,9 @@ describe('alchemy', () => {
       1,
       () => rngBlast.next(),
       () => 1,
-      'blast',
+      'zhen',
     )
-    // blast 下品质偏移会提高 di/tian 概率，这里验证能正常生成
+    // zhen 下品质偏移会提高 di/tian 概率，这里验证能正常生成
     expect(outcomeBlast.topQuality).toBeDefined()
     expect(['fan', 'xuan', 'di', 'tian']).toContain(outcomeBlast.topQuality)
   })
@@ -220,7 +220,7 @@ describe('alchemy', () => {
       3,
       () => rng.next(),
       () => 1,
-      'push',
+      'wu',
     )
 
     expect(outcome.attempted).toBe(3)
@@ -254,7 +254,7 @@ describe('alchemy', () => {
       1,
       () => rng.next(),
       () => 1,
-      'push',
+      'wu',
     )
 
     const tianLog = next.log.find((msg) => msg.includes('【金') && msg.includes('天丹'))
@@ -281,7 +281,7 @@ describe('alchemy', () => {
       2,
       () => rng.next(),
       () => 1,
-      'push',
+      'wu',
     )
 
     // 材料扣除：qi_pill_recipe 需要 spirit_herb 和 moon_dew
@@ -311,7 +311,7 @@ describe('alchemy', () => {
       1,
       () => rng.next(),
       () => 2,
-      'push',
+      'wu',
     )
 
     expect(next.player.hp).toBe(0)

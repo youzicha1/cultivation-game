@@ -4,7 +4,11 @@ import {
   alchemyMaterials,
   alchemyRecipes,
   getDailyEnvironmentDef,
+  getElixirDesc,
+  getElixirName,
   getRecipe,
+  HEAT_DESC,
+  HEAT_LABELS,
   PITY_ALCHEMY_HARD,
   PITY_ALCHEMY_THRESHOLD,
   PITY_DEBUG_SHOW_VALUES,
@@ -24,19 +28,19 @@ type ScreenProps = {
 }
 
 const HEAT_OPTIONS: { value: HeatLevel; label: string }[] = [
-  { value: 'steady', label: '稳' },
-  { value: 'push', label: '冲' },
-  { value: 'blast', label: '爆' },
+  { value: 'wen', label: HEAT_LABELS.wen },
+  { value: 'wu', label: HEAT_LABELS.wu },
+  { value: 'zhen', label: HEAT_LABELS.zhen },
 ]
 
 const BOOM_RATE_HIGH_THRESHOLD = 0.15
 
 export function AlchemyScreen({ state, dispatch }: ScreenProps) {
   const outcome = state.run.lastOutcome
-  const plan = state.run.alchemyPlan ?? { recipeId: 'qi_pill_recipe', batch: 1, heat: 'push' }
+  const plan = state.run.alchemyPlan ?? { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wu' }
   const recipe = getRecipe(plan.recipeId)
   const batch = Math.max(1, Math.min(5, plan.batch))
-  const heat = plan.heat ?? 'push'
+  const heat = plan.heat ?? 'wu'
 
   const selection: AlchemySelection = { recipeId: plan.recipeId, batch, heat }
   const { shortages, canBrew } = getAlchemyShortage(state, selection)
@@ -44,6 +48,7 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
 
   const [rateExpanded, setRateExpanded] = useState(false)
   const [isBrewing, setIsBrewing] = useState(false)
+  const [recipePickerOpen, setRecipePickerOpen] = useState(false)
   const brewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const unlocked = recipe ? state.player.recipesUnlocked[recipe.id] : false
@@ -270,56 +275,80 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
         {/* 主体：两列(PC) / 单列(手机)，可局部滚动 */}
         <div className="alchemy-main">
           <div className="alchemy-main-col alchemy-main-col--left">
-            <div className="alchemy-label">配方</div>
-            <div className="alchemy-recipe-row">
-              {alchemyRecipes.map((r) => {
-                const isUnlocked = state.player.recipesUnlocked[r.id]
-                const fragNeed = r.unlock.type === 'fragment' ? r.unlock.need : 0
-                const fragHave = state.player.fragments[r.id] ?? 0
-                const selected = plan.recipeId === r.id
-                return (
-                  <Button
-                    key={r.id}
-                    variant={selected ? 'option-green' : 'pill-chip'}
-                    size="sm"
-                    className={`alchemy-recipe-btn ${selected ? 'alchemy-recipe-btn--selected' : ''}`}
-                    onClick={() =>
-                      dispatch({ type: 'ALCHEMY_SET_RECIPE', recipeId: r.id, batch, heat })
-                    }
-                    disabled={!isUnlocked}
-                    title={
-                      !isUnlocked && r.unlock.type === 'fragment'
-                        ? `残页 ${fragHave}/${fragNeed}`
-                        : undefined
-                    }
-                  >
-                    {r.name}
-                    {!isUnlocked && r.unlock.type === 'fragment' ? ` ${fragHave}/${fragNeed}` : ''}
+            <div className="alchemy-label">丹方</div>
+            <button
+              type="button"
+              className="alchemy-recipe-scroll-btn"
+              onClick={() => setRecipePickerOpen(true)}
+              title="选择要炼制的丹方"
+            >
+              <span className="alchemy-recipe-scroll-icon" aria-hidden>📜</span>
+              <span className="alchemy-recipe-scroll-label">
+                {recipe ? `${recipe.name} · ${getElixirName(recipe.elixirId)}` : '选择丹方'}
+              </span>
+            </button>
+            {recipePickerOpen && (
+              <Modal className="alchemy-recipe-picker-backdrop" dismissOnBackdrop onDismiss={() => setRecipePickerOpen(false)}>
+                <div className="alchemy-recipe-picker">
+                  <div className="alchemy-recipe-picker-title">丹方书卷</div>
+                  <p className="alchemy-recipe-picker-hint">选择已拥有的丹方进行炼制</p>
+                  <ul className="alchemy-recipe-picker-list">
+                    {alchemyRecipes.map((r) => {
+                      const isUnlocked = state.player.recipesUnlocked[r.id]
+                      const fragNeed = r.unlock.type === 'fragment' ? r.unlock.need : 0
+                      const fragHave = state.player.fragments[r.id] ?? 0
+                      const selected = plan.recipeId === r.id
+                      return (
+                        <li key={r.id}>
+                          <button
+                            type="button"
+                            className={`alchemy-recipe-picker-item ${selected ? 'alchemy-recipe-picker-item--selected' : ''} ${!isUnlocked ? 'alchemy-recipe-picker-item--locked' : ''}`}
+                            onClick={() => {
+                              if (isUnlocked) {
+                                dispatch({ type: 'ALCHEMY_SET_RECIPE', recipeId: r.id, batch, heat })
+                                setRecipePickerOpen(false)
+                              }
+                            }}
+                            disabled={!isUnlocked}
+                            title={!isUnlocked && r.unlock.type === 'fragment' ? `需残页 ${fragHave}/${fragNeed}` : getElixirDesc(r.elixirId)}
+                          >
+                            <span className="alchemy-recipe-picker-item-name">{r.name}</span>
+                            <span className="alchemy-recipe-picker-item-effect">{getElixirDesc(r.elixirId)}</span>
+                            {r.recommendedHeat && (
+                              <span className="alchemy-recipe-picker-item-heat">推荐炉温：{HEAT_LABELS[r.recommendedHeat]}</span>
+                            )}
+                            {!isUnlocked && r.unlock.type === 'fragment' && (
+                              <span className="alchemy-recipe-picker-item-frag">残页 {fragHave}/{fragNeed}</span>
+                            )}
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                  <Button variant="ghost" size="sm" onClick={() => setRecipePickerOpen(false)}>
+                    关闭
                   </Button>
-                )
-              })}
-            </div>
+                </div>
+              </Modal>
+            )}
 
             <div className="alchemy-label">炉温</div>
+            {recipe?.recommendedHeat && (
+              <div className="alchemy-heat-recommended">本丹方推荐：{HEAT_LABELS[recipe.recommendedHeat]}（匹配+5%成功率、爆丹×0.9）</div>
+            )}
             <div className="alchemy-heat-row">
               {HEAT_OPTIONS.map((opt) => (
                 <Button
                   key={opt.value}
                   variant={
-                    opt.value === 'blast' ? 'option-purple' : opt.value === 'push' ? 'option-blue' : 'option-green'
+                    opt.value === 'zhen' ? 'option-purple' : opt.value === 'wu' ? 'option-blue' : 'option-green'
                   }
                   size="sm"
                   className={`alchemy-heat-btn ${heat === opt.value ? 'alchemy-heat-btn--selected' : ''}`}
                   onClick={() =>
                     dispatch({ type: 'ALCHEMY_SET_RECIPE', recipeId: plan.recipeId, batch, heat: opt.value })
                   }
-                  title={
-                    opt.value === 'steady'
-                      ? '稳：爆丹率-，天丹率-'
-                      : opt.value === 'push'
-                      ? '冲：默认'
-                      : '爆：爆丹率+，天丹率+（高风险高收益）'
-                  }
+                  title={recipe?.recommendedHeat === opt.value ? `【本丹方推荐】${HEAT_DESC[opt.value]}；匹配+5%成功率、爆丹×0.9` : HEAT_DESC[opt.value]}
                 >
                   {opt.label}
                 </Button>
@@ -395,6 +424,15 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                         <li>熟练：+{(chances.breakdown.success.masteryBonus * 100).toFixed(0)}%</li>
                         <li>每日：+{(chances.breakdown.success.dailyBonus * 100).toFixed(0)}%</li>
                         <li>炉温：{(chances.breakdown.success.heatMod >= 0 ? '+' : '')}{(chances.breakdown.success.heatMod * 100).toFixed(0)}%</li>
+                        {(chances.breakdown.success.recommendedBonus != null && chances.breakdown.success.recommendedBonus > 0) && (
+                          <li>丹方适配：+{(chances.breakdown.success.recommendedBonus * 100).toFixed(0)}%</li>
+                        )}
+                        {(chances.breakdown.success.kungfuSuccessAdd != null && chances.breakdown.success.kungfuSuccessAdd !== 0) && (
+                          <li>功法：+{(chances.breakdown.success.kungfuSuccessAdd * 100).toFixed(0)}%</li>
+                        )}
+                        {(chances.breakdown.success.mindBonus != null && chances.breakdown.success.mindBonus !== 0) && (
+                          <li>心境：+{(chances.breakdown.success.mindBonus * 100).toFixed(0)}%</li>
+                        )}
                         <li><strong>最终：{(chances.breakdown.success.final * 100).toFixed(1)}%</strong></li>
                       </ul>
                     </div>
@@ -402,8 +440,14 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                       <div className="alchemy-breakdown-title">爆丹率</div>
                       <ul>
                         <li>基础：{(chances.breakdown.boom.base * 100).toFixed(1)}%</li>
-                        <li>炉温×{chances.breakdown.boom.heatMultiplier}</li>
-                        <li>每日×{chances.breakdown.boom.dailyMultiplier}</li>
+                        <li>炉温×{chances.breakdown.boom.heatMultiplier.toFixed(2)}</li>
+                        <li>每日×{chances.breakdown.boom.dailyMultiplier.toFixed(2)}</li>
+                        {(chances.breakdown.boom.recommendedMultiplier != null && chances.breakdown.boom.recommendedMultiplier !== 1) && (
+                          <li>丹方适配×{chances.breakdown.boom.recommendedMultiplier.toFixed(2)}</li>
+                        )}
+                        {(chances.breakdown.boom.kungfuMultiplier != null && chances.breakdown.boom.kungfuMultiplier !== 1) && (
+                          <li>功法×{chances.breakdown.boom.kungfuMultiplier.toFixed(2)}</li>
+                        )}
                         <li><strong>最终：{(chances.breakdown.boom.final * 100).toFixed(1)}%</strong></li>
                       </ul>
                     </div>

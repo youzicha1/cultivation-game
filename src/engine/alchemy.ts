@@ -2,12 +2,10 @@ import recipesFile from '../content/alchemy_recipes.v1.json'
 import type { GameState } from './game'
 import type { PlayerState } from './state'
 
-export type MaterialId = 'spirit_herb' | 'iron_sand' | 'beast_core' | 'moon_dew'
-export type ElixirId = 'qi_pill' | 'spirit_pill' | 'foundation_pill'
-export type RecipeId =
-  | 'qi_pill_recipe'
-  | 'spirit_pill_recipe'
-  | 'foundation_pill_recipe'
+/** 材料/丹药/丹方 ID 由 alchemy_recipes 数据定义，支持任意数量 */
+export type MaterialId = string
+export type ElixirId = string
+export type RecipeId = string
 
 export type ElixirQuality = 'fan' | 'xuan' | 'di' | 'tian'
 
@@ -27,6 +25,8 @@ export type RecipeDef = {
   baseSuccess: number
   qualityBase: Record<ElixirQuality, number>
   boomRate: number
+  /** 推荐炉温：匹配时成功率+5%、爆丹率×0.9，不同丹方适配不同炉温 */
+  recommendedHeat?: HeatLevel
 }
 
 export type AlchemyRecipesFile = {
@@ -74,6 +74,9 @@ export function validateAlchemyFile(file: AlchemyRecipesFile): AlchemyRecipesFil
     if (recipe.boomRate < 0 || recipe.boomRate > 1) {
       throw new Error(`RecipeDef: boomRate out of range for ${recipe.id}`)
     }
+    if (recipe.recommendedHeat != null && !['wen', 'wu', 'zhen'].includes(recipe.recommendedHeat)) {
+      throw new Error(`RecipeDef: recommendedHeat must be wen/wu/zhen for ${recipe.id}`)
+    }
   })
 
   return file
@@ -83,6 +86,40 @@ export const alchemyData = validateAlchemyFile(recipesFile as AlchemyRecipesFile
 export const alchemyRecipes = alchemyData.recipes
 export const alchemyMaterials = alchemyData.materials
 const alchemyElixirs = alchemyData.elixirs
+
+/** 由丹方数据构建的玩家炼丹默认状态（材料/解锁/残页/图鉴），新游戏时合并进 player */
+export function getAlchemyPlayerDefaults(): {
+  materials: Record<string, number>
+  elixirs: Record<string, Record<ElixirQuality, number>>
+  recipesUnlocked: Record<string, boolean>
+  fragments: Record<string, number>
+  codex: {
+    totalBrews: number
+    totalBooms: number
+    bestQualityByRecipe: Record<string, ElixirQuality | 'none'>
+    successBrews: number
+    bestQualityByElixir: Record<string, ElixirQuality | 'none'>
+    totalBlastHeatUsed: number
+  }
+} {
+  const qualityZero = { fan: 0, xuan: 0, di: 0, tian: 0 } as Record<ElixirQuality, number>
+  return {
+    materials: Object.fromEntries(alchemyMaterials.map((m) => [m.id, 0])),
+    elixirs: Object.fromEntries(alchemyElixirs.map((e) => [e.id, { ...qualityZero }])),
+    recipesUnlocked: Object.fromEntries(
+      alchemyRecipes.map((r) => [r.id, r.unlock.type === 'default']),
+    ),
+    fragments: Object.fromEntries(alchemyRecipes.map((r) => [r.id, 0])),
+    codex: {
+      totalBrews: 0,
+      totalBooms: 0,
+      bestQualityByRecipe: Object.fromEntries(alchemyRecipes.map((r) => [r.id, 'none'])),
+      successBrews: 0,
+      bestQualityByElixir: Object.fromEntries(alchemyElixirs.map((e) => [e.id, 'none'])),
+      totalBlastHeatUsed: 0,
+    },
+  }
+}
 
 export function getRecipe(recipeId: string): RecipeDef | undefined {
   return alchemyRecipes.find((r) => r.id === recipeId)
@@ -94,6 +131,10 @@ export function getMaterialName(materialId: MaterialId): string {
 
 export function getElixirName(elixirId: ElixirId): string {
   return alchemyElixirs.find((e) => e.id === elixirId)?.name ?? elixirId
+}
+
+export function getElixirDesc(elixirId: ElixirId): string {
+  return alchemyElixirs.find((e) => e.id === elixirId)?.desc ?? ''
 }
 
 const QUALITY_LABELS: Record<ElixirQuality, string> = {
@@ -144,6 +185,7 @@ export type AlchemyRatesBreakdown = {
     dailyBonus: number
     heatMod: number
     kungfuSuccessAdd?: number
+    recommendedBonus?: number
     mindBonus?: number
     final: number
   }
@@ -151,6 +193,8 @@ export type AlchemyRatesBreakdown = {
     base: number
     heatMultiplier: number
     dailyMultiplier: number
+    kungfuMultiplier: number
+    recommendedMultiplier?: number
     final: number
   }
 }
@@ -172,14 +216,16 @@ export function getAlchemyRates(params: {
   const dailyBonus = dailyMod?.alchemySuccessBonus ?? 0
   const heatMod = HEAT_SUCCESS_MODIFIER[heat]
   const kungfuSuccessAdd = kungfuMod?.alchemySuccessAdd ?? 0
+  const recommendedMatch = recipe.recommendedHeat === heat ? 0.05 : 0
 
-  let successFinal = recipe.baseSuccess + realmBonus + pityBonus + masteryBonus + dailyBonus + heatMod + kungfuSuccessAdd
+  let successFinal = recipe.baseSuccess + realmBonus + pityBonus + masteryBonus + dailyBonus + heatMod + kungfuSuccessAdd + recommendedMatch
   successFinal = clamp(successFinal, 0.01, 0.95)
 
   const boomHeatMult = HEAT_BOOM_MULTIPLIER[heat]
   const boomDailyMult = dailyMod?.alchemyBoomRateMultiplier ?? 1
   const boomKungfuMult = kungfuMod?.alchemyBoomMul ?? 1
-  const boomFinal = clamp(recipe.boomRate * boomHeatMult * boomDailyMult * boomKungfuMult, 0.01, 0.95)
+  const boomRecommendedMult = recipe.recommendedHeat === heat ? 0.9 : 1
+  const boomFinal = clamp(recipe.boomRate * boomHeatMult * boomDailyMult * boomKungfuMult * boomRecommendedMult, 0.01, 0.95)
 
   return {
     finalSuccessRate: successFinal,
@@ -193,12 +239,15 @@ export function getAlchemyRates(params: {
         dailyBonus,
         heatMod,
         kungfuSuccessAdd,
+        recommendedBonus: recommendedMatch > 0 ? recommendedMatch : undefined,
         final: successFinal,
       },
       boom: {
         base: recipe.boomRate,
         heatMultiplier: boomHeatMult,
         dailyMultiplier: boomDailyMult,
+        kungfuMultiplier: boomKungfuMult,
+        recommendedMultiplier: boomRecommendedMult !== 1 ? boomRecommendedMult : undefined,
         final: boomFinal,
       },
     },
@@ -213,12 +262,12 @@ function adjustQualityDistribution(
 ): Record<ElixirQuality, number> {
   const adjusted = { ...qualityBase }
 
-  if (heat === 'steady') {
+  if (heat === 'wen') {
     adjusted.fan = adjusted.fan * 1.15
     adjusted.xuan = adjusted.xuan * 1.05
     adjusted.di = adjusted.di * 0.85
     adjusted.tian = adjusted.tian * 0.80
-  } else if (heat === 'blast') {
+  } else if (heat === 'zhen') {
     adjusted.fan = adjusted.fan * 0.85
     adjusted.xuan = adjusted.xuan * 0.95
     adjusted.di = adjusted.di * 1.15
@@ -247,7 +296,7 @@ export function rollQuality(
   heat?: HeatLevel,
   qualityShift: number = 0,
 ): ElixirQuality {
-  const adjusted = heat ? adjustQualityDistribution(qualityBase, heat, qualityShift) : qualityShift !== 0 ? adjustQualityDistribution(qualityBase, 'push', qualityShift) : qualityBase
+  const adjusted = heat ? adjustQualityDistribution(qualityBase, heat, qualityShift) : qualityShift !== 0 ? adjustQualityDistribution(qualityBase, 'wu', qualityShift) : qualityBase
   const x = rng01()
   let cursor = 0
   for (const q of elixirQualityOrder) {
@@ -271,21 +320,35 @@ export function calcBrewSuccessRate(params: {
   return clamp(params.baseSuccess + realmBonus + pityBonus + masteryBonus, 0.05, 0.95)
 }
 
-/** TICKET-8: 炉温类型 */
-export type HeatLevel = 'steady' | 'push' | 'blast'
+/** 炉温：修仙爽文风格，不同丹方适配不同炉温 */
+export type HeatLevel = 'wen' | 'wu' | 'zhen'
 
-/** TICKET-8: 炉温对爆丹率乘数 */
+/** 炉温对爆丹率乘数：文火温养降爆、武火均衡、真火极致易爆 */
 export const HEAT_BOOM_MULTIPLIER: Record<HeatLevel, number> = {
-  steady: 0.70,
-  push: 1.00,
-  blast: 1.35,
+  wen: 0.70,
+  wu: 1.00,
+  zhen: 1.35,
 }
 
-/** TICKET-8: 炉温对成功率修正 */
+/** 炉温对成功率修正 */
 export const HEAT_SUCCESS_MODIFIER: Record<HeatLevel, number> = {
-  steady: +0.05,
-  push: 0.00,
-  blast: -0.03,
+  wen: +0.05,
+  wu: 0.00,
+  zhen: -0.03,
+}
+
+/** 炉温显示名（爽文风格） */
+export const HEAT_LABELS: Record<HeatLevel, string> = {
+  wen: '文火',
+  wu: '武火',
+  zhen: '真火',
+}
+
+/** 炉温短描述（适配不同丹方时选用） */
+export const HEAT_DESC: Record<HeatLevel, string> = {
+  wen: '温养丹胎，成丹最稳，爆丹率低',
+  wu: '猛火急炼，均衡之选',
+  zhen: '心火极致，易出高品，亦易爆丹',
 }
 
 /** TICKET-6: 炼丹每日加成（由 game 注入，避免循环依赖） */
@@ -379,7 +442,7 @@ export function resolveBrew(
   batch: number,
   rng01: () => number,
   randInt: (min: number, max: number) => number,
-  heat: HeatLevel = 'push',
+  heat: HeatLevel = 'wu',
   dailyMod?: AlchemyDailyMod,
   kungfuMod?: AlchemyKungfuMod,
 ): { next: GameState; outcome: AlchemyOutcome } {
@@ -514,6 +577,9 @@ export function resolveBrew(
       if (success) {
         // c) 成功：抽品质（带炉温品质偏移）
         const quality = rollQuality(rng01, recipe.qualityBase, heat, qualityShift)
+        if (!nextPlayer.elixirs[recipe.elixirId]) {
+          nextPlayer.elixirs[recipe.elixirId] = { fan: 0, xuan: 0, di: 0, tian: 0 }
+        }
         nextPlayer.elixirs[recipe.elixirId][quality] += 1
         items[quality] += 1
         bestQuality = compareQuality(bestQuality, quality)
@@ -552,7 +618,7 @@ export function resolveBrew(
       ...bestQualityByElixir,
       [recipe.elixirId]: elixirBestQuality,
     },
-    totalBlastHeatUsed: heat === 'blast' ? totalBlastHeatUsed + 1 : totalBlastHeatUsed,
+    totalBlastHeatUsed: heat === 'zhen' ? totalBlastHeatUsed + 1 : totalBlastHeatUsed,
   } as any
 
   const outcome: AlchemyOutcome = {

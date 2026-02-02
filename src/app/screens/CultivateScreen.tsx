@@ -72,6 +72,7 @@ export function CultivateScreen({ state, dispatch }: ScreenProps) {
             size="md"
             className="cultivate-mode-btn cultivate-mode--breath"
             onClick={() => dispatch({ type: 'CULTIVATE_TICK', mode: 'breath' })}
+            title="稳定回血、修伤、涨修为与心境；危险值-2；无风险"
           >
             吐纳
           </Button>
@@ -80,6 +81,7 @@ export function CultivateScreen({ state, dispatch }: ScreenProps) {
             size="md"
             className="cultivate-mode-btn cultivate-mode--pulse"
             onClick={() => dispatch({ type: 'CULTIVATE_TICK', mode: 'pulse' })}
+            title="修为更高，但有小概率走火受伤；未受伤则额外得灵石"
           >
             冲脉
           </Button>
@@ -88,13 +90,20 @@ export function CultivateScreen({ state, dispatch }: ScreenProps) {
             size="md"
             className="cultivate-mode-btn cultivate-mode--insight"
             onClick={() => dispatch({ type: 'CULTIVATE_TICK', mode: 'insight' })}
+            title="修为较低，有概率触发顿悟，选 A/B 得传承、残页或大量修为"
           >
             悟道
           </Button>
         </div>
-        <p className="cultivate-mode-hint">
-          吐纳：回血修伤·稳修为 · 冲脉：高修为小概率受伤 · 悟道：概率顿悟选赏
-        </p>
+        <div className="cultivate-mode-desc" role="region" aria-label="修炼模式说明">
+          <p className="cultivate-mode-desc__title">三种模式说明（每次修炼消耗 1 时辰）</p>
+          <ul className="cultivate-mode-desc__list">
+            <li><strong>吐纳</strong>：稳扎稳打。稳定增加修为与生命，心境+6，并略缓伤势；若在探索中还会减 2 点危险值。无随机风险，适合回血、修伤或拉高心境。</li>
+            <li><strong>冲脉</strong>：险中求进。修为收益更高（16~22），但有小概率「走火岔气」：受伤则生命-8、伤势+2 回合；未受伤则额外获得灵石。心境越低，受伤概率越高。</li>
+            <li><strong>悟道</strong>：机缘顿悟。基础只加少量修为与心境；有概率触发顿悟事件，弹出 A/B 选项：选稳悟得传承点或功法残页，选险悟得大量修为（伴随危险或扣血）。心境越高，顿悟概率越高。</li>
+          </ul>
+          <p className="cultivate-mode-desc__foot">心境影响探索危险增长、突破成功率与炼丹成功率，建议先用吐纳把心境提到「澄明」以上再冲脉或悟道。</p>
+        </div>
 
         {toast && (
           <div className="cultivate-toast">

@@ -73,7 +73,7 @@ export function LegacyScreen({ state, dispatch }: ScreenProps) {
 
             return (
               <div
-                key={upgrade.id}
+                key={`${upgrade.id}-${legacyUpgrades[upgrade.id] ?? 0}`}
                 className={`legacy-upgrade-card ${owned ? 'legacy-upgrade-card--owned' : ''} ${!prereqsMet && !owned ? 'legacy-upgrade-card--locked' : ''}`}
               >
                 <div className="legacy-upgrade-header">

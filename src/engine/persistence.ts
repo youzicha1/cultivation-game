@@ -4,11 +4,74 @@ import { createInitialState } from './state'
 import { createInitialGameState } from './game'
 import { TIME_MAX } from './time'
 import type { InsightEvent } from './cultivation'
+import type { TribulationState } from './tribulation/tribulation'
 
 const SAVE_KEY = 'cultivation_save_v1'
+/** 功法/碎片跨局持久化：新游戏继承已获得功法与碎片 */
+const PERSISTENT_KUNGFU_KEY = 'cultivation_persistent_kungfu_v1'
+/** TICKET-28: 成就已领取 + 跨局累计统计 */
+const PERSISTENT_ACHIEVEMENTS_KEY = 'cultivation_persistent_achievements_v1'
+
 /** TICKET-24: 存档 schema 版本，用于迁移与兼容判断 */
 export const CURRENT_SCHEMA = 1
 const SAVE_VERSION = CURRENT_SCHEMA
+
+export type PersistentKungfu = { unlockedKungfu: string[]; kungfaShards: number }
+
+export function getPersistentKungfu(): PersistentKungfu | null {
+  try {
+    const raw = localStorage.getItem(PERSISTENT_KUNGFU_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as unknown
+    if (parsed == null || typeof parsed !== 'object') return null
+    const o = parsed as Record<string, unknown>
+    const unlockedKungfu = Array.isArray(o.unlockedKungfu) ? o.unlockedKungfu.filter((id): id is string => typeof id === 'string') : []
+    const kungfaShards = typeof o.kungfaShards === 'number' && o.kungfaShards >= 0 ? o.kungfaShards : 0
+    return { unlockedKungfu, kungfaShards }
+  } catch {
+    return null
+  }
+}
+
+export function savePersistentKungfu(state: GameState): void {
+  try {
+    const unlockedKungfu = state.player?.relics ?? []
+    const kungfaShards = state.meta?.kungfaShards ?? 0
+    localStorage.setItem(PERSISTENT_KUNGFU_KEY, JSON.stringify({ unlockedKungfu, kungfaShards }))
+  } catch {
+    // 忽略写入失败
+  }
+}
+
+export type PersistentAchievements = {
+  claimed: Record<string, true>
+  statsLifetime: Record<string, number>
+}
+
+export function getPersistentAchievements(): PersistentAchievements | null {
+  try {
+    const raw = localStorage.getItem(PERSISTENT_ACHIEVEMENTS_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as unknown
+    if (parsed == null || typeof parsed !== 'object') return null
+    const o = parsed as Record<string, unknown>
+    const claimed = o.claimed && typeof o.claimed === 'object' ? (o.claimed as Record<string, true>) : {}
+    const statsLifetime = o.statsLifetime && typeof o.statsLifetime === 'object' ? (o.statsLifetime as Record<string, number>) : {}
+    return { claimed, statsLifetime }
+  } catch {
+    return null
+  }
+}
+
+export function savePersistentAchievements(state: GameState): void {
+  try {
+    const claimed = state.achievements?.claimed ?? {}
+    const statsLifetime = state.meta?.statsLifetime ?? {}
+    localStorage.setItem(PERSISTENT_ACHIEVEMENTS_KEY, JSON.stringify({ claimed, statsLifetime }))
+  } catch {
+    // 忽略写入失败
+  }
+}
 
 /** TICKET-24: envelope 外层 meta */
 export type SaveEnvelopeMeta = {
@@ -89,6 +152,8 @@ export function saveToStorage(state: GameState): void {
   }
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(payload))
+    savePersistentKungfu(state)
+    savePersistentAchievements(state)
   } catch {
     // 忽略写入失败
   }
@@ -183,6 +248,16 @@ function normalizeLoadedState(state: GameState): GameState {
     timeMax?: number
     cultivateCount?: number
     finalTrial?: { step: 1 | 2 | 3; threat: number; resolve: number; wounds?: number; choices: string[]; rewardSeed?: number }
+    tribulation?: {
+      level: number
+      totalTurns: number
+      turn: number
+      shield: number
+      debuffs: { mindChaos: number; burn: number; weak: number }
+      wrath: number
+      currentIntent: { id: string; name: string; baseDamageMin: number; baseDamageMax: number; addDebuff?: { key: string; stacks: number } }
+      log: string[]
+    }
     shopMissing?: { materialId: string; need: number }[]
     shopDiscountPercent?: number
     tribulationDmgReductionPercent?: number
@@ -208,6 +283,20 @@ function normalizeLoadedState(state: GameState): GameState {
         }
       : undefined
 
+  function validTribulation(r: typeof runState): boolean {
+    const t = r.tribulation
+    if (!t || typeof t !== 'object') return false
+    if (typeof t.level !== 'number' || typeof t.totalTurns !== 'number' || typeof t.turn !== 'number') return false
+    if (typeof t.shield !== 'number' || typeof t.wrath !== 'number') return false
+    if (!t.debuffs || typeof t.debuffs.mindChaos !== 'number' || typeof t.debuffs.burn !== 'number' || typeof t.debuffs.weak !== 'number') return false
+    if (!t.currentIntent || typeof t.currentIntent.id !== 'string' || typeof t.currentIntent.name !== 'string') return false
+    if (!Array.isArray(t.log)) return false
+    return true
+  }
+
+  const runStateStats = (state.run as { stats?: Record<string, number> }).stats
+  const runStateStreaks = (state.run as { streaks?: Record<string, number> }).streaks
+  const runStateFlags = (state.run as { flags?: Record<string, true> }).flags
   const run = {
     ...state.run,
     depth: typeof state.run.depth === 'number' ? state.run.depth : 0,
@@ -219,7 +308,11 @@ function normalizeLoadedState(state: GameState): GameState {
     tribulationLevel: typeof runState.tribulationLevel === 'number' && runState.tribulationLevel >= 0 && runState.tribulationLevel <= 12 ? runState.tribulationLevel : 0,
     timeLeft: typeof runState.timeLeft === 'number' ? Math.max(0, runState.timeLeft) : TIME_MAX,
     timeMax: typeof runState.timeMax === 'number' ? runState.timeMax : TIME_MAX,
+    ...(runStateStats && typeof runStateStats === 'object' ? { stats: runStateStats } : {}),
+    ...(runStateStreaks && typeof runStateStreaks === 'object' ? { streaks: runStateStreaks } : {}),
+    ...(runStateFlags && typeof runStateFlags === 'object' ? { flags: runStateFlags } : {}),
     ...(finalTrial ? { finalTrial } : {}),
+    ...(validTribulation(runState) ? { tribulation: runState.tribulation as TribulationState } : {}),
     ...(Array.isArray(runState.shopMissing) && runState.shopMissing.length > 0
       ? { shopMissing: runState.shopMissing.filter((m: any) => m && typeof m.materialId === 'string' && typeof m.need === 'number') }
       : {}),
@@ -241,13 +334,21 @@ function normalizeLoadedState(state: GameState): GameState {
     kungfaShards: typeof loadedMeta.kungfaShards === 'number' ? loadedMeta.kungfaShards : 0,
     ...(loadedMeta.tribulationFinaleTriggered === true ? { tribulationFinaleTriggered: true } : {}),
     ...(loadedMeta.demonPathUnlocked === true ? { demonPathUnlocked: true } : {}),
+    ...(loadedMeta.statsLifetime && typeof loadedMeta.statsLifetime === 'object' ? { statsLifetime: loadedMeta.statsLifetime } : {}),
   }
+
+  const loadedAchievements = (state as { achievements?: { claimed?: Record<string, true> } }).achievements
+  const achievements =
+    loadedAchievements?.claimed && typeof loadedAchievements.claimed === 'object'
+      ? { claimed: loadedAchievements.claimed }
+      : { claimed: {} as Record<string, true> }
 
   return {
     ...state,
     player,
     run,
     meta,
+    achievements,
     log: Array.isArray(state.log) ? state.log : [],
   }
 }

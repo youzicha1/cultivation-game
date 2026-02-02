@@ -22,7 +22,7 @@
 16. **商店** - 商店系统
 17. **背包** - 物品管理
 18. **任务** - 任务系统
-19. **成就** - 成就系统（TICKET-5 已落地：成就屏 + 12 成就 ID）
+19. **成就** - 成就系统（TICKET-28 已落地：72 条成就、8 组、进度/领取/一键领取、隐藏成就）
 20. **统计** - 游戏统计数据
 21. **奇遇回顾** - 探索事件回顾（占位）
 22. **丹药配方系统** - 丹药合成与配方（已落地）
@@ -163,6 +163,16 @@
 - **Victory 屏**：十二劫尽渡传承点 +8，摘要 + 再开一局；time 排除 screen=victory 触发收官
 - **工程**：tribulation/names.ts、rates.ts + 对应 test；game.run.tribulationLevel、ScreenId victory、FINAL_TRIAL_CHOOSE 三分支（victory / final_result / home）；persistence tribulationLevel；VictoryScreen、FinalTrialScreen 文案；ARCHITECTURE + ROADMAP
 
+## TICKET-28 完成项（成就系统 v2：72 条、8 组、进度/领取/校验）
+
+- **成就数量与分组**：72 条成就、8 组（探索/炼丹/突破/天劫/坊市/功法流派/收集/传承），每组 ≥6 条、含至少 1 条隐藏技巧；tier I~VI 递进
+- **条件类型**：累计计数（lifetime）、本局达成（run max）、连胜（streak）、技巧/挑战（flag）、all 组合；MetricKey/FlagKey 白名单，content 校验
+- **单一来源**：`getAchievementView(state)` 返回进度/可领取/已领取/奖励/分组/排序；UI 不计算进度
+- **领取**：`claimAchievement(state, id)`、`claimAllAchievements(state)` 幂等，奖励（灵石/传承点）由引擎发放
+- **持久化**：achievements.claimed、meta.statsLifetime 独立 key 跨局保存；新开局合并
+- **UI**：AchievementsScreen 顶部分组 Tab、卡片列表（标题+tier+desc+进度条+奖励+领取按钮）、一键领取（≥44px）
+- **工程**：achievements.ts、achievements.v1.json、achievements.test.ts、content_validation 成就校验；game reducer 落点更新 stats/streaks/flags；docs ARCHITECTURE + ROADMAP
+
 ## TICKET-24 完成项（发布前稳定性：版本号 + 存档信封 + 诊断 + 内容校验）
 
 - **版本号**：APP_VERSION 从 package.json 经 vite define 注入；设置页或首页底部显示（如 v0.1.0 / v1.0.0）
@@ -170,6 +180,18 @@
 - **诊断页**：/diagnostics 显示版本、schemaVersion、savedAt、state 摘要；复制存档、粘贴导入（校验）、清档
 - **内容校验**：content_validation.test.ts 覆盖 chains/events/kungfu/recipes 等主要 content JSON（id 唯一、引用存在、数值范围）
 - **工程**：version.ts、persistence envelope/migrate/tryBackup、DiagnosticsScreen、content_validation 扩展；docs 更新
+
+## TICKET-29 完成项（天劫玩法重做：回合制 + 意图 + 四行动 + 丹药/功法）
+
+- **目标**：天劫从“一键扣血”升级为多回合（3～5 回合）可操作玩法，可读意图 + 多回合决策 + 丹药/功法/风险收益。
+- **天道意图**：至少 3 种（雷击、心魔、天火），展示意图名称 + 预计伤害区间 + 附加效果；由引擎计算，UI 只展示。
+- **四行动**：稳住心神（减伤/净化）、吞服丹药（选丹：回血/护盾/净化，消耗背包）、护体硬抗（高减伤、下回合虚弱）、逆冲天威（高风险高收益，成功率受功法影响）。
+- **丹药接入**：至少 2 类生效（回血 qi_pill/blood_lotus_pill、护盾 purple_heart_pill、净化 ice_heart_pill）；消耗由引擎处理。
+- **功法接入**：tribulationDamageMult 影响伤害；tribulationSurgeRateAdd 影响逆冲成功率；成就 build_mod_tribulation 在功法影响天劫时触发。
+- **单一来源**：getTribulationTurnView(state) 输出 UI 所需一切；startTribulation(state, rng)、applyTribulationAction(state, action, rng, pill?)；RNG 可 mock。
+- **UI**：FinalTrialScreen 重做——状态条（HP/护盾/回合/debuff）、天道意图卡、四行动按钮（吞丹展开丹药面板）、回合日志；数据仅来自 getTribulationTurnView。
+- **测试**：tribulation.test.ts 覆盖 startTribulation 初始化、getTribulationTurnView、四动作各至少 1 例、胜负判定、RNG 可控；game.test.ts 更新时辰耗尽进入 tribulation。
+- **工程**：tribulation.ts、tribulation_intents.ts、persistence run.tribulation、kungfu_modifiers tribulationSurgeRateAdd、docs ARCHITECTURE + ROADMAP
 
 ## 开发优先级
 

@@ -10,6 +10,7 @@ export * from './events'
 export * from './alchemy'
 export * from './alchemy_calc'
 export * from './shop'
+export * from './achievements'
 export {
   RISK_LEVELS,
   RISK_DROP_MULTIPLIER,
@@ -81,4 +82,13 @@ export {
 export type { RealmId } from './breakthrough_requirements'
 export * from './tribulation/names'
 export * from './tribulation/rates'
+export {
+  getTribulationTurnView,
+  startTribulation,
+  applyTribulationAction,
+  getTribulationPillOptions,
+  getTotalTurnsForLevel,
+} from './tribulation/tribulation'
+export type { TribulationTurnView, TribulationState, TribulationActionId } from './tribulation/tribulation'
+export { TRIBULATION_INTENTS, getIntentById } from './tribulation/tribulation_intents'
 export * from './cultivation'

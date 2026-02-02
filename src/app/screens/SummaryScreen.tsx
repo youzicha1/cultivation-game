@@ -21,7 +21,7 @@ export function SummaryScreen({ state, dispatch }: ScreenProps) {
         <div className="page-chips">
           <Chip className="app-chip--pity">回合 {state.summary?.turns ?? state.run.turn}</Chip>
           <Chip className="app-chip--gold">{state.player.realm}</Chip>
-          <Chip className="app-chip--inherit">传承 {state.player.inheritancePoints}</Chip>
+          <Chip className="app-chip--inherit" title="本局献祭用，与下方传承页点数不同">献祭传承 {state.player.inheritancePoints}</Chip>
         </div>
         <div className="summary-legacy-section">
           <div className="summary-legacy-points">

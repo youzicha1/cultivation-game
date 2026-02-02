@@ -73,6 +73,15 @@
   - **炼丹**（可选）：mind≥70 时成功率 +2%（`getMindAlchemySuccessBonus`）
 - **动作**：`CULTIVATE_TICK` 接受 mode；`CULTIVATE_INSIGHT_CHOOSE` 处理顿悟 A/B；`CLEAR_CULTIVATE_TOAST` / `CLEAR_INSIGHT_EVENT` 清除 UI 状态
 
+### 成就系统 v2（TICKET-28：criteria 类型、stats/streak/flag、单一来源 view、claim 幂等）
+- **位置**：`src/engine/achievements.ts`、`src/content/achievements.v1.json`
+- **概念**：72 条成就、8 组（探索/炼丹/突破/天劫/坊市/功法流派/收集/传承），条件类型：累计计数（lifetime counter）、本局达成（run max）、连胜（streak）、技巧/挑战（flag）、收集类、Build 类
+- **状态**：`GameState.achievements.claimed`（已领取 ID，跨局持久化）；`GameState.meta.statsLifetime`（累计统计）；`GameState.run.stats`（本局 run_max_danger、run_alchemy_count、run_item_types 等）；`GameState.run.streaks`（cashout_streak、alchemy_success_streak、breakthrough_success_streak、tribulation_success_streak）；`GameState.run.flags`（技巧/挑战触发）
+- **单一来源**：`getAchievementView(state)` 返回 UI 需要的全部（进度 current/target、completed、claimable、claimed、rewardText、分组、排序）；UI 不计算进度
+- **领取**：`claimAchievement(state, id)`、`claimAllAchievements(state)` 幂等，奖励（灵石/传承点）由引擎发放；领取后写入 claimed 并累加 achievement_claims_lifetime
+- **事件落点**：探索（EXPLORE_DEEPEN 更新 explore_actions、run_max_danger、explore_allin_no_cashout；EXPLORE_CASH_OUT 更新 explore_cashouts、cashout_streak、explore_low_hp_cashout/explore_greed_cashout）；炼丹（ALCHEMY_BREW_CONFIRM 更新 alchemy_success/boom/tian_lifetime、run_alchemy_count、alchemy_success_streak、alchemy_boom_high_success 等 flag）；突破（BREAKTHROUGH_CONFIRM 成功/失败更新 breakthrough_success/fail_lifetime、breakthrough_success_streak、低成功率/残血/保底 flag）；天劫（TRIBULATION_ACTION 终局或 FINAL_TRIAL_CHOOSE 终局更新 tribulation_success/fail_lifetime、tribulation_success_streak、build_mod_tribulation flag）；坊市（SHOP_BUY 更新 shop_trades/spend_lifetime、run_item_types、shop_spend_1500_once 等 flag）
+- **持久化**：`getPersistentAchievements()` / `savePersistentAchievements(state)` 独立 key 存储 claimed 与 statsLifetime；新开局时合并进新 state
+
 ### 事件链系统（TICKET-11：content 驱动 + chain 状态 + pickEvent 优先级）
 - **内容**：`src/content/event_chains.v1.json`，3 条链（残图引路、妖祟作乱、古炉重现），每条 3 章，终章 `guaranteedReward` 必发
 - **状态**：`GameState.run.chain` = `{ activeChainId?, chapter?, completed: Record<string, boolean> }`；存档可续，收手后链条保留
@@ -140,21 +149,31 @@
 - **概念**：用“时辰”（行动步数）控制单局长度，不依赖现实时间；单局约 20–30 分钟，难度提升后给足时辰
 - **时辰量**：首局 48 时辰（`TIME_MAX_BASE`）；每过一劫续局时 +12（`getTimeMaxForSegment(level)` = 48 + level×12），如过 1 劫后 60、过 2 劫后 72
 - **消耗**：修炼、探索深入、探索事件选项、炼丹（一次）、突破（一次）各消耗 1 时辰；返回/查看/装备/领取等不消耗
-- **耗尽**：`timeLeft === 0` 时进入天劫挑战（screen=final_trial）；完成 3 回合后根据渡劫成功/失败与当前重数进入 victory / final_result / home（续局）
-- **统一入口**：`applyTimeCost(state, cost)` 扣减；`shouldTriggerTribulationFinale(state)` 判断（排除 screen=death/ending/summary/victory）；reducer 关键 action 开头 `tryTribulationFinaleIfNoTime(state)` 若时辰已耗尽则 `enterFinalTrial(state)` 进入天劫挑战
+- **耗尽**：`timeLeft === 0` 时进入天劫挑战（screen=final_trial）；TICKET-29 使用回合制天劫（run.tribulation），完成 totalTurns 回合后根据 hp 与重数进入 victory / final_result / home（续局）
+- **统一入口**：`applyTimeCost(state, cost)` 扣减；`shouldTriggerTribulationFinale(state)` 判断（排除 screen=death/ending/summary/victory）；reducer 关键 action 开头 `tryTribulationFinaleIfNoTime(state, rng)` 若时辰已耗尽则 `enterFinalTrial(state, rng)` → startTribulation 初始化回合制天劫
 - **UI**：主界面顶部“时辰 x/48”（或当前 timeMax）；剩余 ≤8 时红字“天劫将至！再贪就来不及了。”；探索/炼丹/突破按钮旁“消耗：1 时辰”
 - **调试**：`TIME_DEBUG_BUTTON = true` 时设置页显示“[调试] 减少 5 时辰”；`DEBUG_SET_TIME_LEFT` action 可设 timeLeft，耗尽时进入 final_trial
 
 ### 终局天劫挑战与多结局（TICKET-15）
-- **位置**：`src/engine/finalTrial.ts`；`GameState.run.finalTrial`
-- **流程**：时辰耗尽 → screen=final_trial，初始化 finalTrial（step=1, threat, resolve, choices=[]）；每回合 FINAL_TRIAL_CHOOSE（steady/gamble/sacrifice）→ 扣血/加 resolve、step++；step>3 → 根据 hp/resolve/threat 计算 endingId（ascend/retire/demon/dead）→ screen=final_result 或 victory 或 home（续局）
-- **难度**：设计目标为首劫约 1/15 通过、二劫更难；threat/伤害/道心已调高，且 threat 按已渡劫数缩放（enterFinalTrial 中 threat *= 1 + level×0.12）
-- **threat**：纯函数 computeThreat(state)，base 90 + 境界*6 + danger*0.35 + 丹品质（地+6 天+12）+ 通关链数*8，clamp [90,200]；进入天劫时再乘 (1 + tribulationLevel×0.12)
-- **伤害**：getDmgBase(threat, step) = threat×0.22 + step×5；稳 applySteadyDamage；搏 applyGamble(rng)；献祭 applySacrificeDamage + 资源扣除；伤害 clamp ≥1
-- **道心**：computeInitialResolve = maxHp×0.5 + 境界×4（略降以增加难度）
+- **位置**：`src/engine/finalTrial.ts`；`GameState.run.finalTrial`（旧流程，兼容存档）
+- **TICKET-29 回合制**：时辰耗尽后进入**天劫回合制**（run.tribulation），见下节；旧 finalTrial 流程仍支持 FINAL_TRIAL_CHOOSE 以兼容旧存档。
+- **流程（旧）**：finalTrial step=1..3，FINAL_TRIAL_CHOOSE（steady/gamble/sacrifice）→ step>3 → endingId → final_result / victory / home
 - **结局判定**：computeEndingId(hp, resolve, threat)；hp≤0 → dead；score=resolve-threat，≥20 ascend，[-5,19] retire，<-5 demon
 - **奖励**：getFinalRewards(endingId)；ascend +3 传承 +3 碎片；retire +2 +2；demon +2 +1 且 demonPathUnlocked；dead +1 +1
-- **存档**：persistence 保存/加载 run.finalTrial（step、threat、resolve、choices），中途退出可续
+- **存档**：persistence 保存/加载 run.finalTrial 与 run.tribulation（回合制子状态），中途退出可续
+
+### 天劫回合制（TICKET-29：Intent → View → Action → Resolve）
+- **位置**：`src/engine/tribulation/tribulation.ts`、`tribulation_intents.ts`；`GameState.run.tribulation`
+- **概念**：天劫从“一键扣血”升级为多回合（3～5 回合）可操作玩法；每回合展示**天道意图**，玩家选一次行动，结算有反馈与变数。
+- **子状态**：`run.tribulation` = { level, totalTurns, turn, shield, debuffs: { mindChaos, burn, weak }, wrath, currentIntent, log[] }；level 为当前要渡的第几重，totalTurns 由 getTotalTurnsForLevel(level) 得 3/4/5。
+- **单一来源**：`getTribulationTurnView(state)` 输出 UI 所需一切（回合/HP/护盾/debuff、意图名称与伤害区间、可用动作列表与提示、最近日志、逆冲成功率）；UI 只展示与发 TRIBULATION_ACTION，不自行算概率与伤害。
+- **意图（Intent）**：至少 3 种——雷击（稳定伤害）、心魔（低伤+心乱）、天火（较高伤+灼烧）；定义在 tribulation_intents.ts，抽选由 pickIntent(rng, level) 完成。
+- **行动（Action）**：STEADY（减伤约 25%+清除 1 层心乱/灼烧）、PILL（选丹：回血/护盾/净化，消耗背包）、GUARD（高减伤 50%，下回合 weak+1）、SURGE（逆冲天威，成功率受 level/mindChaos/功法 tribulationSurgeRateAdd 影响，成功降劫威，失败额外受伤或心乱）。
+- **RNG 注入**：所有随机（意图抽取、伤害 roll、逆冲成败）统一走 rng 注入；测试用 createSequenceRng。
+- **丹药接入**：至少 2 类生效——回血（qi_pill、blood_lotus_pill）、护盾（purple_heart_pill）、净化（ice_heart_pill）；getTribulationPillOptions(state) 列出可选丹，applyTribulationAction(…, 'PILL', rng, pill) 消耗数量并生效。
+- **功法接入**：tribulationDamageMult 影响最终伤害；tribulationSurgeRateAdd 影响 SURGE 成功率；getKungfuModifiers(state) 单一来源。
+- **胜负**：hp≤0 → outcome 'lose'，走既有渡劫失败流程（final_result、传承点、成就）；turn≥totalTurns → outcome 'win'，走既有成功流程（victory 或 home 续局）。
+- **存档**：persistence 校验并恢复 run.tribulation（level/turn/shield/debuffs/wrath/currentIntent/log）。
 
 ### 天劫 12 重通关（TICKET-27）
 - **状态**：`GameState.run.tribulationLevel` 0..12，表示本局已渡过的天劫重数；NEW_GAME 为 0，渡劫成功 +1，达 12 即通关

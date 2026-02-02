@@ -71,7 +71,7 @@ export function getAlchemyChances(
   const recipe = getRecipe(selection.recipeId)
   if (!recipe) return null
 
-  const heat = selection.heat ?? 'push'
+  const heat = selection.heat ?? 'wu'
   const realmIdx = realmIndex(state.player.realm)
   const dailyMod = state.meta?.daily?.environmentId
     ? getDailyModifiers(state.meta.daily.environmentId as DailyEnvironmentId)
