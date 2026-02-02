@@ -44,7 +44,8 @@
     { "id": "marrow_wash_pill", "name": "洗髓丹", "desc": "洗髓伐骨，脱胎换骨。" },
     { "id": "soul_fuse_pill", "name": "融灵丹", "desc": "融灵入体，天人合一。" },
     { "id": "shape_shift_pill", "name": "化形丹", "desc": "化形固本，妖修至宝。" },
-    { "id": "realm_break_pill", "name": "破尊丹", "desc": "破尊入圣，一步登天。" }
+    { "id": "realm_break_pill", "name": "破尊丹", "desc": "破尊入圣，一步登天。" },
+    { "id": "mechanism_pill", "name": "机制丹", "desc": "通用丹炉炼制所得，随机产出各类机制丹。" }
   ],
   "recipes": [
     {
@@ -306,6 +307,111 @@
       "tier": "tian",
       "tags": ["breakthrough", "tribulation"],
       "difficulty": 10
+    },
+    {
+      "id": "generic_tribulation_recipe",
+      "name": "护劫丹炉",
+      "elixirId": "mechanism_pill",
+      "unlock": { "type": "fragment", "need": 2 },
+      "cost": { "spirit_herb": 2, "moon_dew": 1, "iron_sand": 1 },
+      "baseSuccess": 0.72,
+      "boomRate": 0.08,
+      "recommendedHeat": "wen",
+      "tier": "fan",
+      "tags": ["tribulation"],
+      "difficulty": 2,
+      "outputMode": "pool",
+      "pillPoolTag": "tribulation"
+    },
+    {
+      "id": "generic_explore_recipe",
+      "name": "探宝丹炉",
+      "elixirId": "mechanism_pill",
+      "unlock": { "type": "fragment", "need": 2 },
+      "cost": { "spirit_herb": 2, "beast_core": 1, "moon_dew": 1 },
+      "baseSuccess": 0.70,
+      "boomRate": 0.09,
+      "recommendedHeat": "wu",
+      "tier": "fan",
+      "tags": ["explore"],
+      "difficulty": 2,
+      "outputMode": "pool",
+      "pillPoolTag": "explore"
+    },
+    {
+      "id": "generic_breakthrough_recipe",
+      "name": "破境丹炉",
+      "elixirId": "mechanism_pill",
+      "unlock": { "type": "fragment", "need": 3 },
+      "cost": { "beast_core": 1, "moon_dew": 2, "spirit_herb": 2 },
+      "baseSuccess": 0.68,
+      "boomRate": 0.10,
+      "recommendedHeat": "wu",
+      "tier": "xuan",
+      "tags": ["breakthrough"],
+      "difficulty": 3,
+      "outputMode": "pool",
+      "pillPoolTag": "breakthrough"
+    },
+    {
+      "id": "generic_cultivate_recipe",
+      "name": "悟道丹炉",
+      "elixirId": "mechanism_pill",
+      "unlock": { "type": "fragment", "need": 3 },
+      "cost": { "green_vine": 1, "spirit_herb": 2, "moon_dew": 1 },
+      "baseSuccess": 0.68,
+      "boomRate": 0.10,
+      "recommendedHeat": "wen",
+      "tier": "xuan",
+      "tags": ["cultivate"],
+      "difficulty": 3,
+      "outputMode": "pool",
+      "pillPoolTag": "cultivate"
+    },
+    {
+      "id": "generic_survival_recipe",
+      "name": "续命丹炉",
+      "elixirId": "mechanism_pill",
+      "unlock": { "type": "fragment", "need": 3 },
+      "cost": { "blood_lotus": 1, "spirit_herb": 2, "moon_dew": 1 },
+      "baseSuccess": 0.66,
+      "boomRate": 0.11,
+      "recommendedHeat": "wen",
+      "tier": "xuan",
+      "tags": ["survival"],
+      "difficulty": 4,
+      "outputMode": "pool",
+      "pillPoolTag": "survival"
+    },
+    {
+      "id": "generic_economy_recipe",
+      "name": "聚财丹炉",
+      "elixirId": "mechanism_pill",
+      "unlock": { "type": "fragment", "need": 3 },
+      "cost": { "purple_leaf": 1, "spirit_herb": 2, "iron_sand": 1 },
+      "baseSuccess": 0.66,
+      "boomRate": 0.11,
+      "recommendedHeat": "wu",
+      "tier": "xuan",
+      "tags": ["economy"],
+      "difficulty": 4,
+      "outputMode": "pool",
+      "pillPoolTag": "economy"
+    },
+    {
+      "id": "generic_utility_recipe",
+      "name": "杂炼丹炉",
+      "elixirId": "mechanism_pill",
+      "unlock": { "type": "fragment", "need": 4 },
+      "cost": { "spirit_herb": 3, "moon_dew": 2, "beast_core": 1, "iron_sand": 1 },
+      "baseSuccess": 0.58,
+      "boomRate": 0.14,
+      "recommendedHeat": "wu",
+      "tier": "di",
+      "tags": ["utility"],
+      "difficulty": 5,
+      "outputMode": "pool",
+      "pillPoolTag": "utility"
     }
   ]
 }

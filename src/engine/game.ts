@@ -119,7 +119,7 @@ import {
 } from './breakthrough/breakthrough'
 import { calcBreakthroughRateWithBreakdown, realmIndex } from './breakthrough/rates'
 import { applyExpGain, canEquipKungfu, canTakePill, recordPillUse, getTribulationGate } from './realm/gates'
-import { canUsePill, applyPillEffect } from './pills/pill_effects'
+import { canUsePill, applyPillEffect, getPillDef } from './pills/pill_effects'
 
 export type ScreenId =
   | 'start'
@@ -165,6 +165,12 @@ export type GameState = {
     streak: number
     /** TICKET-7: 待显示的掉落（用于 Toast） */
     pendingLoot?: LootDrop[]
+    /** 本次探索会话内获得的所有掉落（用于结算页「查看本次奖励」） */
+    exploreSessionLoot?: LootDrop[]
+    /** 是否正在显示结算奖励弹层（查看本次奖励） */
+    showingCashOutSummary?: boolean
+    /** 结算时预生成的连斩宝箱掉落（确认返回主页时再应用） */
+    pendingChestDrops?: LootDrop[]
     /** 领取每日赠礼后待展示的奖励文案（弹框用，CLEAR_DAILY_REWARD_TOAST 清除） */
     dailyRewardJustClaimed?: string
     /** TICKET-13: 碎片兑换成功后的功法名（弹层用，CLEAR_SHARD_EXCHANGE_TOAST 清除） */
@@ -247,6 +253,8 @@ export type GameState = {
     streaks?: Record<string, number>
     /** TICKET-28: 本局成就 flag（技巧/挑战触发） */
     flags?: Record<string, true>
+    /** TICKET-39: 通用丹方池保底计数 tag -> 连续未出 rare/legendary 次数 */
+    pillPoolPityByTag?: Record<string, number>
     /** TICKET-38: 机制丹效果临时字段（由 applyPillEffect 写入，各系统消费） */
     temp?: {
       tribulationExtraLife?: number
@@ -287,8 +295,9 @@ export type GameState = {
           text: string
           boomed: boolean
           produced?: { elixirId: ElixirId; quality: ElixirQuality; count: number }
+          /** TICKET-39: 通用丹方炼出的机制丹（最后一枚） */
+          poolPill?: { pillId: string; quality: ElixirQuality; rarity: 'common' | 'rare' | 'legendary'; isRulePill: boolean }
           hpDelta: number
-          // TICKET-8: 战报字段
           attempted: number
           booms: number
           successes: number
@@ -340,6 +349,8 @@ export type GameAction =
   | { type: 'EXPLORE_START' }
   | { type: 'EXPLORE_DEEPEN' }
   | { type: 'EXPLORE_CASH_OUT' }
+  | { type: 'EXPLORE_SHOW_CASH_OUT_SUMMARY' }
+  | { type: 'EXPLORE_CONFIRM_CASH_OUT' }
   | { type: 'EXPLORE_BACK' }
   | { type: 'EXPLORE_CHOOSE'; choice: 'A' | 'B' }
   | { type: 'EXPLORE_DISMISS_EVENT' }
@@ -680,6 +691,32 @@ function applyLootItem(
   return next
 }
 
+/** 仅生成掉落不应用（用于结算弹层预生成连斩宝箱，确认时再应用） */
+function generateLootOnly(
+  state: GameState,
+  danger: number,
+  streak: number,
+  rng: Rng,
+  count: number,
+): { drops: LootDrop[] } {
+  const mod = getKungfuModifiers(state)
+  const legacyCtx = buildLegacyModifiers(state.meta ?? {})
+  const kungfuMod = {
+    lootRareMul: (mod.exploreRareWeightMult ?? 1) * legacyCtx.lootRareWeightMul,
+    lootLegendMul: (mod.exploreLegendWeightMult ?? 1) * legacyCtx.lootLegendWeightMul,
+  }
+  const canHaveLegendary = danger >= 70
+  const pityMod = {
+    legendWeightMul: getLegendLootWeightMul(state.meta ?? {}),
+    forceLegendary: canHaveLegendary && shouldForceLegendLoot(state.meta ?? {}),
+  }
+  const drops: LootDrop[] = []
+  for (let i = 0; i < count; i++) {
+    drops.push(rollLootDrop(rng, danger, streak, kungfuMod, pityMod))
+  }
+  return { drops }
+}
+
 /** TICKET-7: 生成掉落并应用到玩家，返回新状态和掉落列表；TICKET-13: 保底与碎片 */
 function generateAndApplyLoot(
   state: GameState,
@@ -991,6 +1028,7 @@ export function reduceGame(
           chainProgress: {},
           currentEvent: undefined,
           pendingLoot: undefined,
+          exploreSessionLoot: [],
         },
       }
       nextState = addLog(nextState, '开始探索')
@@ -1014,7 +1052,9 @@ export function reduceGame(
       let nextPlayer = { ...basePlayer }
 
       if (baseRun.danger >= EXPLORE_PENALTY_DANGER_THRESHOLD && next01() < EXPLORE_PENALTY_CHANCE) {
-        nextPlayer.hp = Math.max(0, basePlayer.hp - EXPLORE_PENALTY_HP)
+        const legacyCtx = buildLegacyModifiers(state.meta)
+        const penaltyDmg = Math.max(0, EXPLORE_PENALTY_HP - legacyCtx.exploreInjuryReduction)
+        nextPlayer.hp = Math.max(0, basePlayer.hp - penaltyDmg)
         stateAfterMission = addLog(stateAfterMission, '【翻车】你踩空受伤…')
         if (nextPlayer.hp <= 0) {
           const nextState: GameState = {
@@ -1355,10 +1395,15 @@ export function reduceGame(
               rngWithCount,
               1,
             )
+            const sessionLoot = [...(stateWithEventLoot.run.exploreSessionLoot ?? []), ...eventDrops]
             nextState = {
               ...stateWithEventLoot,
               screen: 'explore',
-              run: { ...stateWithEventLoot.run, pendingLoot: eventDrops.length > 0 ? eventDrops : undefined },
+              run: {
+                ...stateWithEventLoot.run,
+                pendingLoot: eventDrops.length > 0 ? eventDrops : undefined,
+                exploreSessionLoot: sessionLoot,
+              },
             }
           }
         }
@@ -1394,16 +1439,102 @@ export function reduceGame(
           rngWithCount,
           1,
         )
+        const sessionLoot = [...(stateWithEventLoot.run.exploreSessionLoot ?? []), ...eventDrops]
         nextState = {
           ...stateWithEventLoot,
           screen: 'explore',
           run: {
             ...stateWithEventLoot.run,
             pendingLoot: eventDrops.length > 0 ? eventDrops : undefined,
+            exploreSessionLoot: sessionLoot,
           },
         }
       }
       nextState = applyTimeAndMaybeFinale(nextState, 1, rngWithCount)
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'EXPLORE_SHOW_CASH_OUT_SUMMARY': {
+      const danger = baseRun.danger ?? 0
+      const streak = baseRun.streak ?? 0
+      let chestDrops: LootDrop[] = []
+      if (streak > 0) {
+        const legacyCtx = buildLegacyModifiers(state.meta)
+        const extraDrops = Math.floor(legacyCtx.streakChestExtraDrop)
+        const dropCount = 1 + extraDrops
+        const chestWeightDanger = Math.min(danger + streak * 5, DANGER_MAX)
+        chestDrops = generateLootOnly(state, chestWeightDanger, streak, rngWithCount, dropCount).drops
+      }
+      const nextState: GameState = {
+        ...state,
+        run: {
+          ...baseRun,
+          showingCashOutSummary: true,
+          pendingChestDrops: chestDrops,
+        },
+      }
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'EXPLORE_CONFIRM_CASH_OUT': {
+      const danger = baseRun.danger ?? 0
+      const pendingChestDrops = baseRun.pendingChestDrops ?? []
+      const mod = getKungfuModifiers(state)
+      let goldGain = Math.round(danger * 0.6)
+      let expGain = Math.round(danger * 0.4)
+      goldGain = Math.round(goldGain * (mod.exploreCashoutGoldMult ?? 1))
+      expGain = Math.round(expGain * (mod.exploreCashoutExpMult ?? 1))
+      const heal = 6 + Math.round(danger * 0.12)
+      const newHp = Math.min(basePlayer.maxHp, basePlayer.hp + heal)
+
+      let nextState: GameState = advanceDailyMission(state, 'retreat_success')
+      let nextPlayer = { ...nextState.player }
+      let meta = nextState.meta ?? {}
+      for (const drop of pendingChestDrops) {
+        const hadBefore = drop.item.type === 'kungfu' && nextPlayer.relics.includes(drop.item.id)
+        nextPlayer = applyLootItem(nextPlayer, drop.item)
+        meta = updatePityAfterLoot(drop.rarity === 'legendary', meta)
+        if (drop.item.type === 'kungfu') {
+          meta = updatePityAfterKungfuDrop(drop.rarity, meta)
+          if (hadBefore) meta = addKungfaShards(meta, 1)
+        }
+      }
+      const { nextPlayer: expPlayer } = applyExpGain({ ...nextState, player: nextPlayer, meta }, expGain)
+      nextState = {
+        ...nextState,
+        player: {
+          ...nextPlayer,
+          level: expPlayer.level ?? nextPlayer.level ?? 1,
+          exp: expPlayer.exp ?? 0,
+          spiritStones: nextPlayer.spiritStones + goldGain,
+          hp: newHp,
+        },
+        meta,
+        screen: 'home',
+        run: {
+          ...baseRun,
+          danger: 0,
+          pendingReward: 0,
+          depth: 0,
+          streak: 0,
+          chainProgress: {},
+          currentEvent: undefined,
+          pendingLoot: undefined,
+          exploreSessionLoot: undefined,
+          showingCashOutSummary: undefined,
+          pendingChestDrops: undefined,
+          temp: baseRun.temp,
+        },
+      }
+      nextState = addLog(nextState, `【收手】你见好就收：灵石+${goldGain}，修为+${expGain}，生命+${heal}，危险值归零。`)
+      const cashoutStreak = (baseRun.streaks?.cashout_streak ?? 0) + 1
+      const hpPct = basePlayer.maxHp > 0 ? basePlayer.hp / basePlayer.maxHp : 1
+      nextState = mergeAchievementProgress(nextState, {
+        statsLifetimeAdd: { explore_cashouts: 1 },
+        streaksSet: { cashout_streak: cashoutStreak },
+        flagsSet: {
+          ...(danger >= 70 && hpPct <= 0.3 ? { explore_low_hp_cashout: true } : {}),
+          ...(danger >= 90 ? { explore_greed_cashout: true } : {}),
+        },
+      })
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'ALCHEMY_OPEN': {
@@ -1434,10 +1565,11 @@ export function reduceGame(
       const pityQualityShift = getAlchemyPityQualityShift(state.meta ?? {})
       const mod = getKungfuModifiers(state)
       const mindAlcBonus = getMindAlchemySuccessBonus(basePlayer.mind ?? 50)
+      const legacyAlc = buildLegacyModifiers(state.meta)
       const kungfuMod = {
-        alchemyBoomMul: (mod.alchemyBoomMul ?? 1) * buildLegacyModifiers(state.meta).alchemyBoomRateMul,
-        alchemyQualityShift: (mod.alchemyQualityShift ?? 0) + buildLegacyModifiers(state.meta).alchemyQualityShiftBlast + pityQualityShift,
-        alchemySuccessAdd: (mod.alchemySuccessAdd ?? 0) + mindAlcBonus,
+        alchemyBoomMul: (mod.alchemyBoomMul ?? 1) * legacyAlc.alchemyBoomRateMul,
+        alchemyQualityShift: (mod.alchemyQualityShift ?? 0) + legacyAlc.alchemyQualityShiftBlast + pityQualityShift,
+        alchemySuccessAdd: (mod.alchemySuccessAdd ?? 0) + legacyAlc.alchemySuccessAdd + mindAlcBonus,
         alchemyCostMult: mod.alchemyCostMult ?? 1,
         alchemyBoomCompMult: mod.alchemyBoomCompMult ?? 1,
       }
@@ -1474,10 +1606,17 @@ export function reduceGame(
         outcome = { ...outcome, items, topQuality: 'di' as const }
       }
       let newMeta = updatePityAfterAlchemy(outcome.topQuality, state.meta ?? {})
-      // TICKET-8: 生成战报标题和文本
       let title = '炼丹失败'
       let text = '药性不合，丹气散尽。'
-      if (outcome.topQuality === 'tian') {
+      if (outcome.poolPill) {
+        const def = getPillDef(outcome.poolPill.pillId)
+        const pillName = def?.name ?? outcome.poolPill.pillId
+        const qualityLabel = getQualityLabel(outcome.poolPill.quality)
+        const rarityLabel = outcome.poolPill.rarity === 'legendary' ? '传说' : outcome.poolPill.rarity === 'rare' ? '稀有' : '普通'
+        title = outcome.poolPill.isRulePill ? '逆天改命！' : '炼成！'
+        text = `炼成：${pillName}·${qualityLabel}（${rarityLabel}）${outcome.successes > 1 ? ` 本次共${outcome.successes}枚机制丹。` : ''}`
+        if (outcome.poolPill.isRulePill) text += ' 逆天改命！'
+      } else if (outcome.topQuality === 'tian') {
         title = '天品出世！！'
         text = `金光冲天，天品丹成！本次炼出${outcome.items.tian}枚天品丹！`
       } else if (outcome.topQuality === 'di') {
@@ -1488,10 +1627,10 @@ export function reduceGame(
         text = `丹香四溢，灵光凝聚！本次成丹${outcome.successes}枚。`
       }
       if (outcome.booms > 0) {
-        title = outcome.topQuality === 'tian' ? '天品出世（但有爆丹）' : '爆丹！'
+        if (!outcome.poolPill) title = outcome.topQuality === 'tian' ? '天品出世（但有爆丹）' : '爆丹！'
         text = `炉火反噬，连续${outcome.streakBoom}次爆丹！${text}`
       }
-      if (outcome.streakSuccess >= 3) {
+      if (outcome.streakSuccess >= 3 && !outcome.poolPill) {
         text += ` 连续${outcome.streakSuccess}次成丹！`
       }
 
@@ -1510,8 +1649,8 @@ export function reduceGame(
             produced: outcome.topQuality && outcome.elixirId
               ? { elixirId: outcome.elixirId, quality: outcome.topQuality, count: outcome.items[outcome.topQuality] }
               : undefined,
+            poolPill: outcome.poolPill,
             hpDelta: outcome.hpChange,
-            // TICKET-8: 战报字段
             attempted: outcome.attempted,
             booms: outcome.booms,
             successes: outcome.successes,

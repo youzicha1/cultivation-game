@@ -212,7 +212,7 @@ export function attemptStageBreakthrough(
           kind: 'breakthrough',
           success: false,
           title: '未达条件',
-          text: '需达到当前阶等级上限方可进行阶突破。',
+          text: '需达到当前阶等级上限方可进行突破。',
           deltas: { realm: 0, hp: 0, maxHp: 0, exp: 0, pills: 0, inheritancePoints: 0, pity: 0 },
         },
       },
@@ -231,6 +231,7 @@ export function attemptStageBreakthrough(
   )
   const success = rng.next() < rate
 
+  const STAGE_CN = ['', '一', '二', '三', '四', '五', '六', '七'] as const
   if (success) {
     const nextStageIndex = Math.min(7, stageIndex + 1)
     const nextLevel = level + 1
@@ -246,6 +247,8 @@ export function attemptStageBreakthrough(
       maxHp,
       hp: maxHp,
     }
+    const realmName = player.realm ?? '凡人'
+    const stageCn = STAGE_CN[nextStageIndex] ?? String(nextStageIndex)
     return {
       success: true,
       nextPlayer: { ...nextPlayer, elixirs },
@@ -254,8 +257,8 @@ export function attemptStageBreakthrough(
         lastOutcome: {
           kind: 'breakthrough',
           success: true,
-          title: '阶突破！',
-          text: `突破至第${nextStageIndex}阶！生命上限+${STAGE_BREAKTHROUGH_HP_GAIN}，获得回气丹×1。`,
+          title: '突破！',
+          text: `${realmName}${stageCn}阶！生命上限+${STAGE_BREAKTHROUGH_HP_GAIN}，获得回气丹×1。`,
           deltas: {
             realm: 0,
             hp: STAGE_BREAKTHROUGH_HP_GAIN,
@@ -282,10 +285,10 @@ export function attemptStageBreakthrough(
     nextPlayer,
     runDelta: {
       turn,
-      lastOutcome: {
+        lastOutcome: {
         kind: 'breakthrough',
         success: false,
-        title: '阶突破失败',
+        title: '突破失败',
         text: `气血翻涌，生命-${dmg}；保底+1。`,
         deltas: {
           realm: 0,

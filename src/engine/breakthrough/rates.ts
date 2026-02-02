@@ -105,7 +105,7 @@ export function calcBreakthroughRateWithBreakdown(
   const pityBonus =
     Math.min(0.08, pityBonusBase) + (state.player.pity >= 5 ? legacyCtx.breakthroughPityBonusRate : 0)
   const dangerPenalty = state.run.danger > 0 ? state.run.danger * 0.015 : 0
-  const elixirBonus = elixirBonusFromPills(pills)
+  const elixirBonus = elixirBonusFromPills(pills) * legacyCtx.breakthroughPillBonusMul
   const mod = getKungfuModifiers(state)
   const kungfuAdd = mod.breakthroughSuccessAdd ?? 0
   const legacyAdd = buildLegacyModifiers(state.meta).breakthroughRateAdd

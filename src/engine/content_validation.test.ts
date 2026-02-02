@@ -531,4 +531,37 @@ describe('pills content validation (TICKET-38)', () => {
       expect(p.ruleDesc != null || Object.keys(p.effects).length > 0).toBe(true)
     }
   })
+
+  it('TICKET-39: 每条丹药有 pillRarity（common/rare/legendary）', () => {
+    const validRarity = ['common', 'rare', 'legendary']
+    for (const p of pills) {
+      expect(p.pillRarity).toBeDefined()
+      expect(validRarity).toContain(p.pillRarity)
+    }
+  })
+
+  it('TICKET-39: 所有 pill 都至少属于一个池 tag（与 PILL_POOL_TAGS 除 utility 外匹配）', () => {
+    const poolTagsNoUtility = ['tribulation', 'explore', 'breakthrough', 'cultivate', 'survival', 'economy']
+    for (const p of pills) {
+      const hasPoolTag = p.tags.some((t) => poolTagsNoUtility.includes(t))
+      expect(hasPoolTag).toBe(true)
+    }
+  })
+})
+
+describe('alchemy pool recipes content validation (TICKET-39)', () => {
+  const poolRecipes = alchemyRecipes.filter((r) => r.outputMode === 'pool')
+
+  it('所有 pool recipe 的 pillPoolTag 合法', () => {
+    const validPoolTags = new Set(['tribulation', 'explore', 'breakthrough', 'cultivate', 'survival', 'economy', 'utility'])
+    for (const r of poolRecipes) {
+      expect(r.pillPoolTag).toBeDefined()
+      expect(validPoolTags.has(r.pillPoolTag!)).toBe(true)
+    }
+  })
+
+  it('TICKET-39: 通用丹方数量 6～8 张', () => {
+    expect(poolRecipes.length).toBeGreaterThanOrEqual(6)
+    expect(poolRecipes.length).toBeLessThanOrEqual(8)
+  })
 })

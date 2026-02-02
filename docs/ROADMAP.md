@@ -200,6 +200,15 @@
 - **UI**：使用丹药后 run.temp.pillToast 展示【丹药名】品质：效果；CLEAR_PILL_TOAST 清除；天劫页吞丹面板展示机制丹并 dispatch USE_PILL
 - **测试**：pill_can_use.test.ts、pill_effects_tribulation/explore/breakthrough/survival.test.ts、content 校验 24 丹；npm test 全绿
 
+## TICKET-39 完成项（通用丹方：outputMode=pool + 池抽取 + 保底 + tier 影响）
+
+- **产物模式**：`RecipeDef.outputMode` 为 `fixed`（固定丹药）或 `pool`（从用途池随机抽机制丹）；pool 时 `pillPoolTag`（tribulation/explore/breakthrough/cultivate/survival/economy/utility）
+- **丹药池归属**：`pills.v1.json` 每丹增加 `pillRarity`（common/rare/legendary）、`isRulePill?`（规则型仅天品丹炉可出）
+- **通用丹方**：护劫丹炉(tribulation)、探宝丹炉(explore)、破境丹炉(breakthrough)、悟道丹炉(cultivate)、续命丹炉(survival)、聚财丹炉(economy)、杂炼丹炉(utility)；每张有 tier 与材料需求，凡便宜/天极贵
+- **引擎**：`src/engine/alchemy/pill_pool.ts` — getPillPool、rollPillFromPool、getPoolPreviewByRarity；保底 `run.pillPoolPityByTag`，阈值 rare 6、legendary 18；resolveBrew 当 outputMode=pool 时写 pillInventory 与 pity；战报 poolPill（pillId/quality/rarity/isRulePill）
+- **UI**：AlchemyScreen 丹方列表【丹炉·定向炼制】分组；选通用丹方后展示方向、产出池预览（按稀有度种数）、天品丹炉「有极小概率炼出逆天丹」；炼成弹层「炼成：××丹·地（稀有）」、规则丹「逆天改命！」
+- **测试**：pill_pool_roll.test.ts、pill_pool_pity.test.ts、alchemy_pool_recipe_integration.test.ts、content_validation 扩展（pool recipe pillPoolTag 合法、pill pillRarity/池 tag）；npm test 全绿 + npm run build 通过
+
 ## TICKET-37 完成项（奇遇链：定向材料链 + 条件解锁 + 目标材料 UI）
 
 - **内容**：6 种天材地宝材料（雷泽灵髓/天外陨铁/九转玄藤/炉心碎玉/命纹石/紫府灵砂）入 `alchemy_recipes.v1.json`；≥12 条定向获取链入 `event_chains.v1.json`，每条 2～4 段、终章 `guaranteedReward` 材料、可选 `unlock`（minDanger/minTribulationPassed）

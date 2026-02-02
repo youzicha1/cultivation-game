@@ -116,6 +116,17 @@
 - **动作**：`USE_PILL`（pillId、quality、context）；`CLEAR_PILL_TOAST` 清除丹药 Toast
 - **UI 入口**：天劫页【吞服丹药】面板内展示凝神/筑基丹 + 机制丹（getPillOptionsForContext(state, 'tribulation')），选机制丹发 USE_PILL；使用后全局显示 pillToast（【丹药名】品质：效果文案），点「知道了」发 CLEAR_PILL_TOAST
 
+### 通用丹方与池抽取（TICKET-39：outputMode=pool + pill pool pity + tier 影响）
+- **产物模式**：`RecipeDef.outputMode` 为 `"fixed"`（沿用固定丹药）或 `"pool"`（从用途池随机抽机制丹）；pool 时需 `pillPoolTag`（tribulation/explore/breakthrough/cultivate/survival/economy/utility）
+- **丹药池归属**：`pills.v1.json` 中每丹增加 `pillRarity`（common/rare/legendary）、`isRulePill?`（规则型仅天品丹炉可出）
+- **引擎**：`src/engine/alchemy/pill_pool.ts`
+  - `getPillPool(tag)`：按 tag 返回池（utility 表示全池）
+  - `rollPillFromPool(state, tag, recipeTier, rng01, poolRules)`：先按 tier 过滤（规则丹仅 tier≥tian 可出），再按稀有度权重+保底抽丹，再 roll 品质（沿用 qualityDist）；返回 `{ result: { pillId, quality, rarity, isRulePill }, nextPity }`
+  - **保底**：`run.pillPoolPityByTag[tag]` 记录连续未出 rare/legendary 次数；达 PITY_RARE_THRESHOLD(6) 提高 rare 权重，达 PITY_LEGENDARY_THRESHOLD(18) 提高 legendary 权重；抽到 rare/legendary 后清零
+- **tier 影响**：凡方 legendary=0、rare 很低；玄方 rare 低；地方 rare 中、legendary 低；天方 rare 较高、legendary 低但>0，且允许 rulePill
+- **炼丹流程**：`resolveBrew` 当 `outputMode===pool` 时扣材料、判爆丹/成功后调用 `rollPillFromPool`，产出写入 `player.pillInventory`，pity 写回 `run.pillPoolPityByTag`；战报 `AlchemyOutcome.poolPill` 含最后一枚机制丹（pillId/quality/rarity/isRulePill），供 UI 展示「炼成：××丹·地（稀有）」与「逆天改命！」
+- **UI**：AlchemyScreen 丹方列表分【固定丹方】与【丹炉·定向炼制】；选通用丹方后展示「方向」、产出池预览（按稀有度种数）、天品丹炉时「有极小概率炼出逆天丹」
+
 ### 成就系统 v2（TICKET-28：criteria 类型、stats/streak/flag、单一来源 view、claim 幂等）
 - **位置**：`src/engine/achievements.ts`、`src/content/achievements.v1.json`
 - **概念**：72 条成就、8 组（探索/炼丹/突破/天劫/坊市/功法流派/收集/传承），条件类型：累计计数（lifetime counter）、本局达成（run max）、连胜（streak）、技巧/挑战（flag）、收集类、Build 类

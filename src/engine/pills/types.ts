@@ -72,10 +72,15 @@ export type EffectSpecMap = {
   market?: MarketEffectSpec
 }
 
+/** TICKET-39: 池内稀有度，用于通用丹方抽取 */
+export type PillRarity = 'common' | 'rare' | 'legendary'
+
 export type PillDef = {
   id: string
   name: string
   tags: string[]
+  pillRarity: PillRarity
+  isRulePill?: boolean
   effects: EffectSpecMap
   ruleType: string | null
   ruleDesc?: string

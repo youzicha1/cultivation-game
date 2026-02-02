@@ -351,14 +351,14 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
       <div className="breakthrough-main">
         {view.canStageBreakthrough && (
           <div className="breakthrough-stage-block">
-            <div className="breakthrough-block-title">阶突破</div>
+            <div className="breakthrough-block-title">突破</div>
             <p className="breakthrough-block-desc">
-              当前已达本阶上限（Lv{view.level}/{view.cap}），进行阶突破后可继续获得经验。
+              当前已达本阶上限（Lv{view.level}/{view.cap}），进行突破后可继续获得经验。
             </p>
             <div className="breakthrough-rate-display">
               <div className="breakthrough-rate-big">
                 <span className="breakthrough-rate-big-value">{(view.stageBreakthroughRate * 100).toFixed(0)}%</span>
-                <span className="breakthrough-rate-big-label">阶突破成功率</span>
+                <span className="breakthrough-rate-big-label">突破成功率</span>
               </div>
               <p className="breakthrough-rewards-desc">奖励：生命上限+10、回气丹×1；阶越高后续突破/渡劫基础成功率微幅提升。</p>
             </div>
@@ -445,7 +445,7 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
 
         {!view.canStageBreakthrough && !view.canRealmBreakthrough && (
           <div className="breakthrough-hint-block">
-            <p>继续修炼或探索提升等级；到达本阶上限（Lv{view.cap}）后可进行<strong>阶突破</strong>；Lv99 且完成第7阶后可进行<strong>境界突破</strong>。</p>
+            <p>继续修炼或探索提升等级；到达本阶上限（Lv{view.cap}）后可进行<strong>突破</strong>；Lv99 且完成第7阶后可进行<strong>境界突破</strong>。</p>
           </div>
         )}
       </div>
@@ -453,7 +453,7 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
       {/* 底部固定操作条 */}
       <footer className="breakthrough-footer">
         <div className="breakthrough-footer-preview">
-          <div><strong>阶突破</strong>（达本阶上限）：生命+10、回气丹×1；<strong>境界突破</strong>（Lv99 第7阶）：境界+1、觉醒三选一、回满血。</div>
+          <div><strong>突破</strong>（达本阶上限）：生命+10、回气丹×1；<strong>境界突破</strong>（Lv99 第7阶）：境界+1、觉醒三选一、回满血。</div>
           <div className="breakthrough-why-hint">境界越高：炼丹成功率微幅提升；天劫化解力与难度同步提升；本局结算时传承页点数更多。</div>
         </div>
         <div className="breakthrough-footer-actions">
@@ -465,7 +465,7 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
                 className="breakthrough-footer-main-btn"
                 onClick={() => dispatch({ type: 'STAGE_BREAKTHROUGH_CONFIRM' })}
               >
-                阶突破
+                突破
               </Button>
             )}
             {view.canRealmBreakthrough && (

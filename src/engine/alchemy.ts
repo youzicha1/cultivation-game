@@ -2,6 +2,7 @@ import recipesFile from '../content/alchemy_recipes.v1.json'
 import type { GameState } from './game'
 import type { PlayerState } from './state'
 import { getQualityDist, rollQualityFromDist } from './alchemy/quality_weights'
+import { rollPillFromPool } from './alchemy/pill_pool'
 
 /** 材料/丹药/丹方 ID 由 alchemy_recipes 数据定义，支持任意数量 */
 export type MaterialId = string
@@ -32,6 +33,11 @@ export const RECIPE_TAG_IDS = [
 ] as const
 export type RecipeTagId = (typeof RECIPE_TAG_IDS)[number]
 
+/** TICKET-39: 产物模式 — fixed 固定丹药，pool 从池随机抽机制丹 */
+export type OutputMode = 'fixed' | 'pool'
+/** TICKET-39: 规则丹门槛（仅天品丹炉可出规则型丹） */
+export type PoolRuleTier = 'di' | 'tian'
+
 export type RecipeDef = {
   id: RecipeId
   name: string
@@ -39,17 +45,17 @@ export type RecipeDef = {
   unlock: RecipeUnlock
   cost: Partial<Record<MaterialId, number>>
   baseSuccess: number
-  /** 可选，若存在则需和为 1；引擎品质分布以 tier 为准 */
   qualityBase?: Record<ElixirQuality, number>
   boomRate: number
-  /** 推荐炉温：匹配时成功率+5%、爆丹率×0.9 */
   recommendedHeat?: HeatLevel
-  /** TICKET-32: 丹方品质档位（凡/玄/地/天） */
   tier: RecipeTier
-  /** TICKET-32: 用途标签 */
   tags: RecipeTagId[]
-  /** TICKET-32: 获取难度 1..10，用于梯度与 UI 排序 */
   difficulty: number
+  /** TICKET-39: 缺省 fixed；pool 时需 pillPoolTag */
+  outputMode?: OutputMode
+  pillPoolTag?: string
+  poolRarityWeights?: { common: number; rare: number; legendary: number }
+  poolRules?: { allowRulePillsFromTier: PoolRuleTier }
 }
 
 export type AlchemyRecipesFile = {
@@ -84,6 +90,7 @@ export function validateAlchemyFile(file: AlchemyRecipesFile): AlchemyRecipesFil
 
   const validTiers = ['fan', 'xuan', 'di', 'tian'] as const
   const validTags = new Set(RECIPE_TAG_IDS)
+  const poolTags = new Set([...RECIPE_TAG_IDS, 'utility'])
   file.recipes.forEach((recipe) => {
     if (!recipe.id || !recipe.name || !recipe.elixirId) {
       throw new Error(`RecipeDef: missing fields for ${recipe.id ?? 'unknown'}`)
@@ -93,6 +100,10 @@ export function validateAlchemyFile(file: AlchemyRecipesFile): AlchemyRecipesFil
     }
     if (!Array.isArray(recipe.tags) || recipe.tags.some((t: string) => !validTags.has(t as RecipeTagId))) {
       throw new Error(`RecipeDef: tags must be array of valid tag ids for ${recipe.id}`)
+    }
+    const outputMode = recipe.outputMode ?? 'fixed'
+    if (outputMode === 'pool' && (!recipe.pillPoolTag || !poolTags.has(recipe.pillPoolTag))) {
+      throw new Error(`RecipeDef: pool recipe must have pillPoolTag in ${[...poolTags].join(',')} for ${recipe.id}`)
     }
     const d = Number(recipe.difficulty)
     if (!Number.isFinite(d) || d < 1 || d > 10) {
@@ -417,6 +428,14 @@ export type AlchemyKungfuMod = {
   alchemyBoomCompMult?: number
 }
 
+/** TICKET-39: 通用丹方单次炼制结果（战报展示） */
+export type PoolPillProduced = {
+  pillId: string
+  quality: ElixirQuality
+  rarity: 'common' | 'rare' | 'legendary'
+  isRulePill: boolean
+}
+
 /** TICKET-8: 炼丹战报（抽卡式结果） */
 export type AlchemyOutcome = {
   success: boolean
@@ -427,7 +446,6 @@ export type AlchemyOutcome = {
   totalBrews: number
   totalBooms: number
   bestQuality?: ElixirQuality
-  // TICKET-8: 战报字段
   attempted: number
   booms: number
   successes: number
@@ -435,6 +453,8 @@ export type AlchemyOutcome = {
   topQuality?: ElixirQuality
   streakSuccess: number
   streakBoom: number
+  /** TICKET-39: 通用丹方炼制时最后一枚机制丹 */
+  poolPill?: PoolPillProduced
 }
 
 export function canBrew(
@@ -596,22 +616,21 @@ export function resolveBrew(
   let hpChange = 0
   let bestQuality: ElixirQuality | 'none' = nextPlayer.codex.bestQualityByRecipe[recipeId]
   
-  // TICKET-8: 战报统计
   const items: Record<ElixirQuality, number> = { fan: 0, xuan: 0, di: 0, tian: 0 }
   let currentStreakSuccess = 0
   let currentStreakBoom = 0
   let maxStreakSuccess = 0
   let maxStreakBoom = 0
   let topQualityThisBatch: ElixirQuality | 'none' = 'none'
+  const isPoolRecipe = recipe.outputMode === 'pool' && recipe.pillPoolTag
+  let runPityByTag: Record<string, number> = { ...(state.run.pillPoolPityByTag ?? {}) }
+  let lastPoolPill: PoolPillProduced | undefined
 
-  // TICKET-8: 抽卡式多次判定（每炉依次判定）
   for (let i = 0; i < batch; i++) {
     totalBrews += 1
-    
-    // a) 爆丹判定
     const effectiveBoomRate = clamp(recipe.boomRate * boomMult, 0.01, 0.95)
     const boomed = rng01() < effectiveBoomRate
-    
+
     if (boomed) {
       totalBooms += 1
       let dmg = Math.max(1, randInt(1, 3) - boomDmgReduce)
@@ -621,19 +640,48 @@ export function resolveBrew(
       currentStreakSuccess = 0
       maxStreakBoom = Math.max(maxStreakBoom, currentStreakBoom)
     } else {
-      // b) 未爆丹：成功判定
       const success = rng01() < successRate
       if (success) {
-        // c) 成功：TICKET-32 用 tier 品质分布 roll 品质
-        const qualityDist = getQualityDist(recipe.tier, { shiftToHigh: qualityShift })
-        const quality = rollQualityFromDist(rng01, qualityDist)
-        if (!nextPlayer.elixirs[recipe.elixirId]) {
-          nextPlayer.elixirs[recipe.elixirId] = { fan: 0, xuan: 0, di: 0, tian: 0 }
+        if (isPoolRecipe) {
+          const tag = recipe.pillPoolTag!
+          const runWithPity: GameState = { ...state, run: { ...state.run, pillPoolPityByTag: runPityByTag } }
+          const { result, nextPity } = rollPillFromPool(
+            runWithPity,
+            tag,
+            recipe.tier,
+            rng01,
+            recipe.poolRules,
+          )
+          runPityByTag = { ...runPityByTag, [tag]: nextPity }
+          const inv = nextPlayer.pillInventory ?? {}
+          const byPill = inv[result.pillId] ?? { fan: 0, xuan: 0, di: 0, tian: 0 }
+          nextPlayer = {
+            ...nextPlayer,
+            pillInventory: {
+              ...inv,
+              [result.pillId]: { ...byPill, [result.quality]: byPill[result.quality] + 1 },
+            },
+          }
+          items[result.quality] += 1
+          bestQuality = compareQuality(bestQuality, result.quality)
+          topQualityThisBatch = compareQuality(topQualityThisBatch, result.quality)
+          lastPoolPill = {
+            pillId: result.pillId,
+            quality: result.quality,
+            rarity: result.rarity,
+            isRulePill: result.isRulePill,
+          }
+        } else {
+          const qualityDist = getQualityDist(recipe.tier, { shiftToHigh: qualityShift })
+          const quality = rollQualityFromDist(rng01, qualityDist)
+          if (!nextPlayer.elixirs[recipe.elixirId]) {
+            nextPlayer.elixirs[recipe.elixirId] = { fan: 0, xuan: 0, di: 0, tian: 0 }
+          }
+          nextPlayer.elixirs[recipe.elixirId][quality] += 1
+          items[quality] += 1
+          bestQuality = compareQuality(bestQuality, quality)
+          topQualityThisBatch = compareQuality(topQualityThisBatch, quality)
         }
-        nextPlayer.elixirs[recipe.elixirId][quality] += 1
-        items[quality] += 1
-        bestQuality = compareQuality(bestQuality, quality)
-        topQualityThisBatch = compareQuality(topQualityThisBatch, quality)
         currentStreakSuccess += 1
         currentStreakBoom = 0
         maxStreakSuccess = Math.max(maxStreakSuccess, currentStreakSuccess)
@@ -680,7 +728,6 @@ export function resolveBrew(
     totalBrews,
     totalBooms,
     bestQuality: bestQuality === 'none' ? undefined : bestQuality,
-    // TICKET-8: 战报字段
     attempted: batch,
     booms: maxStreakBoom,
     successes: items.fan + items.xuan + items.di + items.tian,
@@ -688,11 +735,13 @@ export function resolveBrew(
     topQuality: topQualityThisBatch !== 'none' ? topQualityThisBatch : undefined,
     streakSuccess: maxStreakSuccess,
     streakBoom: maxStreakBoom,
+    poolPill: lastPoolPill,
   }
 
   let next: GameState = {
     ...state,
     player: nextPlayer,
+    run: isPoolRecipe ? { ...state.run, pillPoolPityByTag: runPityByTag } : state.run,
   }
 
   // TICKET-8: 强反馈（日志高亮）

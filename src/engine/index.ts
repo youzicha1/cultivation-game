@@ -19,6 +19,16 @@ export {
   type QualityDist,
   type QualityModifiers,
 } from './alchemy/quality_weights'
+export {
+  getPillPool,
+  rollPillFromPool,
+  getPoolPreviewByRarity,
+  PITY_RARE_THRESHOLD,
+  PITY_LEGENDARY_THRESHOLD,
+  PILL_POOL_TAGS,
+  type PillPoolTag,
+  type RollPillResult,
+} from './alchemy/pill_pool'
 export * from './shop'
 export * from './achievements'
 export {

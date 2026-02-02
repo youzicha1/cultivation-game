@@ -6,6 +6,7 @@ import {
   getDailyEnvironmentDef,
   getElixirDesc,
   getElixirName,
+  getPoolPreviewByRarity,
   getRecipe,
   HEAT_DESC,
   HEAT_LABELS,
@@ -324,9 +325,12 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                   <div className="alchemy-recipe-picker-title">丹方书卷</div>
                   <p className="alchemy-recipe-picker-hint">选择已拥有的丹方进行炼制</p>
                   <ul className="alchemy-recipe-picker-list">
-                    {[...alchemyRecipes]
-                      .sort((a, b) => a.difficulty - b.difficulty)
-                      .map((r) => {
+                    {(() => {
+                      const fixed = alchemyRecipes.filter((r) => (r.outputMode ?? 'fixed') === 'fixed')
+                      const pool = alchemyRecipes.filter((r) => r.outputMode === 'pool')
+                      const fixedSorted = [...fixed].sort((a, b) => a.difficulty - b.difficulty)
+                      const poolSorted = [...pool].sort((a, b) => a.difficulty - b.difficulty)
+                      const renderRecipe = (r: (typeof alchemyRecipes)[0]) => {
                         const isUnlocked = state.player.recipesUnlocked[r.id]
                         const fragNeed = r.unlock.type === 'fragment' ? r.unlock.need : 0
                         const fragHave = state.player.fragments[r.id] ?? 0
@@ -367,7 +371,19 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                             </button>
                           </li>
                         )
-                      })}
+                      }
+                      return (
+                        <>
+                          {fixedSorted.map((r) => renderRecipe(r))}
+                          {poolSorted.length > 0 && (
+                            <li className="alchemy-recipe-picker-group-label" key="pool-group">
+                              【丹炉·定向炼制】
+                            </li>
+                          )}
+                          {poolSorted.map((r) => renderRecipe(r))}
+                        </>
+                      )
+                    })()}
                   </ul>
                   <Button variant="ghost" size="sm" onClick={() => setRecipePickerOpen(false)}>
                     关闭
@@ -376,6 +392,30 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
               </Modal>
             )}
 
+            {recipe?.outputMode === 'pool' && recipe.pillPoolTag && (
+              <div className="atm-card alchemy-block alchemy-pool-preview">
+                <div className="alchemy-label atm-label-with-icon">
+                  <AtmosIcon name="recipe" size={20} tone="gold" />
+                  <span>定向炼制</span>
+                </div>
+                <div className="alchemy-pool-direction">
+                  方向：{TAG_LABELS[recipe.pillPoolTag as RecipeTagId] ?? recipe.pillPoolTag}
+                </div>
+                {(() => {
+                  const preview = getPoolPreviewByRarity(recipe.pillPoolTag)
+                  const total = preview.common + preview.rare + preview.legendary
+                  return (
+                    <div className="alchemy-pool-rarity-preview">
+                      产出池（按稀有度）：普通 {preview.common} 种、稀有 {preview.rare} 种
+                      {preview.legendary > 0 ? `、传说 ${preview.legendary} 种` : ''}（共 {total} 种机制丹）
+                    </div>
+                  )
+                })()}
+                {recipe.tier === 'tian' && (
+                  <div className="alchemy-pool-rule-hint">有极小概率炼出逆天丹</div>
+                )}
+              </div>
+            )}
             <div className="atm-card alchemy-block">
               <div className="alchemy-label atm-label-with-icon">
                 <AtmosIcon name="heat_wu" size={20} tone="red" />

@@ -16,6 +16,7 @@ import {
 } from './alchemy'
 import { getQualityDist } from './alchemy/quality_weights'
 import { getKungfuModifiers } from './kungfu_modifiers'
+import { buildLegacyModifiers } from './legacy'
 import { getMindAlchemySuccessBonus } from './cultivation'
 import { getDailyModifiers } from './daily'
 import type { DailyEnvironmentId } from './daily'
@@ -84,10 +85,11 @@ export function getAlchemyChances(
     ? getDailyModifiers(state.meta.daily.environmentId as DailyEnvironmentId)
     : undefined
   const mod = getKungfuModifiers(state)
+  const legacyCtx = buildLegacyModifiers(state.meta)
   const kungfuMod = {
-    alchemyBoomMul: mod.alchemyBoomMul ?? 1,
-    alchemyQualityShift: mod.alchemyQualityShift ?? 0,
-    alchemySuccessAdd: mod.alchemySuccessAdd ?? 0,
+    alchemyBoomMul: (mod.alchemyBoomMul ?? 1) * legacyCtx.alchemyBoomRateMul,
+    alchemyQualityShift: (mod.alchemyQualityShift ?? 0) + legacyCtx.alchemyQualityShiftBlast,
+    alchemySuccessAdd: (mod.alchemySuccessAdd ?? 0) + legacyCtx.alchemySuccessAdd,
   }
 
   const rates = getAlchemyRates({
@@ -103,7 +105,7 @@ export function getAlchemyChances(
   const successRate = Math.min(0.95, Math.max(0.01, rates.finalSuccessRate + mindBonus))
 
   const qualityDist = getQualityDist(recipe.tier, {
-    shiftToHigh: mod.alchemyQualityShift ?? 0,
+    shiftToHigh: kungfuMod.alchemyQualityShift,
   })
 
   return {

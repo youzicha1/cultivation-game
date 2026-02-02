@@ -1,12 +1,15 @@
 import type { GameAction, GameState } from '../../engine'
+import type { LootDrop } from '../../engine/loot'
 import {
   getChain,
   getChainTargetMaterial,
   getDailyEnvironmentDef,
   getExploreMultiplier,
   getMaterialName,
+  getRarityLabel,
   PITY_LEGEND_LOOT_THRESHOLD,
   PITY_DEBUG_SHOW_VALUES,
+  relicRegistry,
 } from '../../engine'
 import type { AtmosIconName } from '../ui/IconArt'
 import { Button } from '../ui/Button'
@@ -15,6 +18,19 @@ import { AtmosIcon } from '../ui/IconArt'
 import { LootToast } from '../ui/LootToast'
 import { Panel } from '../ui/Panel'
 import { Stack } from '../ui/Stack'
+
+const RARITY_ORDER: LootDrop['rarity'][] = ['common', 'rare', 'epic', 'legendary']
+function sortLootByRarity(drops: LootDrop[]): LootDrop[] {
+  return [...drops].sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity))
+}
+function getLootItemLabel(item: LootDrop['item']): string {
+  if (item.type === 'material') return `${getMaterialName(item.id)}×${item.count}`
+  if (item.type === 'fragment') return `残页×${item.count}`
+  if (item.type === 'pills') return `丹药×${item.count}`
+  if (item.type === 'relic_fragment') return `遗物碎片×${item.count}`
+  if (item.type === 'kungfu') return `《${relicRegistry[item.id]?.name ?? item.id}》`
+  return '未知'
+}
 
 /** 奇遇链主题：不同链用不同图标与动效，增强氛围感 */
 function getChainTheme(chainId: string): { icon: AtmosIconName; theme: string } {
@@ -126,8 +142,43 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
               </Button>
             </div>
           </>
+        ) : state.run.showingCashOutSummary ? (
+          /* 结算弹层：本次探索全部掉落（稀有度从低到高）+ 返回主页 */
+          (() => {
+            const session = state.run.exploreSessionLoot ?? []
+            const chest = state.run.pendingChestDrops ?? []
+            const all = sortLootByRarity([...session, ...chest])
+            return (
+              <div className="explore-page explore-page--with-modal">
+                <div className="explore-page__mask" />
+                <div className="explore-cashout-modal">
+                  <div className="explore-cashout-modal__title">本次探索奖励</div>
+                  <div className="explore-cashout-modal__list">
+                    {all.length === 0 ? (
+                      <div className="explore-cashout-modal__empty">本次探索无物品掉落</div>
+                    ) : (
+                      all.map((d, i) => (
+                        <div key={i} className={`explore-cashout-modal__row explore-cashout-modal__row--${d.rarity}`}>
+                          <span className="explore-cashout-modal__rarity">{getRarityLabel(d.rarity)}</span>
+                          <span className="explore-cashout-modal__item">{getLootItemLabel(d.item)}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    className="explore-cashout-modal__confirm"
+                    onClick={() => dispatch({ type: 'EXPLORE_CONFIRM_CASH_OUT' })}
+                  >
+                    返回主页
+                  </Button>
+                </div>
+              </div>
+            )
+          })()
         ) : danger >= 100 ? (
-          /* 危险值 100：本次探索结束，突出领取奖励，体验更爽 */
+          /* 危险值 100：本次探索结束，查看本次奖励 */
           <>
             <div className="page-chips">
               <Chip className="app-chip--danger">危险值 100</Chip>
@@ -137,14 +188,14 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
             </div>
             <div className="explore-ended-block">
               <div className="explore-ended-title">本次探索结束</div>
-              <div className="explore-ended-desc">危险已满，收获满满！领取本次探索奖励。</div>
+              <div className="explore-ended-desc">危险已满，收获满满！查看本次探索奖励。</div>
               <Button
                 variant="primary"
                 size="lg"
                 className="explore-ended-claim"
-                onClick={() => dispatch({ type: 'EXPLORE_CASH_OUT' })}
+                onClick={() => dispatch({ type: 'EXPLORE_SHOW_CASH_OUT_SUMMARY' })}
               >
-                领取奖励
+                查看本次奖励
               </Button>
             </div>
           </>
