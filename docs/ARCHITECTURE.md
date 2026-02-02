@@ -104,6 +104,18 @@
   - **炼丹**（可选）：mind≥70 时成功率 +2%（`getMindAlchemySuccessBonus`）
 - **动作**：`CULTIVATE_TICK` 接受 mode；`CULTIVATE_INSIGHT_CHOOSE` 处理顿悟 A/B；`CLEAR_CULTIVATE_TOAST` / `CLEAR_INSIGHT_EVENT` 清除 UI 状态
 
+### 机制型丹药系统（TICKET-38：PillContext + applyPillEffect 单一真相）
+- **内容**：`src/content/pills.v1.json`，24 个机制丹（6 类×4）：tribulation / explore / breakthrough / cultivate / survival / economy；每丹 id、name、tags[]、effects（按 context 的 effectSpec）、ruleType（规则型仅地/天生效）、ruleDesc
+- **状态**：`PlayerState.pillInventory`（pillId → quality → count）；`RunState.temp`（tribulationExtraLife、tribulationExtraAction、exploreFreeRetreat、exploreNoDamageCount、breakthroughNoCostOnFail、survivalCheatDeath、cultivateAwakenExtraChoice、marketFreeRefreshOrBuy、pillToast）
+- **引擎入口**：`src/engine/pills/pill_effects.ts`
+  - `PillContext`：tribulation | explore | breakthrough | cultivate | market | survival | any
+  - `canUsePill(state, pillInst, context)`：context 可用、tag 匹配、库存>0、规则型仅地/天
+  - `applyPillEffect(state, pillInst, context, rng)`：扣减库存、写 run.temp、写日志、设 run.temp.pillToast（UI 爽反馈）
+  - `getPillOptionsForContext(state, context)`：供 UI 列出可选丹药；`getPillPreviewText(pillInst, context)`：预览文案
+- **消费点**：天劫 `applyTribulationAction` 中 hp≤0 时若 `temp.tribulationExtraLife`>0 则消耗一次、生命保留 1；突破失败时若 `temp.breakthroughNoCostOnFail` 则伤害/传承/跌境为 0；探索收手时若 `temp.exploreFreeRetreat`>0 则消耗一次、强制无损撤退
+- **动作**：`USE_PILL`（pillId、quality、context）；`CLEAR_PILL_TOAST` 清除丹药 Toast
+- **UI 入口**：天劫页【吞服丹药】面板内展示凝神/筑基丹 + 机制丹（getPillOptionsForContext(state, 'tribulation')），选机制丹发 USE_PILL；使用后全局显示 pillToast（【丹药名】品质：效果文案），点「知道了」发 CLEAR_PILL_TOAST
+
 ### 成就系统 v2（TICKET-28：criteria 类型、stats/streak/flag、单一来源 view、claim 幂等）
 - **位置**：`src/engine/achievements.ts`、`src/content/achievements.v1.json`
 - **概念**：72 条成就、8 组（探索/炼丹/突破/天劫/坊市/功法流派/收集/传承），条件类型：累计计数（lifetime counter）、本局达成（run max）、连胜（streak）、技巧/挑战（flag）、收集类、Build 类

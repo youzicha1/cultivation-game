@@ -63,6 +63,8 @@ export interface PlayerState {
   relics: RelicId[]
   /** TICKET-5: 已装备遗物（最多 3 个槽位） */
   equippedRelics: [RelicId | null, RelicId | null, RelicId | null]
+  /** TICKET-38: 机制型丹药库存 pillId -> quality -> count */
+  pillInventory?: Record<string, Record<ElixirQuality, number>>
 }
 
 /**
@@ -98,5 +100,6 @@ export function createInitialState(): PlayerState {
     relics: [],
     equippedRelics: [null, null, null],
     awakenSkills: [],
+    pillInventory: {},
   }
 }

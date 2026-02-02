@@ -113,6 +113,8 @@ export {
   getRealmOrder,
 } from './realm/gates'
 export type { RealmDef, PillRule, KungfuRule } from './realm/gates'
+export { canUsePill, applyPillEffect, getPillDef, getAllPillDefs, getPillPreviewText, getPillOptionsForContext } from './pills/pill_effects'
+export type { PillContext, PillInstance, PillDef } from './pills/types'
 export {
   getBreakthroughView,
   attemptBreakthrough,

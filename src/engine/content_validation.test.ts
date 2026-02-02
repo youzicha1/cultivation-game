@@ -25,6 +25,7 @@ import { getRealms } from './realm/gates'
 import { getAllAwakenSkills } from './awaken_skills'
 import { getObtainableMaterialIds, getRecipeMaterialIds } from './market/obtainable'
 import { getTribulationIntents } from './tribulation/tribulation_intents'
+import { getAllPillDefs } from './pills/pill_effects'
 
 const MATERIAL_IDS: MaterialId[] = alchemyMaterials.map((m) => m.id)
 const VALID_RARITY = ['common', 'rare', 'legendary'] as const
@@ -494,6 +495,40 @@ describe('tribulation_intents content validation (TICKET-36)', () => {
       expect(i.minTier).toBeLessThanOrEqual(12)
       expect(typeof i.baseWeight).toBe('number')
       expect(i.baseWeight).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('pills content validation (TICKET-38)', () => {
+  const pills = getAllPillDefs()
+  const VALID_PILL_TAGS = ['tribulation', 'explore', 'breakthrough', 'cultivate', 'survival', 'economy', 'utility'] as const
+
+  it('TICKET-38: 机制丹总数 ≥24（6类×4）', () => {
+    expect(pills.length).toBeGreaterThanOrEqual(24)
+  })
+
+  it('每条丹药有 id、name、tags、effects', () => {
+    for (const p of pills) {
+      expect(p.id).toBeDefined()
+      expect(p.name).toBeDefined()
+      expect(Array.isArray(p.tags)).toBe(true)
+      expect(p.effects != null && typeof p.effects === 'object').toBe(true)
+    }
+  })
+
+  it('tags 合法且至少一个', () => {
+    for (const p of pills) {
+      expect(p.tags.length).toBeGreaterThanOrEqual(1)
+      for (const t of p.tags) {
+        expect(VALID_PILL_TAGS.includes(t as (typeof VALID_PILL_TAGS)[number]) || t === 'economy').toBe(true)
+      }
+    }
+  })
+
+  it('规则型丹药 ruleType 非空且 ruleDesc 或 effects 存在', () => {
+    const rulePills = pills.filter((p) => p.ruleType != null && p.ruleType !== '')
+    for (const p of rulePills) {
+      expect(p.ruleDesc != null || Object.keys(p.effects).length > 0).toBe(true)
     }
   })
 })

@@ -412,15 +412,16 @@ export function attemptBreakthrough(
     }
   }
 
+  const noCostOnFail = state.run.temp?.breakthroughNoCostOnFail === true
   const legacyCtx = buildLegacyModifiers(state.meta)
   const mod = getKungfuModifiers(state)
-  const baseDmg = nextInt(14, 26)
+  const baseDmg = noCostOnFail ? 0 : nextInt(14, 26)
   const dmgRaw = pills.some((p) => p.elixirId === 'foundation_pill') ? baseDmg + 3 : baseDmg
-  const dmg = Math.max(8, dmgRaw + (dailyMod.damageBonus ?? 0) - legacyCtx.breakthroughFailureDamageReduction)
-  const pityBonus = (dailyMod.breakthroughPityBonusOnFail ?? 0) + legacyCtx.breakthroughPityBonus
-  const pityGain = Math.max(0, Math.floor((1 + pityBonus) * (mod.breakthroughPityGainMult ?? 1)))
-  const inheritanceGain = 1 + nextInt(0, 1)
-  const dropRealm = nextPlayer.realm !== '凡人' && rng.next() < 0.5
+  const dmg = noCostOnFail ? 0 : Math.max(8, dmgRaw + (dailyMod.damageBonus ?? 0) - legacyCtx.breakthroughFailureDamageReduction)
+  const pityBonus = noCostOnFail ? 0 : (dailyMod.breakthroughPityBonusOnFail ?? 0) + legacyCtx.breakthroughPityBonus
+  const pityGain = noCostOnFail ? 0 : Math.max(0, Math.floor((1 + pityBonus) * (mod.breakthroughPityGainMult ?? 1)))
+  const inheritanceGain = noCostOnFail ? 0 : 1 + nextInt(0, 1)
+  const dropRealm = noCostOnFail ? false : nextPlayer.realm !== '凡人' && rng.next() < 0.5
   nextPlayer = {
     ...nextPlayer,
     hp: nextPlayer.hp - dmg,
@@ -428,6 +429,7 @@ export function attemptBreakthrough(
     pity: nextPlayer.pity + pityGain,
     ...(dropRealm ? { realm: prevRealmFromReqs(nextPlayer.realm) } : {}),
   }
+  const nextTemp = noCostOnFail ? { ...state.run.temp, breakthroughNoCostOnFail: false } : state.run.temp
   return {
     success: false,
     nextPlayer,
@@ -435,11 +437,14 @@ export function attemptBreakthrough(
       ...nextRun,
       turn,
       breakthroughPlan: undefined,
+      temp: nextTemp,
       lastOutcome: {
         kind: 'breakthrough',
         success: false,
-        title: '心魔反噬！',
-        text: `心魔一击，但你已窥见天机。献祭传承+${inheritanceGain}（本局突破用），保底+${pityGain}${dropRealm ? '；境界跌落一重' : ''}`,
+        title: noCostOnFail ? '问心护体' : '心魔反噬！',
+        text: noCostOnFail
+          ? '问心丹护体，本次失败不付代价，无伤无跌境。'
+          : `心魔一击，但你已窥见天机。献祭传承+${inheritanceGain}（本局突破用），保底+${pityGain}${dropRealm ? '；境界跌落一重' : ''}`,
         deltas: buildOutcomeDeltas(beforePlayer, nextPlayer),
         consumed: { inheritanceSpent, pills: pills.length ? pills : undefined },
       },

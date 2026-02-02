@@ -122,6 +122,13 @@ function App() {
       </header>
       <main className={`app-main ${isBreakthrough ? 'app-main--breakthrough' : ''} ${isAlchemy ? 'app-main--alchemy' : ''} ${isShop ? 'app-main--shop' : ''}`}>{screen}</main>
       <footer className="app-version">v{APP_VERSION}</footer>
+      {state.run.temp?.pillToast && (
+        <div className="app-pill-toast" role="alert">
+          <span className="app-pill-toast-title">【{state.run.temp.pillToast.pillName}】{state.run.temp.pillToast.quality}</span>
+          <span className="app-pill-toast-msg">{state.run.temp.pillToast.message}</span>
+          <button type="button" className="app-pill-toast-dismiss" onClick={() => dispatch({ type: 'CLEAR_PILL_TOAST' })}>知道了</button>
+        </div>
+      )}
       <section className="app-log">
         <div className="app-log-head">
           <span className="app-log-title">日志</span>

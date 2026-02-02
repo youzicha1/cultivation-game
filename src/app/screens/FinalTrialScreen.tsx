@@ -15,6 +15,7 @@ import {
   type SacrificeKind,
 } from '../../engine/finalTrial'
 import { getTribulationSuccessRate } from '../../engine/tribulation/rates'
+import { getPillOptionsForContext } from '../../engine'
 import { Button } from '../ui/Button'
 import { Panel } from '../ui/Panel'
 import { Stack } from '../ui/Stack'
@@ -41,6 +42,7 @@ export function FinalTrialScreen({ state, dispatch }: ScreenProps) {
   if (trib && view) {
     return (
       <TribulationTurnUI
+        state={state}
         view={view}
         level={trib.level}
         levelName={getTribulationName(trib.level)}
@@ -125,11 +127,13 @@ export function FinalTrialScreen({ state, dispatch }: ScreenProps) {
 }
 
 function TribulationTurnUI({
+  state,
   view,
   level,
   levelName,
   dispatch,
 }: {
+  state: GameState
   view: NonNullable<ReturnType<typeof getTribulationTurnView>>
   level: number
   levelName: string
@@ -137,6 +141,7 @@ function TribulationTurnUI({
 }) {
   const [pillOpen, setPillOpen] = useState(false)
   const { turn, totalTurns, hp, maxHp, shield, debuffs, intent, actions, pillOptions, recentLog, surgeSuccessRate } = view
+  const mechanismPills = getPillOptionsForContext(state, 'tribulation')
 
   return (
     <Panel
@@ -219,13 +224,13 @@ function TribulationTurnUI({
           })}
         </div>
 
-        {/* 吞丹展开面板 */}
-        {pillOpen && pillOptions.length > 0 && (
+        {/* 吞丹展开面板：凝神/筑基丹 + TICKET-38 机制丹 */}
+        {pillOpen && (pillOptions.length > 0 || mechanismPills.length > 0) && (
           <div className="tribulation-pill-panel">
             <div className="tribulation-pill-panel-title">选择丹药（消耗 1 粒）</div>
             {pillOptions.map((opt) => (
               <Button
-                key={`${opt.elixirId}-${opt.quality}`}
+                key={`elixir-${opt.elixirId}-${opt.quality}`}
                 variant="secondary"
                 size="sm"
                 onClick={() => {
@@ -238,6 +243,19 @@ function TribulationTurnUI({
                 }}
               >
                 {opt.hint}
+              </Button>
+            ))}
+            {mechanismPills.map((opt) => (
+              <Button
+                key={`pill-${opt.pillId}-${opt.quality}`}
+                variant="option-green"
+                size="sm"
+                onClick={() => {
+                  dispatch({ type: 'USE_PILL', pillId: opt.pillId, quality: opt.quality, context: 'tribulation' })
+                  setPillOpen(false)
+                }}
+              >
+                {opt.name}({opt.quality}) · {opt.hint}
               </Button>
             ))}
             <Button variant="secondary" size="sm" onClick={() => setPillOpen(false)}>

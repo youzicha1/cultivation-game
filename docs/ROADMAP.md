@@ -191,6 +191,15 @@
 - **单一来源**：getTribulationTurnView(state) 输出 UI 所需一切；startTribulation(state, rng)、applyTribulationAction(state, action, rng, pill?)；RNG 可 mock。
 - **UI**：FinalTrialScreen 重做——状态条（HP/护盾/回合/debuff）、天道意图卡、四行动按钮（吞丹展开丹药面板）、回合日志；数据仅来自 getTribulationTurnView。
 
+## TICKET-38 完成项（机制型丹药系统：入口盘点 + 统一引擎 + 24 丹 + 规则型爽点 + UI 爽反馈）
+
+- **入口盘点**：天劫页已有【吞服丹药】→ TRIBULATION_ACTION(PILL)；突破页用丹在计划内；探索/修炼/背包原无入口；新增 USE_PILL + 天劫页机制丹选项 + 全局 pillToast
+- **引擎**：`src/engine/pills/pill_effects.ts` — PillContext、canUsePill、applyPillEffect、getPillOptionsForContext、getPillPreviewText；`run.temp` 承载 tribulationExtraLife、exploreFreeRetreat、breakthroughNoCostOnFail、survivalCheatDeath 等；天劫/突破/探索结算中消费 temp
+- **内容**：`src/content/pills.v1.json` 24 个机制丹（6 类×4）：护劫/避雷/清心/天命(规则)、护道/遁空(规则)/引宝/回元、破境/镇脉/固本/问心(规则)、凝神/开脉/悟道(规则)/回春、续命/龟息(规则)/化厄/涅槃(规则·天)、折扣/聚财/万宝(规则)/鉴宝
+- **规则型**：天命丹(地/天)额外容错或行动、遁空丹无损撤退、问心丹失败不付代价、龟息丹免死一次、涅槃丹(天)复活、万宝丹坊市免费刷新或购买
+- **UI**：使用丹药后 run.temp.pillToast 展示【丹药名】品质：效果；CLEAR_PILL_TOAST 清除；天劫页吞丹面板展示机制丹并 dispatch USE_PILL
+- **测试**：pill_can_use.test.ts、pill_effects_tribulation/explore/breakthrough/survival.test.ts、content 校验 24 丹；npm test 全绿
+
 ## TICKET-37 完成项（奇遇链：定向材料链 + 条件解锁 + 目标材料 UI）
 
 - **内容**：6 种天材地宝材料（雷泽灵髓/天外陨铁/九转玄藤/炉心碎玉/命纹石/紫府灵砂）入 `alchemy_recipes.v1.json`；≥12 条定向获取链入 `event_chains.v1.json`，每条 2～4 段、终章 `guaranteedReward` 材料、可选 `unlock`（minDanger/minTribulationPassed）

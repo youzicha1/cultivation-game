@@ -119,6 +119,7 @@ import {
 } from './breakthrough/breakthrough'
 import { calcBreakthroughRateWithBreakdown, realmIndex } from './breakthrough/rates'
 import { applyExpGain, canEquipKungfu, canTakePill, recordPillUse, getTribulationGate } from './realm/gates'
+import { canUsePill, applyPillEffect } from './pills/pill_effects'
 
 export type ScreenId =
   | 'start'
@@ -246,6 +247,18 @@ export type GameState = {
     streaks?: Record<string, number>
     /** TICKET-28: 本局成就 flag（技巧/挑战触发） */
     flags?: Record<string, true>
+    /** TICKET-38: 机制丹效果临时字段（由 applyPillEffect 写入，各系统消费） */
+    temp?: {
+      tribulationExtraLife?: number
+      tribulationExtraAction?: number
+      exploreFreeRetreat?: number
+      exploreNoDamageCount?: number
+      breakthroughNoCostOnFail?: boolean
+      survivalCheatDeath?: number
+      cultivateAwakenExtraChoice?: number
+      marketFreeRefreshOrBuy?: number
+      pillToast?: { pillName: string; quality: string; message: string }
+    }
     lastOutcome?:
       | {
           kind: 'breakthrough'
@@ -357,6 +370,7 @@ export type GameAction =
   | { type: 'CLEAR_LOOT' }
   | { type: 'LEGACY_PURCHASE'; upgradeId: string }
   | { type: 'CLEAR_DAILY_REWARD_TOAST' }
+  | { type: 'CLEAR_PILL_TOAST' }
   | { type: 'CLEAR_SHARD_EXCHANGE_TOAST' }
   | { type: 'KUNGFU_SHARD_EXCHANGE'; kungfuId: string; rarity: 'rare' | 'epic' | 'legendary' }
   | { type: 'DEBUG_SET_TIME_LEFT'; value: number }
@@ -373,6 +387,7 @@ export type GameAction =
   | { type: 'CLAIM_ACHIEVEMENT'; id: string }
   | { type: 'CLAIM_ALL_ACHIEVEMENTS' }
   | { type: 'CHOOSE_AWAKEN_SKILL'; skillId: string }
+  | { type: 'USE_PILL'; pillId: string; quality: ElixirQuality; context: import('./pills/types').PillContext }
 
 /** 功法/碎片跨局种子：新游戏时继承已获得功法与碎片 */
 export type PersistentKungfuSeed = { unlockedKungfu: string[]; kungfaShards: number }
@@ -1124,8 +1139,12 @@ export function reduceGame(
       const mod = getKungfuModifiers(state)
       const kungfuCtx = buildKungfaModifiers(state)
       const legacyCtx = buildLegacyModifiers(state.meta)
+      const freeRetreat = (baseRun.temp?.exploreFreeRetreat ?? 0) > 0
       const retreatRate = Math.min(0.98, 0.88 + kungfuCtx.exploreRetreatAdd + legacyCtx.exploreRetreatAdd)
-      const retreatClean = next01() < retreatRate
+      let retreatClean = next01() < retreatRate
+      if (freeRetreat) {
+        retreatClean = true
+      }
       let goldGain = Math.round(danger * 0.6)
       let expGain = Math.round(danger * 0.4)
       if (!retreatClean) {
@@ -1182,9 +1201,15 @@ export function reduceGame(
           chainProgress: {},
           currentEvent: undefined,
           pendingLoot: chestDrops.length > 0 ? chestDrops : undefined,
+          temp: freeRetreat
+            ? { ...baseRun.temp, exploreFreeRetreat: Math.max(0, (baseRun.temp?.exploreFreeRetreat ?? 0) - 1) }
+            : baseRun.temp,
         },
       }
-      if (!retreatClean) {
+      if (freeRetreat) {
+        nextState = addLog(nextState, '【遁空丹】无损撤退，收获全拿！')
+      }
+      if (!retreatClean && !freeRetreat) {
         nextState = addLog(nextState, '【撤退惊险】未能全身而退，损失部分收获。')
       }
       nextState = addLog(nextState, `【收手】你见好就收：灵石+${goldGain}，修为+${expGain}，生命+${heal}，危险值归零。`)
@@ -1663,6 +1688,19 @@ export function reduceGame(
       nextState = applyTimeAndMaybeFinale(nextState, 1, rngWithCount)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
+    case 'USE_PILL': {
+      const context = action.context as import('./pills/types').PillContext
+      if (!canUsePill(state, { pillId: action.pillId, quality: action.quality }, context)) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      const { state: nextState } = applyPillEffect(
+        state,
+        { pillId: action.pillId, quality: action.quality },
+        context,
+        rngWithCount,
+      )
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
     case 'OUTCOME_CONTINUE': {
       let nextState: GameState = {
         ...state,
@@ -1790,6 +1828,10 @@ export function reduceGame(
     case 'CLEAR_DAILY_REWARD_TOAST': {
       const { dailyRewardJustClaimed: _, ...restRun } = baseRun
       return { ...state, run: { ...restRun, rngCalls } }
+    }
+    case 'CLEAR_PILL_TOAST': {
+      const temp = baseRun.temp ? { ...baseRun.temp, pillToast: undefined } : baseRun.temp
+      return { ...state, run: { ...baseRun, temp, rngCalls } }
     }
     case 'KUNGFU_SHARD_EXCHANGE': {
       const { kungfuId, rarity } = action

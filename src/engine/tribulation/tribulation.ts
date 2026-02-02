@@ -404,6 +404,27 @@ export function applyTribulationAction(
   const newLog = [...trib.log, `【回合 ${trib.turn + 1}】${logEntries.join(' ')}`].slice(-LOG_MAX)
 
   if (nextPlayer.hp <= 0) {
+    const extraLife = state.run.temp?.tribulationExtraLife ?? 0
+    if (extraLife > 0) {
+      nextPlayer = { ...nextPlayer, hp: 1 }
+      const nextTemp = { ...state.run.temp, tribulationExtraLife: extraLife - 1 }
+      const run = { ...state.run, temp: nextTemp, tribulation: trib }
+      const logWithSave = [...(state.log ?? []), ...newLog.slice(-2), '【天命丹】逆天改命：额外容错+1，生命保留1点！']
+      const nextIntent = pickIntent(rng, trib.level)
+      const nextTrib: TribulationState = {
+        ...trib,
+        turn: newTurn,
+        shield: nextShield,
+        debuffs: nextDebuffs,
+        wrath: nextWrath,
+        currentIntent: nextIntent,
+        log: [...newLog, '【回合续】天命容错触发，生命保留1，继续渡劫。'].slice(-LOG_MAX),
+      }
+      return {
+        state: { ...state, player: nextPlayer, run: { ...run, tribulation: nextTrib }, log: logWithSave },
+        outcome: 'ongoing',
+      }
+    }
     const run = { ...state.run, tribulation: undefined }
     return {
       state: { ...state, player: nextPlayer, run, log: [...(state.log ?? []), ...newLog.slice(-2)] },
