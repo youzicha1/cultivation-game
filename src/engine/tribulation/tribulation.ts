@@ -5,11 +5,10 @@
 
 import type { GameState } from '../game'
 import type { Rng } from '../rng'
-import { randInt } from '../rng'
 import { getKungfuModifiers } from '../kungfu_modifiers'
 import type { ElixirId, ElixirQuality } from '../alchemy'
 import { getElixirName } from '../alchemy'
-import { TRIBULATION_INTENTS, type TribulationIntent } from './tribulation_intents'
+import { rollIntent, type TribulationIntent } from './tribulation_intents'
 
 // --- 子状态类型（run.tribulation） ---
 
@@ -111,11 +110,10 @@ export function getTotalTurnsForLevel(level: number): number {
   return 3
 }
 
-// --- 抽选本回合意图 ---
+// --- 抽选本回合意图（TICKET-36：按 tier 过滤 + 权重） ---
 
-function pickIntent(rng: Rng, _level: number): TribulationIntent {
-  const idx = randInt(rng, 0, TRIBULATION_INTENTS.length - 1)
-  return TRIBULATION_INTENTS[idx]
+function pickIntent(rng: Rng, level: number): TribulationIntent {
+  return rollIntent(level, rng)
 }
 
 // --- 计算本回合实际伤害（意图 + 功法 + 奇遇减免） ---
@@ -175,6 +173,10 @@ export interface TribulationIntentView {
   damageMax: number
   expectedDamage: number
   addEffectText: string
+  /** TICKET-36：下回合将发生预告 */
+  telegraphText: string
+  /** TICKET-36：1 行应对提示 */
+  counterHint: string
 }
 
 export interface TribulationActionView {
@@ -209,6 +211,8 @@ export function getTribulationTurnView(state: GameState): TribulationTurnView | 
   const addEffectText = trib.currentIntent.addDebuff
     ? `可能叠加：${trib.currentIntent.addDebuff.key === 'mindChaos' ? '心乱' : trib.currentIntent.addDebuff.key === 'burn' ? '灼烧' : '虚弱'}+${trib.currentIntent.addDebuff.stacks}`
     : ''
+  const telegraphText = trib.currentIntent.telegraphText ?? trib.currentIntent.name
+  const counterHint = trib.currentIntent.counterHint ?? '稳/护体/丹可应对。'
 
   const pillOptions = getTribulationPillOptions(state)
   const hasPill = pillOptions.length > 0
@@ -254,6 +258,8 @@ export function getTribulationTurnView(state: GameState): TribulationTurnView | 
       damageMax: dmg.max,
       expectedDamage: dmg.expected,
       addEffectText,
+      telegraphText,
+      counterHint,
     },
     actions,
     pillOptions,
@@ -272,23 +278,25 @@ function computeSurgeSuccessRate(state: GameState): number {
   return Math.max(0.1, Math.min(0.9, base + add))
 }
 
-// --- 应用单回合伤害（护盾先扣，再扣 HP） ---
+// --- 应用单回合伤害（护盾先扣，再扣 HP；支持穿透比例 TICKET-36） ---
 
 function applyDamageToState(
   hp: number,
   rawDamage: number,
   shield: number,
+  shieldPenetrationPercent: number = 0,
 ): { newHp: number; newShield: number; actualHpLoss: number; absorbedByShield: number } {
-  let s = shield
+  const p = Math.max(0, Math.min(100, shieldPenetrationPercent))
+  const toShield = Math.round(rawDamage * (1 - p / 100))
   let absorbedByShield = 0
-  if (s > 0 && rawDamage > 0) {
-    absorbedByShield = Math.min(s, rawDamage)
+  let s = shield
+  if (s > 0 && toShield > 0) {
+    absorbedByShield = Math.min(s, toShield)
     s -= absorbedByShield
   }
   const toHp = Math.max(0, rawDamage - absorbedByShield)
-  const actualHpLoss = toHp
   const newHp = Math.max(0, hp - toHp)
-  return { newHp, newShield: s, actualHpLoss, absorbedByShield }
+  return { newHp, newShield: s, actualHpLoss: toHp, absorbedByShield }
 }
 
 // --- 结算本回合并推进到下一回合或结束 ---
@@ -329,9 +337,12 @@ export function applyTribulationAction(
   } else if (actionId === 'PILL' && pill) {
     const cfg = TRIBULATION_PILL_EFFECTS[pill.elixirId]
     const val = pillValue(pill.elixirId, pill.quality)
-    if (cfg?.kind === 'heal') {
+    const blockHeal = intent.blockHeal
+    if (cfg?.kind === 'heal' && !blockHeal) {
       nextPlayer = { ...nextPlayer, hp: Math.min(nextPlayer.maxHp, nextPlayer.hp + val) }
       logEntries.push(`吞服丹药：回血 +${val}。`)
+    } else if (cfg?.kind === 'heal' && blockHeal) {
+      logEntries.push('天罚锁命，本回合回血无效，丹药已消耗。')
     } else if (cfg?.kind === 'shield') {
       nextShield += val
       logEntries.push(`吞服丹药：护盾 +${val}。`)
@@ -362,10 +373,12 @@ export function applyTribulationAction(
     }
   }
 
+  const penetration = intent.shieldPenetration ?? 0
   const { newHp, newShield, actualHpLoss, absorbedByShield } = applyDamageToState(
     nextPlayer.hp,
     effectiveDamage,
     nextShield,
+    penetration,
   )
 
   nextPlayer = { ...nextPlayer, hp: newHp }

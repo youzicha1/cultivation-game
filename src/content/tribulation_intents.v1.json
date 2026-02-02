@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "id": "thunder",
+      "name": "雷击",
+      "rarity": "common",
+      "tags": ["damage"],
+      "effectSpec": { "baseDamageMin": 8, "baseDamageMax": 14 },
+      "telegraphText": "天雷将至，直取神魂。",
+      "counterHint": "稳住心神可减伤；护体硬抗更稳。",
+      "minTier": 0,
+      "baseWeight": 100
+    },
+    {
+      "id": "double_strike",
+      "name": "连劈",
+      "rarity": "common",
+      "tags": ["damage"],
+      "effectSpec": { "baseDamageMin": 10, "baseDamageMax": 18 },
+      "telegraphText": "双雷连至，避无可避。",
+      "counterHint": "稳/护体轮流应对；护劫丹可扛一段。",
+      "minTier": 0,
+      "baseWeight": 100
+    },
+    {
+      "id": "charged",
+      "name": "蓄力重雷",
+      "rarity": "common",
+      "tags": ["damage"],
+      "effectSpec": { "baseDamageMin": 14, "baseDamageMax": 22 },
+      "telegraphText": "劫云蓄势，一击必重。",
+      "counterHint": "护体硬抗减伤最多；稳心神次之。",
+      "minTier": 0,
+      "baseWeight": 100
+    },
+    {
+      "id": "suppress",
+      "name": "雷云压制",
+      "rarity": "common",
+      "tags": ["damage", "debuff"],
+      "effectSpec": { "baseDamageMin": 6, "baseDamageMax": 10, "addDebuff": { "key": "weak", "stacks": 1 } },
+      "telegraphText": "雷云压顶，筋骨受制。",
+      "counterHint": "稳住心神可清一层虚弱；护体可减伤。",
+      "minTier": 0,
+      "baseWeight": 100
+    },
+    {
+      "id": "break_shield",
+      "name": "破盾",
+      "rarity": "common",
+      "tags": ["damage", "shield"],
+      "effectSpec": { "baseDamageMin": 8, "baseDamageMax": 12, "shieldPenetration": 50 },
+      "telegraphText": "天雷破罡，护盾难挡。",
+      "counterHint": "护盾仍可吸收一半；稳/护体减伤有效。",
+      "minTier": 0,
+      "baseWeight": 100
+    },
+    {
+      "id": "drain",
+      "name": "抽灵",
+      "rarity": "common",
+      "tags": ["damage", "resource"],
+      "effectSpec": { "baseDamageMin": 7, "baseDamageMax": 11, "addDebuff": { "key": "mindChaos", "stacks": 1 } },
+      "telegraphText": "劫力抽灵，心神动荡。",
+      "counterHint": "稳住心神可清心乱；避雷丹/净化丹应对。",
+      "minTier": 0,
+      "baseWeight": 100
+    },
+    {
+      "id": "mind_demon",
+      "name": "心魔侵蚀",
+      "rarity": "common",
+      "tags": ["damage", "debuff"],
+      "effectSpec": { "baseDamageMin": 4, "baseDamageMax": 8, "addDebuff": { "key": "mindChaos", "stacks": 1 } },
+      "telegraphText": "心魔趁虚而入，乱尔道心。",
+      "counterHint": "稳住心神清除心乱；净化丹可解。",
+      "minTier": 0,
+      "baseWeight": 100
+    },
+    {
+      "id": "sky_fire",
+      "name": "天火",
+      "rarity": "common",
+      "tags": ["damage", "debuff"],
+      "effectSpec": { "baseDamageMin": 12, "baseDamageMax": 18, "addDebuff": { "key": "burn", "stacks": 1 } },
+      "telegraphText": "天火降世，灼体焚心。",
+      "counterHint": "稳住心神可清灼烧；护体减伤。",
+      "minTier": 0,
+      "baseWeight": 100
+    },
+    {
+      "id": "chain_lightning",
+      "name": "雷链",
+      "rarity": "common",
+      "tags": ["damage"],
+      "effectSpec": { "baseDamageMin": 9, "baseDamageMax": 15 },
+      "telegraphText": "雷链缠身，连绵不绝。",
+      "counterHint": "稳/护体/丹皆可应对。",
+      "minTier": 0,
+      "baseWeight": 100
+    },
+    {
+      "id": "heaven_lock",
+      "name": "天罚·锁命",
+      "rarity": "rare",
+      "tags": ["damage", "special"],
+      "effectSpec": { "baseDamageMin": 10, "baseDamageMax": 16, "blockHeal": true },
+      "telegraphText": "天罚锁命，本回合不可回血。",
+      "counterHint": "护体/稳减伤有效；回血丹本回合无效。",
+      "minTier": 6,
+      "baseWeight": 25
+    },
+    {
+      "id": "jiuxiao_triple",
+      "name": "九霄·三连判定",
+      "rarity": "rare",
+      "tags": ["damage", "special"],
+      "effectSpec": { "baseDamageMin": 18, "baseDamageMax": 26 },
+      "telegraphText": "九霄三连，需连续应对。",
+      "counterHint": "稳/护体/丹轮流应对；高伤需护体或逆冲。",
+      "minTier": 6,
+      "baseWeight": 25
+    },
+    {
+      "id": "purple_penetrate",
+      "name": "紫电·穿透",
+      "rarity": "rare",
+      "tags": ["damage", "shield"],
+      "effectSpec": { "baseDamageMin": 12, "baseDamageMax": 18, "shieldPenetration": 80 },
+      "telegraphText": "紫电贯体，护盾多半无效。",
+      "counterHint": "护体减伤有效；稳心神次之；护盾收益低。",
+      "minTier": 6,
+      "baseWeight": 25
+    }
+  ]
+}

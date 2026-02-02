@@ -11,7 +11,7 @@ import {
   applyTribulationAction,
   getTotalTurnsForLevel,
 } from './tribulation'
-import { TRIBULATION_INTENTS } from './tribulation_intents'
+import { getTribulationIntents } from './tribulation_intents'
 
 describe('tribulation', () => {
   describe('startTribulation', () => {
@@ -26,7 +26,7 @@ describe('tribulation', () => {
       expect(trib.totalTurns).toBeLessThanOrEqual(5)
       expect(trib.currentIntent).toBeDefined()
       expect(trib.currentIntent.id).toBeDefined()
-      expect(TRIBULATION_INTENTS.map((i) => i.id)).toContain(trib.currentIntent.id)
+      expect(getTribulationIntents().map((i) => i.id)).toContain(trib.currentIntent.id)
       expect(trib.shield).toBe(0)
       expect(trib.debuffs.mindChaos).toBe(0)
       expect(trib.debuffs.burn).toBe(0)

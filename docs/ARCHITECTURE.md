@@ -158,6 +158,7 @@
 - 功法 JSON 驱动（`src/content/kungfu.v1.json`）
 - 事件链 JSON 驱动（`src/content/event_chains.v1.json`）
 - 传承升级树 JSON 驱动（`src/content/legacy_tree.v1.json`）
+- 天劫意图 JSON 驱动（`src/content/tribulation_intents.v1.json`，TICKET-36）
 - 配置数据（版本化）
 
 ## 核心原则
@@ -197,8 +198,9 @@
 - **位置**：`src/engine/tribulation/tribulation.ts`、`tribulation_intents.ts`；`GameState.run.tribulation`
 - **概念**：天劫从“一键扣血”升级为多回合（3～5 回合）可操作玩法；每回合展示**天道意图**，玩家选一次行动，结算有反馈与变数。
 - **子状态**：`run.tribulation` = { level, totalTurns, turn, shield, debuffs: { mindChaos, burn, weak }, wrath, currentIntent, log[] }；level 为当前要渡的第几重，totalTurns 由 getTotalTurnsForLevel(level) 得 3/4/5。
-- **单一来源**：`getTribulationTurnView(state)` 输出 UI 所需一切（回合/HP/护盾/debuff、意图名称与伤害区间、可用动作列表与提示、最近日志、逆冲成功率）；UI 只展示与发 TRIBULATION_ACTION，不自行算概率与伤害。
-- **意图（Intent）**：至少 3 种——雷击（稳定伤害）、心魔（低伤+心乱）、天火（较高伤+灼烧）；定义在 tribulation_intents.ts，抽选由 pickIntent(rng, level) 完成。
+- **单一来源**：`getTribulationTurnView(state)` 输出 UI 所需一切（回合/HP/护盾/debuff、意图名称与伤害区间、telegraphText/counterHint、可用动作列表与提示、最近日志、逆冲成功率）；UI 只展示与发 TRIBULATION_ACTION，不自行算概率与伤害。
+- **意图（Intent）**：TICKET-36 内容驱动，`src/content/tribulation_intents.v1.json` ≥12 种（含 ≥3 稀有）；每意图含 id/name/rarity/effectSpec/telegraphText/counterHint/minTier/baseWeight；抽选由 `rollIntent(level, rng)` 完成，按 minTier 过滤、按 baseWeight 加权（低 tier 不出稀有）。
+- **稀有与特殊**：稀有意图 minTier≥6；effectSpec 可含 blockHeal（本回合回血丹无效）、shieldPenetration（护盾穿透比例）；结算时 applyDamageToState 支持穿透，PILL 回血受 blockHeal 限制。
 - **行动（Action）**：STEADY（减伤约 25%+清除 1 层心乱/灼烧）、PILL（选丹：回血/护盾/净化，消耗背包）、GUARD（高减伤 50%，下回合 weak+1）、SURGE（逆冲天威，成功率受 level/mindChaos/功法 tribulationSurgeRateAdd 影响，成功降劫威，失败额外受伤或心乱）。
 - **RNG 注入**：所有随机（意图抽取、伤害 roll、逆冲成败）统一走 rng 注入；测试用 createSequenceRng。
 - **丹药接入**：至少 2 类生效——回血（qi_pill、blood_lotus_pill）、护盾（purple_heart_pill）、净化（ice_heart_pill）；getTribulationPillOptions(state) 列出可选丹，applyTribulationAction(…, 'PILL', rng, pill) 消耗数量并生效。

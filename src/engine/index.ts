@@ -100,7 +100,7 @@ export {
   getTotalTurnsForLevel,
 } from './tribulation/tribulation'
 export type { TribulationTurnView, TribulationState, TribulationActionId } from './tribulation/tribulation'
-export { TRIBULATION_INTENTS, getIntentById } from './tribulation/tribulation_intents'
+export { getTribulationIntents, getIntentById, rollIntent } from './tribulation/tribulation_intents'
 export * from './cultivation'
 export {
   getLevelCap,

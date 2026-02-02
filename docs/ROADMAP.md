@@ -191,6 +191,13 @@
 - **单一来源**：getTribulationTurnView(state) 输出 UI 所需一切；startTribulation(state, rng)、applyTribulationAction(state, action, rng, pill?)；RNG 可 mock。
 - **UI**：FinalTrialScreen 重做——状态条（HP/护盾/回合/debuff）、天道意图卡、四行动按钮（吞丹展开丹药面板）、回合日志；数据仅来自 getTribulationTurnView。
 
+## TICKET-36 完成项（天劫意图扩容：≥12 种、稀有意图、可读可防、counter 生效）
+
+- **内容**：`src/content/tribulation_intents.v1.json` 意图 ≥12 种（含 ≥3 稀有）；字段 id/name/rarity/tags/effectSpec/telegraphText/counterHint/minTier/baseWeight；普通意图（雷击/连劈/蓄力重雷/雷云压制/破盾/抽灵/心魔侵蚀/天火/雷链）、稀有意图（天罚·锁命/九霄·三连判定/紫电·穿透）minTier≥6。
+- **引擎**：`src/engine/tribulation/tribulation_intents.ts` 从 JSON 加载；`rollIntent(level, rng)` 按 minTier 过滤、baseWeight 加权；结算支持 blockHeal（本回合回血无效）、shieldPenetration（护盾穿透）；`getTribulationTurnView` 输出 telegraphText、counterHint。
+- **UI**：意图卡展示「下回合将发生：XXX」+ 意图名 + 伤害区间 + 一行应对提示（counterHint）。
+- **测试**：tribulation_intent.test.ts 覆盖意图数量/稀有数、minTier（低 tier 不出稀有、高 tier 可出）、counter（GUARD 承伤更少、addDebuff 叠加）；content_validation 校验意图 id 唯一、≥12、≥3 稀有、telegraphText/counterHint/minTier/baseWeight。
+
 ## TICKET-30 完成项（突破系统重做：99 级 + 境界门槛 + 觉醒技能三选一）
 
 - **境界/等级**：`realms.v1.json` 至少 6 境界，每境界 levelCap（凡人 15/炼气 30/筑基 45/金丹 60/元婴 75/化神 99）；player.level（1..99）、player.exp；达 cap 后经验不再增长，需突破才能继续升级。

@@ -24,6 +24,7 @@ import {
 import { getRealms } from './realm/gates'
 import { getAllAwakenSkills } from './awaken_skills'
 import { getObtainableMaterialIds, getRecipeMaterialIds } from './market/obtainable'
+import { getTribulationIntents } from './tribulation/tribulation_intents'
 
 const MATERIAL_IDS: MaterialId[] = alchemyMaterials.map((m) => m.id)
 const VALID_RARITY = ['common', 'rare', 'legendary'] as const
@@ -440,5 +441,36 @@ describe('awaken_skills content validation (TICKET-30)', () => {
   it('TICKET-35: legendary 至少 10 条', () => {
     const legendary = skills.filter((s) => s.rarity === 'legendary')
     expect(legendary.length).toBeGreaterThanOrEqual(10)
+  })
+})
+
+describe('tribulation_intents content validation (TICKET-36)', () => {
+  const intents = getTribulationIntents()
+
+  it('意图 id 唯一', () => {
+    const ids = intents.map((i) => i.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('TICKET-36: 意图总数 ≥12，稀有意图 ≥3', () => {
+    expect(intents.length).toBeGreaterThanOrEqual(12)
+    const rare = intents.filter((i) => i.rarity === 'rare')
+    expect(rare.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('每条意图有 telegraphText、counterHint、baseDamageMin/Max、minTier、baseWeight', () => {
+    for (const i of intents) {
+      expect(i.telegraphText).toBeDefined()
+      expect(String(i.telegraphText).length).toBeGreaterThan(0)
+      expect(i.counterHint).toBeDefined()
+      expect(typeof i.baseDamageMin).toBe('number')
+      expect(typeof i.baseDamageMax).toBe('number')
+      expect(i.baseDamageMax).toBeGreaterThanOrEqual(i.baseDamageMin)
+      expect(typeof i.minTier).toBe('number')
+      expect(i.minTier).toBeGreaterThanOrEqual(0)
+      expect(i.minTier).toBeLessThanOrEqual(12)
+      expect(typeof i.baseWeight).toBe('number')
+      expect(i.baseWeight).toBeGreaterThan(0)
+    }
   })
 })

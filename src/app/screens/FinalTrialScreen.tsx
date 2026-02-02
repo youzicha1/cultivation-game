@@ -158,12 +158,16 @@ function TribulationTurnUI({
           )}
         </div>
 
-        {/* 天道意图卡 */}
+        {/* 天道意图卡（TICKET-36：预告 + 应对提示） */}
         <div className="tribulation-intent-card">
-          <div className="tribulation-intent-title">本回合天道意图：{intent.name}</div>
+          <div className="tribulation-intent-title">
+            下回合将发生：{intent.telegraphText ?? intent.name}
+          </div>
+          <div className="tribulation-intent-name">{intent.name}</div>
           <div className="tribulation-intent-damage">
             预计伤害 {intent.damageMin}～{intent.damageMax}（期望约 {intent.expectedDamage}）
           </div>
+          <div className="tribulation-intent-counter">{intent.counterHint}</div>
           {intent.addEffectText && (
             <div className="tribulation-intent-add">{intent.addEffectText}</div>
           )}
