@@ -203,6 +203,16 @@
 - **测试**：tribulation.test.ts 覆盖 startTribulation 初始化、getTribulationTurnView、四动作各至少 1 例、胜负判定、RNG 可控；game.test.ts 更新时辰耗尽进入 tribulation。
 - **工程**：tribulation.ts、tribulation_intents.ts、persistence run.tribulation、kungfu_modifiers tribulationSurgeRateAdd、docs ARCHITECTURE + ROADMAP
 
+## TICKET-31 完成项（UI 氛围感图标体系）
+
+- **AtmosIcon**：`src/app/ui/IconArt.tsx`，内联 SVG 氛围感图标，name 覆盖主界面入口（修炼/探索/炼丹/突破/坊市/功法/传承/成就/设置）与炼丹关键区（丹方/炉温/材料/概率/批量）；tone=gold|jade|purple|red；未知 name 回退不崩。
+- **IconButtonCard**：`src/app/ui/IconButtonCard.tsx`，手游式按钮卡片（图标框+标题+副标题+可选 badge），主界面入口全部替换为此组件。
+- **全局样式**：App.css 新增 .atm-card、.atm-card--glow、.atm-iconFrame、.atm-btn、.atm-press、.atm-textTitle/.atm-textSub；按钮≥44px、无横向滚动、prefers-reduced-motion 禁用动画。
+- **主界面**：HomeScreen 入口改为 IconButtonCard + 爽文副标题；每日可领取时 daily-card 加 atm-card--glow。
+- **炼丹页**：丹方/炉温/批量/成功率·爆丹率区块套用 atm-card + 小图标（recipe、heat_wu、batch、rate_success、rate_boom）。
+- **测试**：IconArt.test.ts（所有 name 可渲染、未知 name fallback）、IconButtonCard.test.tsx（title+icon、disabled）、HomeScreen.icons.test.ts（入口 iconName 完整）。
+- **文档**：ARCHITECTURE 新增「UI 视觉系统」小节；ROADMAP 本项勾选。
+
 ## 开发优先级
 
 待定，将根据游戏设计逐步确定。

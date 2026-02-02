@@ -7,6 +7,11 @@
 - **ui/**: 可复用的 UI 组件
 - **store/**: 状态机驱动 UI，负责存档联动
 
+### UI 视觉系统：AtmosIcon + IconButtonCard + atm-* 全局样式规范（TICKET-31）
+- **AtmosIcon**（`src/app/ui/IconArt.tsx`）：氛围感图标体系，内联 SVG，无外链；`<AtmosIcon name="alchemy" size={28} tone="gold|jade|purple|red" />`；iconName 覆盖主界面入口（修炼/探索/炼丹/突破/坊市/功法/传承/成就/设置）与炼丹关键区（丹方/炉温/材料/概率/批量）。
+- **IconButtonCard**（`src/app/ui/IconButtonCard.tsx`）：手游式按钮卡片，左侧图标框（atm-iconFrame）+ 右侧标题/副标题，可选 badge；主界面入口统一使用此组件。
+- **全局样式**（App.css）：`.atm-card`（暗色渐变+内阴影+边缘高光）、`.atm-card--glow`（可领取/可操作微光）、`.atm-iconFrame`（图标符印框）、`.atm-btn` / `.atm-btn--primary` / `.atm-btn--ghost`、`.atm-press`（按压反馈，prefers-reduced-motion 时禁用动画）、`.atm-textTitle` / `.atm-textSub`；按钮≥44px，无横向滚动，手机一屏关键操作可见。
+
 ### engine 层（引擎层）
 - 纯逻辑层，无 DOM 依赖
 - 可测试、可注入依赖

@@ -153,6 +153,143 @@
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.2);
 }
+
+/* ========== TICKET-31: 氛围感 UI 体系（atm-*） ========== */
+.atm-card {
+  min-height: 44px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+.atm-card--glow {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 0 20px rgba(245, 213, 138, 0.15), 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-color: rgba(245, 213, 138, 0.25);
+}
+.atm-iconFrame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+.atm-btn,
+.atm-btn--primary,
+.atm-btn--ghost {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.atm-btn:focus-visible,
+.atm-btn--primary:focus-visible,
+.atm-btn--ghost:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.atm-btn--primary {
+  background: linear-gradient(180deg, #b45309 0%, #92400e 100%);
+  border-color: rgba(245, 213, 138, 0.35);
+  color: #fffbeb;
+  font-weight: 600;
+}
+.atm-btn--primary:hover:not(:disabled) {
+  box-shadow: 0 0 18px rgba(251, 191, 36, 0.35);
+  border-color: rgba(251, 191, 36, 0.5);
+}
+.atm-btn--ghost {
+  background: rgba(255, 255, 255, 0.05);
+}
+.atm-btn--ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.atm-press {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .atm-press:active:not(:disabled):not(.atm-btn-card--disabled) {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+}
+.atm-press:disabled,
+.atm-btn-card--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.atm-textTitle {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.atm-textSub {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+/* 图标主色 */
+.atm-icon {
+  flex-shrink: 0;
+}
+.atm-icon--gold { color: #f5d58a; filter: drop-shadow(0 0 4px rgba(245, 213, 138, 0.4)); }
+.atm-icon--jade { color: #6ee7b7; filter: drop-shadow(0 0 4px rgba(110, 231, 183, 0.4)); }
+.atm-icon--purple { color: #a78bfa; filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.4)); }
+.atm-icon--red { color: #f87171; filter: drop-shadow(0 0 4px rgba(248, 113, 113, 0.4)); }
+/* 按钮卡片 */
+.atm-btn-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  min-height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 4px 12px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.atm-btn-card:hover:not(:disabled):not(.atm-btn-card--disabled) {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 16px rgba(245, 213, 138, 0.12), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+.atm-btn-card__icon {
+  flex-shrink: 0;
+}
+.atm-btn-card__body {
+  flex: 1;
+  min-width: 0;
+}
+.atm-btn-card__badge {
+  flex-shrink: 0;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--gold);
+  color: #0b0d12;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .app-btn-pill-chip.breakthrough-opt--selected,
 .app-btn-option-green.breakthrough-opt--selected,
 .app-btn-option-blue.breakthrough-opt--selected,
@@ -1386,6 +1523,16 @@
   gap: 8px;
   margin-top: 8px;
 }
+.page-actions--cards {
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.page-actions--cards .atm-btn-card {
+  width: 100%;
+}
 .page-actions--wrap {
   flex-wrap: wrap;
 }
@@ -2392,6 +2539,19 @@
   margin: 8px 0 6px;
 }
 .alchemy-label:first-child { margin-top: 0; }
+.atm-label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.atm-label-with-icon .atm-icon { flex-shrink: 0; }
+.alchemy-block {
+  margin-bottom: 12px;
+}
+.alchemy-block .alchemy-label { margin-top: 0; }
+.alchemy-rate-icon { margin-right: 4px; vertical-align: middle; }
+.alchemy-rate-big .alchemy-rate-icon,
+.alchemy-rate-boom .alchemy-rate-icon { display: inline-flex; vertical-align: middle; }
 .alchemy-heat-recommended {
   font-size: 10px;
   color: var(--alchemy-muted);

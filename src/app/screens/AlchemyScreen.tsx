@@ -17,6 +17,7 @@ import { getAlchemyChances, getAlchemyShortage, type AlchemySelection } from '..
 import type { HeatLevel } from '../../engine'
 import { AlchemyFurnaceGauge } from '../ui/AlchemyFurnaceGauge'
 import { AlchemyResultEffect, getAlchemyResultGrade, type AlchemyGrade } from '../ui/AlchemyResultEffect'
+import { AtmosIcon } from '../ui/IconArt'
 import { Button } from '../ui/Button'
 import { Panel } from '../ui/Panel'
 import { StickyFooter } from '../ui/StickyFooter'
@@ -279,18 +280,25 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
         {/* 主体：两列(PC) / 单列(手机)，可局部滚动 */}
         <div className="alchemy-main">
           <div className="alchemy-main-col alchemy-main-col--left">
-            <div className="alchemy-label">丹方</div>
-            <button
-              type="button"
-              className="alchemy-recipe-scroll-btn"
-              onClick={() => setRecipePickerOpen(true)}
-              title="选择要炼制的丹方"
-            >
-              <span className="alchemy-recipe-scroll-icon" aria-hidden>📜</span>
-              <span className="alchemy-recipe-scroll-label">
-                {recipe ? `${recipe.name} · ${getElixirName(recipe.elixirId)}` : '选择丹方'}
-              </span>
-            </button>
+            <div className="atm-card alchemy-block">
+              <div className="alchemy-label atm-label-with-icon">
+                <AtmosIcon name="recipe" size={20} tone="gold" />
+                <span>丹方</span>
+              </div>
+              <button
+                type="button"
+                className="alchemy-recipe-scroll-btn atm-btn atm-btn--ghost atm-press"
+                onClick={() => setRecipePickerOpen(true)}
+                title="选择要炼制的丹方"
+              >
+                <span className="alchemy-recipe-scroll-icon" aria-hidden>
+                  <AtmosIcon name="recipe" size={22} tone="gold" />
+                </span>
+                <span className="alchemy-recipe-scroll-label">
+                  {recipe ? `${recipe.name} · ${getElixirName(recipe.elixirId)}` : '选择丹方'}
+                </span>
+              </button>
+            </div>
             {recipePickerOpen && (
               <Modal className="alchemy-recipe-picker-backdrop" dismissOnBackdrop onDismiss={() => setRecipePickerOpen(false)}>
                 <div className="alchemy-recipe-picker">
@@ -336,31 +344,40 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
               </Modal>
             )}
 
-            <div className="alchemy-label">炉温</div>
-            {recipe?.recommendedHeat && (
-              <div className="alchemy-heat-recommended">本丹方推荐：{HEAT_LABELS[recipe.recommendedHeat]}（匹配+5%成功率、爆丹×0.9）</div>
-            )}
-            <div className="alchemy-heat-row">
-              {HEAT_OPTIONS.map((opt) => (
-                <Button
-                  key={opt.value}
-                  variant={
-                    opt.value === 'zhen' ? 'option-purple' : opt.value === 'wu' ? 'option-blue' : 'option-green'
-                  }
-                  size="sm"
-                  className={`alchemy-heat-btn ${heat === opt.value ? 'alchemy-heat-btn--selected' : ''}`}
-                  onClick={() =>
-                    dispatch({ type: 'ALCHEMY_SET_RECIPE', recipeId: plan.recipeId, batch, heat: opt.value })
-                  }
-                  title={recipe?.recommendedHeat === opt.value ? `【本丹方推荐】${HEAT_DESC[opt.value]}；匹配+5%成功率、爆丹×0.9` : HEAT_DESC[opt.value]}
-                >
-                  {opt.label}
-                </Button>
-              ))}
+            <div className="atm-card alchemy-block">
+              <div className="alchemy-label atm-label-with-icon">
+                <AtmosIcon name="heat_wu" size={20} tone="red" />
+                <span>炉温</span>
+              </div>
+              {recipe?.recommendedHeat && (
+                <div className="alchemy-heat-recommended">本丹方推荐：{HEAT_LABELS[recipe.recommendedHeat]}（匹配+5%成功率、爆丹×0.9）</div>
+              )}
+              <div className="alchemy-heat-row">
+                {HEAT_OPTIONS.map((opt) => (
+                  <Button
+                    key={opt.value}
+                    variant={
+                      opt.value === 'zhen' ? 'option-purple' : opt.value === 'wu' ? 'option-blue' : 'option-green'
+                    }
+                    size="sm"
+                    className={`alchemy-heat-btn atm-press ${heat === opt.value ? 'alchemy-heat-btn--selected' : ''}`}
+                    onClick={() =>
+                      dispatch({ type: 'ALCHEMY_SET_RECIPE', recipeId: plan.recipeId, batch, heat: opt.value })
+                    }
+                    title={recipe?.recommendedHeat === opt.value ? `【本丹方推荐】${HEAT_DESC[opt.value]}；匹配+5%成功率、爆丹×0.9` : HEAT_DESC[opt.value]}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
             </div>
 
-            <div className="alchemy-label">批量</div>
-            <div className="alchemy-batch-row">
+            <div className="atm-card alchemy-block">
+              <div className="alchemy-label atm-label-with-icon">
+                <AtmosIcon name="batch" size={20} tone="jade" />
+                <span>批量</span>
+              </div>
+              <div className="alchemy-batch-row">
               {[1, 2, 3, 4, 5].map((b) => {
                 const shortForB = getAlchemyShortage(state, { recipeId: plan.recipeId, batch: b, heat })
                 const disabled = !unlocked || !shortForB.canBrew
@@ -385,6 +402,7 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                   </Button>
                 )
               })}
+              </div>
             </div>
           </div>
 
@@ -398,14 +416,16 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                     mode={isBrewing ? 'brewing' : 'idle'}
                   />
                 </div>
-                <div className="alchemy-rate-block">
+                <div className="atm-card alchemy-rate-block">
                   <div className="alchemy-rate-big">
+                    <AtmosIcon name="rate_success" size={20} tone="jade" className="alchemy-rate-icon" />
                     <span className="alchemy-rate-big-value">
                       {(chances.successRate * 100).toFixed(0)}%
                     </span>
                     <span className="alchemy-rate-big-label">成功率</span>
                   </div>
                   <div className="alchemy-rate-boom">
+                    <AtmosIcon name="rate_boom" size={18} tone="red" className="alchemy-rate-icon" />
                     爆丹 {(chances.boomRate * 100).toFixed(1)}%
                   </div>
                   <button

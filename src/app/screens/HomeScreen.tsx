@@ -1,8 +1,11 @@
 import { useEffect } from 'react'
 import type { GameAction, GameState } from '../../engine'
+import type { ScreenId } from '../../engine'
 import { getDailyEnvironmentDef } from '../../engine'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
+import { IconButtonCard } from '../ui/IconButtonCard'
+import type { AtmosIconName } from '../ui/IconArt'
 import { LootToast } from '../ui/LootToast'
 import { Panel } from '../ui/Panel'
 import { Stack } from '../ui/Stack'
@@ -11,6 +14,26 @@ type ScreenProps = {
   state: GameState
   dispatch: (action: GameAction) => void
 }
+
+/** TICKET-31: 主界面入口映射（iconName + 爽文副标题），供渲染与测试 */
+export const HOME_ENTRIES: Array<{
+  id: string
+  screen: ScreenId | 'explore_start' | 'alchemy_open' | 'breakthrough_open'
+  iconName: AtmosIconName
+  title: string
+  subtitle: string
+  tone?: 'gold' | 'jade' | 'purple' | 'red'
+}> = [
+  { id: 'cultivate', screen: 'cultivate', iconName: 'cultivate', title: '修炼', subtitle: '吐纳周天，修为暴涨', tone: 'jade' },
+  { id: 'explore', screen: 'explore_start', iconName: 'explore', title: '探索', subtitle: '押命深入，翻倍爆赚', tone: 'gold' },
+  { id: 'alchemy', screen: 'alchemy_open', iconName: 'alchemy', title: '炼丹', subtitle: '炉火一开，天品在手', tone: 'purple' },
+  { id: 'breakthrough', screen: 'breakthrough_open', iconName: 'breakthrough', title: '突破', subtitle: '卡境必破，觉醒神通', tone: 'gold' },
+  { id: 'shop', screen: 'shop', iconName: 'shop', title: '坊市', subtitle: '捡漏暴富，一刀入魂', tone: 'gold' },
+  { id: 'relics', screen: 'relics', iconName: 'kungfu', title: '功法', subtitle: '流派成型，机制起飞', tone: 'jade' },
+  { id: 'legacy', screen: 'legacy', iconName: 'legacy', title: '传承', subtitle: '败而不馁，下一局更强', tone: 'purple' },
+  { id: 'achievements', screen: 'achievements', iconName: 'achievement', title: '成就', subtitle: '隐藏称号，炫耀拉满', tone: 'gold' },
+  { id: 'settings', screen: 'settings', iconName: 'settings', title: '设置', subtitle: '存档与诊断', tone: 'jade' },
+]
 
 function getTodayDayKey(): string {
   return new Date().toISOString().slice(0, 10)
@@ -77,7 +100,7 @@ export function HomeScreen({ state, dispatch }: ScreenProps) {
       <Panel title="主界面">
       <Stack gap={10}>
         {dailyDef && daily && (
-          <div className="daily-card">
+          <div className={`daily-card ${canClaim ? 'atm-card atm-card--glow' : ''}`}>
             <div className="daily-card-title">今日：{dailyDef.name}</div>
             <div className="daily-buffs">
               <span className="daily-main-buff">+ {dailyDef.mainBuff}</span>
@@ -153,34 +176,25 @@ export function HomeScreen({ state, dispatch }: ScreenProps) {
           </div>
         </div>
 
-        <div className="page-actions">
-          <Button variant="option-green" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'cultivate' })}>
-            修炼
-          </Button>
-          <Button variant="option-blue" size="sm" onClick={() => dispatch({ type: 'EXPLORE_START' })}>
-            探索
-          </Button>
-          <Button variant="option-purple" size="sm" onClick={() => dispatch({ type: 'ALCHEMY_OPEN' })}>
-            炼丹
-          </Button>
-          <Button variant="primary" size="sm" onClick={() => dispatch({ type: 'BREAKTHROUGH_OPEN' })}>
-            突破
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'shop' })}>
-            坊市
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'relics' })}>
-            功法
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'legacy' })}>
-            传承
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'achievements' })}>
-            成就
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'settings' })}>
-            设置
-          </Button>
+        <div className="page-actions page-actions--cards">
+          {HOME_ENTRIES.map((entry) => {
+            const handleClick = () => {
+              if (entry.screen === 'explore_start') dispatch({ type: 'EXPLORE_START' })
+              else if (entry.screen === 'alchemy_open') dispatch({ type: 'ALCHEMY_OPEN' })
+              else if (entry.screen === 'breakthrough_open') dispatch({ type: 'BREAKTHROUGH_OPEN' })
+              else dispatch({ type: 'GO', screen: entry.screen as ScreenId })
+            }
+            return (
+              <IconButtonCard
+                key={entry.id}
+                title={entry.title}
+                subtitle={entry.subtitle}
+                iconName={entry.iconName}
+                onClick={handleClick}
+                tone={entry.tone ?? 'gold'}
+              />
+            )
+          })}
         </div>
       </Stack>
     </Panel>
