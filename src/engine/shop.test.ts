@@ -4,20 +4,24 @@ import {
   getShopCatalogDef,
   canBuy,
   applyBuy,
+  canSell,
+  applySell,
+  getSellPrice,
+  getItemCurrentPrice,
   getFillMissingPlan,
 } from './shop'
 import { createInitialGameState } from './game'
 describe('shop', () => {
-  it('目录返回 4 种材料且含 basePrice', () => {
+  it('TICKET-34: 目录返回全材料（16 种）且含 category/稀有度或 basePrice', () => {
     const catalog = getShopCatalogDef()
-    expect(catalog.length).toBe(4)
-    expect(catalog.every((c) => c.id && c.name && c.category && c.basePrice > 0)).toBe(true)
+    expect(catalog.length).toBe(16)
+    expect(catalog.every((c) => c.id && c.name && c.category && (c.basePrice != null ? c.basePrice > 0 : true) && (c.rarity != null || c.basePrice != null))).toBe(true)
   })
 
   it('价格受 daily 影响：有 daily 时 dailyHint 与 currentPrice 存在', () => {
     const base = createInitialGameState(1)
     const noDaily = getShopCatalog(base)
-    expect(noDaily.items.length).toBe(4)
+    expect(noDaily.items.length).toBe(16)
     const withAlchemyDay = {
       ...base,
       meta: { ...base.meta, daily: { dayKey: '2025-01-01', environmentId: 'alchemy_day', mission: { type: 'brew_success', target: 1, progress: 0, claimed: false } } },
@@ -26,7 +30,7 @@ describe('shop', () => {
     const herb = catalogAlchemy.items.find((i) => i.id === 'spirit_herb')
     expect(herb).toBeDefined()
     expect(herb!.currentPrice).toBeGreaterThanOrEqual(1)
-    expect(herb!.currentPrice).toBeLessThanOrEqual(herb!.basePrice * 2)
+    expect(herb!.currentPrice).toBeLessThanOrEqual((herb!.basePrice ?? 20) * 2)
     expect(catalogAlchemy.dailyHint).toBeTruthy()
   })
 
@@ -73,5 +77,48 @@ describe('shop', () => {
     expect(plan.plan.length).toBe(2)
     expect(plan.totalCost).toBeGreaterThan(0)
     expect(plan.missingGold).toBe(Math.max(0, plan.totalCost - 50))
+  })
+
+  it('TICKET-34: 出售：物品减少、钱增加、卖价=买价×0.8', () => {
+    const state = createInitialGameState(1)
+    const withMats = {
+      ...state,
+      player: {
+        ...state.player,
+        spiritStones: 50,
+        materials: { ...state.player.materials, spirit_herb: 5 },
+      },
+    }
+    const sellPrice = getSellPrice(withMats, 'spirit_herb')
+    const res = applySell(withMats, 'spirit_herb', 2)
+    expect(res).not.toBeNull()
+    expect(res!.newPlayer.materials.spirit_herb).toBe(3)
+    expect(res!.newPlayer.spiritStones).toBe(50 + sellPrice * 2)
+    expect(res!.earned).toBe(sellPrice * 2)
+    expect(sellPrice).toBe(Math.floor(getItemCurrentPrice(withMats, 'spirit_herb') * 0.8))
+  })
+
+  it('TICKET-34: 卖全部：数量清零', () => {
+    const state = createInitialGameState(1)
+    const withMats = {
+      ...state,
+      player: {
+        ...state.player,
+        spiritStones: 0,
+        materials: { ...state.player.materials, moon_dew: 3 },
+      },
+    }
+    const res = applySell(withMats, 'moon_dew', 3)
+    expect(res).not.toBeNull()
+    expect(res!.newPlayer.materials.moon_dew).toBeUndefined()
+    expect(res!.newPlayer.spiritStones).toBeGreaterThan(0)
+  })
+
+  it('TICKET-34: 数量不足或非坊市物品不可卖', () => {
+    const state = createInitialGameState(1)
+    expect(canSell(state, 'spirit_herb', 1).ok).toBe(false)
+    const withOne = { ...state, player: { ...state.player, materials: { ...state.player.materials, spirit_herb: 1 } } }
+    expect(canSell(withOne, 'spirit_herb', 2).ok).toBe(false)
+    expect(applySell(withOne, 'spirit_herb', 2)).toBeNull()
   })
 })

@@ -212,6 +212,15 @@
 - **UI**：修炼页境界+阶+等级/本阶上限+经验条，cap 时提示需阶突破；突破页明确区分阶突破与境界突破及收益说明。
 - **测试**：progression_exp_curve.test.ts、stage_breakthrough.test.ts；经验曲线、cap 挡经验、阶突破/境界突破状态与奖励落地；npm test 全绿。
 
+## TICKET-34 完成项（坊市系统重做：获取途径 + 分类/筛选 + 出售回收）
+
+- **Obtainable 校验**：content_validation 断言所有 recipe 材料在可获得集合内（坊市+探索掉落+奇遇链+探索事件）；缺失时测试失败并 console 输出列表；loot 导出 getLootMaterialIds，market/obtainable 导出 getObtainableMaterialIds、getRecipeMaterialIds。
+- **定价**：market/pricing.ts — RARITY_BASE_PRICE（common 10～legendary 320）、getBasePriceByRarity；shop 全 16 材料按 category+rarity/basePrice 定价；卖价=买价×0.8 向下取整。
+- **补齐途径**：坊市目录扩展为 16 种材料（紫灵叶/血莲精/青木藤/冰灵果/火阳芝/龙须根/千年黄精/地心乳/蛇涎果/魔核/魂婴果/菩提子等），均可在坊市购买。
+- **出售**：canSell、applySell、getSellPrice；SHOP_SELL action；卖 1/卖全部，数量扣减、灵石增加。
+- **UI**：ShopScreen 分类 Tab（炼丹材料 / 出售）；材料 Tab 支持按价格/稀有度排序、仅买得起筛选；出售 Tab 展示背包可售材料、回收单价与总价、卖1/卖全部，说明回收价=买价×0.8。
+- **测试**：content_validation obtainable；shop.test.ts 目录 16 种、买入、出售、卖全部、数量不足不可卖；market/pricing.test.ts rarity 映射、卖价=买价×0.8；npm test 全绿。
+
 ## TICKET-31 完成项（UI 氛围感图标体系）
 
 - **AtmosIcon**：`src/app/ui/IconArt.tsx`，内联 SVG 氛围感图标，name 覆盖主界面入口（修炼/探索/炼丹/突破/坊市/功法/传承/成就/设置）与炼丹关键区（丹方/炉温/材料/概率/批量）；tone=gold|jade|purple|red；未知 name 回退不崩。

@@ -96,6 +96,7 @@ import {
 } from './finalTrial'
 import {
   applyBuy,
+  applySell,
   getFillMissingPlan,
   getItemCurrentPrice,
 } from './shop'
@@ -317,6 +318,7 @@ export type GameAction =
   | { type: 'LOAD_GAME'; state: GameState }
   | { type: 'GO'; screen: ScreenId; shopMissing?: { materialId: string; need: number }[] }
   | { type: 'SHOP_BUY'; itemId: MaterialId; qty: number }
+  | { type: 'SHOP_SELL'; itemId: MaterialId; qty: number }
   | { type: 'SHOP_FILL_MISSING' }
   | { type: 'CULTIVATE_TICK'; mode?: CultivateMode }
   | { type: 'CULTIVATE_INSIGHT_CHOOSE'; choice: 'A' | 'B' }
@@ -828,6 +830,17 @@ export function reduceGame(
           ...(goldBefore < 200 && action.qty > 0 ? { shop_poor_rare_buy: true } : {}),
         },
       })
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'SHOP_SELL': {
+      const result = applySell(state, action.itemId, action.qty)
+      if (!result) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      const nextState = addLog(
+        { ...state, player: result.newPlayer },
+        result.logMessage,
+      )
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'SHOP_FILL_MISSING': {

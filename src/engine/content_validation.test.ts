@@ -23,6 +23,7 @@ import {
 } from './achievements'
 import { getRealms } from './realm/gates'
 import { getAllAwakenSkills } from './awaken_skills'
+import { getObtainableMaterialIds, getRecipeMaterialIds } from './market/obtainable'
 
 const MATERIAL_IDS: MaterialId[] = alchemyMaterials.map((m) => m.id)
 const VALID_RARITY = ['common', 'rare', 'legendary'] as const
@@ -278,6 +279,18 @@ describe('alchemy_recipes content validation', () => {
       expect(r.difficulty).toBeGreaterThanOrEqual(1)
       expect(r.difficulty).toBeLessThanOrEqual(10)
     }
+  })
+})
+
+describe('TICKET-34: obtainable 校验（所有配方材料至少有一种获取途径）', () => {
+  it('所有 recipe 材料都在可获得集合内（坊市/探索掉落/奇遇链/探索事件）', () => {
+    const obtainable = getObtainableMaterialIds()
+    const required = getRecipeMaterialIds()
+    const missing = required.filter((id) => !obtainable.has(id))
+    if (missing.length > 0) {
+      console.error('【TICKET-34】以下材料无获取途径，请补坊市或探索/奇遇掉落：', missing)
+    }
+    expect(missing).toEqual([])
   })
 })
 

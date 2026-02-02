@@ -208,12 +208,13 @@
 - **UI**：FinalTrialScreen 显示「第 N 重：{名字} / 12」与渡劫成功率；VictoryScreen 通关摘要 + 再开一局
 - **存档**：persistence 保存/加载 run.tribulationLevel（0..12）
 
-### 坊市/商店（TICKET-18）
-- **位置**：`src/engine/shop.ts`；ScreenId `shop`；`run.shopMissing` 可选（从炼丹页带入缺口）
-- **价格**：纯函数；当前价 = ceil(basePrice × getPriceMult(state, category))；getPriceMult 读 `state.meta.daily.environmentId` → getDailyModifiers(envId).priceMultByCategory[category] ?? 1
-- **每日修正**：DailyModifiers 新增 priceMultByCategory（herb/dew/ore/beast）；各环境在 daily.ts MODIFIERS 中配置（如 alchemy_day 草药 0.9、danger_day 矿 1.15）
-- **买入**：canBuy(state, itemId, qty) 检查 gold ≥ 总价；applyBuy 返回 newPlayer/cost/logMessage；reducer SHOP_BUY 应用并写日志
-- **一键补齐**：getFillMissingPlan(state, missing) 算总价与 missingGold；SHOP_FILL_MISSING 按顺序尽量买齐，钱不够则日志“还差灵石×X”
+### 坊市/商店（TICKET-18 / TICKET-34）
+- **位置**：`src/engine/shop.ts`、`src/engine/market/pricing.ts`、`src/engine/market/obtainable.ts`；ScreenId `shop`；`run.shopMissing` 可选（从炼丹页带入缺口）
+- **价格**：纯函数；当前买价 = ceil((basePrice ?? getBasePriceByRarity(rarity)) × getPriceMult(state, category))；getPriceMult 读 daily 与 shopDiscountPercent；**TICKET-34** 稀有度定价：common 10、uncommon 25、rare 60、epic 140、legendary 320（`RARITY_BASE_PRICE`）。
+- **出售**：getSellPrice(state, itemId) = floor(买价×0.8)；canSell/applySell；reducer SHOP_SELL 扣材料、加灵石并写日志。
+- **商品分类/稀有度**：ShopItemDef 含 category（herb/dew/ore/beast）、rarity（MarketRarity）、basePrice 可选；全 16 种炼丹材料进坊市可购买（补齐获取途径）。
+- **Obtainable 校验**：`getObtainableMaterialIds()` 汇总坊市售卖 + 探索掉落（getLootMaterialIds）+ 奇遇链 guaranteedReward/effects + 探索事件 effects；content_validation 断言所有 recipe 材料 ∈ obtainableIds，缺失时测试失败并输出列表。
+- **买入**：canBuy、applyBuy；SHOP_BUY；一键补齐 getFillMissingPlan、SHOP_FILL_MISSING。
 - **存档**：persistence 可选保存/加载 run.shopMissing
 
 ### 存档版本/迁移/诊断（TICKET-24）

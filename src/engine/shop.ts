@@ -1,12 +1,12 @@
 /**
- * TICKET-18: 坊市/商店系统（材料买入 + 每日价格波动）
- * 纯函数：目录、价格、可买判定、购买结算。
+ * TICKET-18/TICKET-34: 坊市/商店系统（材料买入 + 每日价格波动 + 分类/稀有度定价 + 出售回收）
  */
 
 import type { GameState } from './game'
 import type { MaterialId } from './alchemy'
 import { getDailyModifiers } from './daily'
 import type { DailyEnvironmentId } from './daily'
+import { getBasePriceByRarity, type MarketRarity } from './market/pricing'
 
 export type ShopCategory = 'herb' | 'dew' | 'ore' | 'beast'
 
@@ -14,15 +14,30 @@ export type ShopItemDef = {
   id: MaterialId
   name: string
   category: ShopCategory
-  basePrice: number
+  /** TICKET-34: 稀有度，用于定价与筛选；未设则按 common */
+  rarity?: MarketRarity
+  /** 基础买价；未设则用 rarity 表 */
+  basePrice?: number
 }
 
-/** 与炼丹配方材料一致，扩展可加 6~10 种 */
+/** TICKET-34: 全材料坊市目录（补齐获取途径），按稀有度定价 */
 const SHOP_CATALOG: ShopItemDef[] = [
-  { id: 'spirit_herb', name: '灵草', category: 'herb', basePrice: 8 },
-  { id: 'moon_dew', name: '月华露', category: 'dew', basePrice: 12 },
-  { id: 'iron_sand', name: '铁砂', category: 'ore', basePrice: 10 },
-  { id: 'beast_core', name: '妖核', category: 'beast', basePrice: 15 },
+  { id: 'spirit_herb', name: '灵草', category: 'herb', rarity: 'common', basePrice: 8 },
+  { id: 'moon_dew', name: '月华露', category: 'dew', rarity: 'common', basePrice: 12 },
+  { id: 'iron_sand', name: '铁砂', category: 'ore', rarity: 'common', basePrice: 10 },
+  { id: 'beast_core', name: '妖核', category: 'beast', rarity: 'common', basePrice: 15 },
+  { id: 'purple_leaf', name: '紫灵叶', category: 'herb', rarity: 'uncommon' },
+  { id: 'blood_lotus', name: '血莲精', category: 'dew', rarity: 'uncommon' },
+  { id: 'green_vine', name: '青木藤', category: 'herb', rarity: 'uncommon' },
+  { id: 'ice_fruit', name: '冰灵果', category: 'dew', rarity: 'uncommon' },
+  { id: 'fire_grass', name: '火阳芝', category: 'herb', rarity: 'rare' },
+  { id: 'dragon_root', name: '龙须根', category: 'ore', rarity: 'rare' },
+  { id: 'yellow_essence', name: '千年黄精', category: 'herb', rarity: 'rare' },
+  { id: 'earth_milk', name: '地心乳', category: 'ore', rarity: 'rare' },
+  { id: 'snake_saliva', name: '蛇涎果', category: 'beast', rarity: 'epic' },
+  { id: 'demon_core', name: '魔核', category: 'beast', rarity: 'epic' },
+  { id: 'soul_infant', name: '魂婴果', category: 'dew', rarity: 'epic' },
+  { id: 'bodhi_seed', name: '菩提子', category: 'herb', rarity: 'epic' },
 ]
 
 export function getShopCatalogDef(): ShopItemDef[] {
@@ -65,8 +80,9 @@ export function getShopCatalog(state: GameState): ShopCatalogResult {
   }
 
   const items: ShopCatalogItem[] = SHOP_CATALOG.map((def) => {
+    const base = def.basePrice ?? getBasePriceByRarity(def.rarity ?? 'common')
     const mult = getPriceMult(state, def.category)
-    const currentPrice = Math.max(1, Math.ceil(def.basePrice * mult))
+    const currentPrice = Math.max(1, Math.ceil(base * mult))
     const owned = state.player.materials[def.id] ?? 0
     return { ...def, currentPrice, owned }
   })
@@ -74,12 +90,19 @@ export function getShopCatalog(state: GameState): ShopCatalogResult {
   return { items, dailyHint }
 }
 
-/** 单件当前价（与 getShopCatalog 一致） */
+/** 单件当前买价（与 getShopCatalog 一致） */
 export function getItemCurrentPrice(state: GameState, itemId: MaterialId): number {
   const def = SHOP_CATALOG.find((c) => c.id === itemId)
   if (!def) return 0
+  const base = def.basePrice ?? getBasePriceByRarity(def.rarity ?? 'common')
   const mult = getPriceMult(state, def.category)
-  return Math.max(1, Math.ceil(def.basePrice * mult))
+  return Math.max(1, Math.ceil(base * mult))
+}
+
+/** TICKET-34: 单件回收价 = 买价×0.8 向下取整 */
+export function getSellPrice(state: GameState, itemId: MaterialId): number {
+  const buy = getItemCurrentPrice(state, itemId)
+  return Math.floor(buy * 0.8)
 }
 
 export type CanBuyResult = { ok: boolean; missingGold?: number }
@@ -118,6 +141,43 @@ export function applyBuy(
   }
   const logMessage = `【坊市】购入 ${def.name}×${qty}，花费灵石 ${cost}`
   return { newPlayer, cost, logMessage }
+}
+
+/** TICKET-34: 能否出售：物品在坊市目录且背包数量足够 */
+export function canSell(
+  state: GameState,
+  itemId: MaterialId,
+  qty: number,
+): { ok: boolean; owned?: number } {
+  const def = SHOP_CATALOG.find((c) => c.id === itemId)
+  if (!def || qty <= 0) return { ok: false }
+  const owned = state.player.materials[itemId] ?? 0
+  if (owned < qty) return { ok: false, owned }
+  return { ok: true, owned }
+}
+
+/** TICKET-34: 出售结算（回收价=买价×0.8，数量扣减、灵石增加） */
+export function applySell(
+  state: GameState,
+  itemId: MaterialId,
+  qty: number,
+): { newPlayer: GameState['player']; earned: number; logMessage: string } | null {
+  const def = SHOP_CATALOG.find((c) => c.id === itemId)
+  if (!def || qty <= 0) return null
+  const res = canSell(state, itemId, qty)
+  if (!res.ok) return null
+  const unitSell = getSellPrice(state, itemId)
+  const earned = unitSell * qty
+  const cur = state.player.materials[itemId] ?? 0
+  const newMaterials = { ...state.player.materials, [itemId]: cur - qty }
+  if (newMaterials[itemId] <= 0) delete newMaterials[itemId]
+  const newPlayer: GameState['player'] = {
+    ...state.player,
+    spiritStones: (state.player.spiritStones ?? 0) + earned,
+    materials: newMaterials,
+  }
+  const logMessage = `【坊市】出售 ${def.name}×${qty}，获得灵石 ${earned}（回收价=买价×0.8）`
+  return { newPlayer, earned, logMessage }
 }
 
 /** 缺口补齐：计算补齐 missing 所需总价与能买多少（按当前价） */

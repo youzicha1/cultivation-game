@@ -90,6 +90,21 @@ const LOOT_TABLE: LootTableEntry[] = [
   },
 ]
 
+/** TICKET-34: 探索掉落表中可掉落的材料 ID 集合（用于“可获得”校验） */
+export function getLootMaterialIds(): MaterialId[] {
+  const ids: MaterialId[] = []
+  const set = new Set<MaterialId>()
+  for (const entry of LOOT_TABLE) {
+    for (const d of entry.drops) {
+      if (d.item.type === 'material' && !set.has(d.item.id)) {
+        set.add(d.item.id)
+        ids.push(d.item.id)
+      }
+    }
+  }
+  return ids
+}
+
 /** 功法对稀有度权重的乘数（默认 1） */
 export type LootKungfuMod = {
   lootRareMul?: number

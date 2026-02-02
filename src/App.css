@@ -2974,6 +2974,49 @@
   flex-shrink: 0;
   min-height: 52px;
 }
+/* TICKET-34: 坊市 Tab + 筛选 + 出售 */
+.shop-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.shop-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.shop-filter-label { margin-right: 4px; }
+.shop-filter-btn--on { font-weight: 600; color: var(--gold); }
+.shop-filter-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.shop-sell-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.shop-empty {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 16px;
+  text-align: center;
+}
+.shop-row-rarity {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.9;
+}
+.shop-row-total { font-weight: 600; color: var(--gold); font-size: 13px; }
 
 /* TICKET-17A: 通用弹层 */
 .modal-backdrop {
