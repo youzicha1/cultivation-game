@@ -39,16 +39,17 @@ export function AlchemyFurnaceGauge(props: AlchemyFurnaceGaugeProps) {
   const gradElixirId = `furnace-elixir-grad-${safeId}`
   const gradPillId = `furnace-pill-grad-${safeId}`
 
-  /* 葫芦丹炉：炉口 y≈36，炉底 y≈276，液面在此范围内 */
-  const fillTopY = 42
-  const fillBottomY = 266
+  /* 圆肚丹炉：炉口 y≈40，炉肚 y≈95–218，炉底 y≈265；液面在炉肚内 */
+  const fillTopY = 98
+  const fillBottomY = 212
   const fillRange = fillBottomY - fillTopY
   const fillY = fillTopY + (1 - success) * fillRange
 
-  /* 丹丸在药液内，略低于液面 */
-  const pill1Cy = fillY + 22
-  const pill2Cy = fillY + 44
-  const pill3Cy = fillY + 10
+  /* 丹丸固定在炉肚内、药液下方，不跑出炉外 */
+  const bellyCenterY = 155
+  const pill1Cy = Math.min(fillY + 18, bellyCenterY + 25)
+  const pill2Cy = Math.min(fillY + 38, bellyCenterY + 35)
+  const pill3Cy = Math.min(fillY + 8, bellyCenterY + 15)
 
   const rootClass =
     `alchemy-furnace ${props.className ?? ''} ` +
@@ -65,10 +66,10 @@ export function AlchemyFurnaceGauge(props: AlchemyFurnaceGaugeProps) {
     >
       <div className="alchemy-furnace__svgWrap">
         <svg className="alchemy-furnace__svg" viewBox="0 0 240 280" aria-hidden="true">
-          {/* 葫芦丹炉轮廓：下腹大球 → 明显收腰 → 上腹小球 → 细颈 → 炉口 */}
+          {/* 圆肚丹炉：炉口 → 短颈 → 圆肚 → 短平底，丹药在炉肚内 */}
           <defs>
             <clipPath id={clipId}>
-              <path d="M120 36 Q98 40 84 52 C68 66 64 86 64 102 C64 118 74 128 84 132 C86 144 78 158 72 178 C62 208 56 242 56 262 Q56 272 120 276 Q184 272 184 262 C184 242 178 208 168 178 C162 158 154 144 156 132 C166 128 176 118 176 102 C176 86 172 66 156 52 Q142 40 120 36 Z" />
+              <path d="M120 38 C82 38 52 58 50 90 C46 128 46 182 52 218 C58 252 88 265 120 265 C152 265 182 252 188 218 C194 182 194 128 190 90 C188 58 158 38 120 38 Z" />
             </clipPath>
             <linearGradient id={gradBodyId} x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="rgba(180, 120, 60, 0.85)" />
@@ -95,30 +96,30 @@ export function AlchemyFurnaceGauge(props: AlchemyFurnaceGaugeProps) {
             </radialGradient>
           </defs>
 
-          {/* 炉身（葫芦体：下腹大球 → 收腰 → 上腹小球 → 细颈 → 炉口） */}
+          {/* 炉身：圆肚炉（短颈 + 圆肚 + 短平底） */}
           <path
             className="alchemy-furnace__body"
             fill={`url(#${gradBodyId})`}
-            d="M120 36 Q98 40 84 52 C68 66 64 86 64 102 C64 118 74 128 84 132 C86 144 78 158 72 178 C62 208 56 242 56 262 Q56 272 120 276 Q184 272 184 262 C184 242 178 208 168 178 C162 158 154 144 156 132 C166 128 176 118 176 102 C176 86 172 66 156 52 Q142 40 120 36 Z"
+            d="M120 38 C82 38 52 58 50 90 C46 128 46 182 52 218 C58 252 88 265 120 265 C152 265 182 252 188 218 C194 182 194 128 190 90 C188 58 158 38 120 38 Z"
           />
           <g clipPath={fillClipUrl}>
             <ellipse
               className="alchemy-furnace__innerGlow"
               cx="120"
               cy="155"
-              rx="48"
-              ry="62"
+              rx="52"
+              ry="58"
               fill={`url(#furnace-innerGlow-${safeId})`}
             />
           </g>
           <path
             className="alchemy-furnace__bodyStroke"
             fill="none"
-            d="M120 36 Q98 40 84 52 C68 66 64 86 64 102 C64 118 74 128 84 132 C86 144 78 158 72 178 C62 208 56 242 56 262 Q56 272 120 276 Q184 272 184 262 C184 242 178 208 168 178 C162 158 154 144 156 132 C166 128 176 118 176 102 C176 86 172 66 156 52 Q142 40 120 36 Z"
+            d="M120 38 C82 38 52 58 50 90 C46 128 46 182 52 218 C58 252 88 265 120 265 C152 265 182 252 188 218 C194 182 194 128 190 90 C188 58 158 38 120 38 Z"
           />
-          <path className="alchemy-furnace__rim" d="M84 50 Q120 44 156 50" />
+          <path className="alchemy-furnace__rim" d="M50 90 Q52 65 120 40 Q188 65 190 90" />
 
-          {/* 药液 + 丹丸 + 雾气（炉内） */}
+          {/* 药液 + 丹丸 + 雾气（仅炉肚内，丹药在炉内） */}
           <g clipPath={fillClipUrl}>
             <rect
               className="alchemy-furnace__fill"
@@ -131,18 +132,18 @@ export function AlchemyFurnaceGauge(props: AlchemyFurnaceGaugeProps) {
             <ellipse
               className="alchemy-furnace__fillShine"
               cx="120"
-              cy={fillY + 38}
-              rx="48"
-              ry="20"
+              cy={Math.min(fillY + 36, 195)}
+              rx="50"
+              ry="18"
               fill="rgba(255, 245, 210, 0.4)"
             />
-            <circle className="alchemy-furnace__pill alchemy-furnace__pill--1" cx="98" cy={pill1Cy} r="8" fill={`url(#${gradPillId})`} />
+            <circle className="alchemy-furnace__pill alchemy-furnace__pill--1" cx="98" cy={pill1Cy} r="7" fill={`url(#${gradPillId})`} />
             <circle className="alchemy-furnace__pill alchemy-furnace__pill--2" cx="128" cy={pill2Cy} r="6" fill={`url(#${gradPillId})`} />
-            <circle className="alchemy-furnace__pill alchemy-furnace__pill--3" cx="118" cy={pill3Cy} r="7" fill={`url(#${gradPillId})`} />
-            <circle className="alchemy-furnace__pillHighlight" cx="94" cy={pill1Cy - 2.5} r="2.5" fill="rgba(255,255,255,0.7)" />
-            <circle className="alchemy-furnace__pillHighlight" cx="124" cy={pill2Cy - 2} r="2" fill="rgba(255,255,255,0.65)" />
-            <circle className="alchemy-furnace__pillHighlight" cx="114" cy={pill3Cy - 2} r="2.2" fill="rgba(255,255,255,0.68)" />
-            <path className="alchemy-furnace__mist" d="M70 155 C100 140 140 160 170 155 C190 148 200 158 210 152" />
+            <circle className="alchemy-furnace__pill alchemy-furnace__pill--3" cx="115" cy={pill3Cy} r="6" fill={`url(#${gradPillId})`} />
+            <circle className="alchemy-furnace__pillHighlight" cx="95" cy={pill1Cy - 2} r="2" fill="rgba(255,255,255,0.7)" />
+            <circle className="alchemy-furnace__pillHighlight" cx="125" cy={pill2Cy - 1.8} r="1.8" fill="rgba(255,255,255,0.65)" />
+            <circle className="alchemy-furnace__pillHighlight" cx="112" cy={pill3Cy - 1.8} r="1.9" fill="rgba(255,255,255,0.68)" />
+            <path className="alchemy-furnace__mist" d="M65 150 C100 138 140 158 175 150 C195 145 205 152 210 148" />
           </g>
 
           {/* 火焰（炉口上方） */}

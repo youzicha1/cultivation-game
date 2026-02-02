@@ -8,11 +8,24 @@ import {
   PITY_LEGEND_LOOT_THRESHOLD,
   PITY_DEBUG_SHOW_VALUES,
 } from '../../engine'
+import type { AtmosIconName } from '../ui/IconArt'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
+import { AtmosIcon } from '../ui/IconArt'
 import { LootToast } from '../ui/LootToast'
 import { Panel } from '../ui/Panel'
 import { Stack } from '../ui/Stack'
+
+/** 奇遇链主题：不同链用不同图标与动效，增强氛围感 */
+function getChainTheme(chainId: string): { icon: AtmosIconName; theme: string } {
+  if (/legacy|cave_legacy|map_to_legacy/.test(chainId)) return { icon: 'legacy', theme: 'legacy' }
+  if (/demon|arena_duel|stalker/.test(chainId)) return { icon: 'kungfu', theme: 'demon' }
+  if (/furnace|alchemy_fire|medicine_king|recipe/.test(chainId)) return { icon: 'recipe', theme: 'alchemy' }
+  if (/sect_mission|black_market|secret_herb/.test(chainId)) return { icon: 'shop', theme: 'sect' }
+  if (/spirit_beast_bond/.test(chainId)) return { icon: 'daily_gift', theme: 'beast' }
+  if (/leize|marrow|meteor|mystic_vine|hearth_jade|fate_stone|purple_sand/.test(chainId)) return { icon: 'materials', theme: 'material' }
+  return { icon: 'achievement', theme: 'default' }
+}
 
 type ScreenProps = {
   state: GameState
@@ -34,46 +47,62 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
     dispatch({ type: 'CLEAR_LOOT' })
   }
 
+  const isChainEvent = currentEvent?.chainId != null
+  const eventRarity = currentEvent?.rarity ?? 'common'
+
   return (
     <>
       {pendingLoot && pendingLoot.length > 0 && (
         <LootToast drops={pendingLoot} onDismiss={handleDismissLoot} />
       )}
-      <Panel title="探索">
-        <Stack gap={10}>
-        {dailyDef && (
-          <div className="daily-hint">今日：{dailyDef.name}</div>
-        )}
-        {currentEvent ? (
-          <>
-            <div className="page-chips">
-              <Chip className="app-chip--hp">{`${state.player.hp}/${state.player.maxHp}`}</Chip>
-              <Chip className="app-chip--danger">危险 {danger}</Chip>
-              {currentEvent.rarity && currentEvent.rarity !== 'common' && (
-                <Chip className={`app-chip--rarity app-chip--rarity-${currentEvent.rarity}`}>
-                  {currentEvent.rarity === 'rare' ? '✨ 稀有' : '🌟 传说'}
-                </Chip>
-              )}
+      <div className="explore-page">
+        <Panel title="探索" className="explore-panel">
+          <div className="explore-atmos" aria-hidden />
+          <Stack gap={10}>
+          {dailyDef && (
+            <div className="explore-daily">
+              <AtmosIcon name="daily_gift" size={18} tone="gold" className="explore-daily-icon" />
+              <span>今日：{dailyDef.name}</span>
             </div>
-            {currentEvent.rarity === 'rare' && (
-              <div className="explore-rarity-banner explore-rarity-banner--rare">
-                ✨ 稀有事件：收益更高！
+          )}
+          {currentEvent ? (
+            <>
+              <div className="page-chips explore-chips">
+                <Chip className="app-chip--hp explore-chip explore-chip--hp">{`${state.player.hp}/${state.player.maxHp}`}</Chip>
+                <Chip className="app-chip--danger explore-chip explore-chip--danger">危险 {danger}</Chip>
+                {currentEvent.rarity && currentEvent.rarity !== 'common' && (
+                  <Chip className={`app-chip--rarity app-chip--rarity-${currentEvent.rarity} explore-chip`}>
+                    {currentEvent.rarity === 'rare' ? '✨ 稀有' : '🌟 传说'}
+                  </Chip>
+                )}
               </div>
-            )}
-            {currentEvent.rarity === 'legendary' && (
-              <div className="explore-rarity-banner explore-rarity-banner--legendary">
-                🌟 传说事件：巨大收益！
+              {currentEvent.rarity === 'rare' && (
+                <div className="explore-rarity-banner explore-rarity-banner--rare">
+                  ✨ 稀有事件：收益更高！
+                </div>
+              )}
+              {currentEvent.rarity === 'legendary' && (
+                <div className="explore-rarity-banner explore-rarity-banner--legendary">
+                  🌟 传说事件：巨大收益！
+                </div>
+              )}
+              <div
+                className={`explore-event-card explore-event-card--${eventRarity} ${isChainEvent ? `explore-event-card--chain explore-event-card--chain-${currentEvent.chainId ? getChainTheme(currentEvent.chainId).theme : 'default'}` : ''}`}
+              >
+                {currentEvent.chainId != null && currentEvent.chapter != null && (() => {
+                  const chain = getChain(currentEvent.chainId)
+                  const { icon } = chain ? getChainTheme(currentEvent.chainId) : { icon: 'achievement' as AtmosIconName }
+                  return chain ? (
+                    <div className="explore-chain-prefix">
+                      <AtmosIcon name={icon} size={16} tone="gold" className="explore-chain-icon" />
+                      奇遇·《{chain.name}》 {`${currentEvent.chapter}/${chain.chapters.length}`}
+                    </div>
+                  ) : null
+                })()}
+                <div className="explore-event-title">{currentEvent.title}</div>
+                <div className="explore-event-text">{currentEvent.text}</div>
               </div>
-            )}
-            {currentEvent.chainId != null && currentEvent.chapter != null && (() => {
-              const chain = getChain(currentEvent.chainId)
-              return chain ? (
-                <div className="explore-chain-prefix">奇遇·《{chain.name}》 {`${currentEvent.chapter}/${chain.chapters.length}`}</div>
-              ) : null
-            })()}
-            <div className="explore-event-title">{currentEvent.title}</div>
-            <div className="explore-event-text">{currentEvent.text}</div>
-            <div className="page-actions page-actions--wrap">
+              <div className="page-actions page-actions--wrap">
               <Button
                 variant="option-green"
                 size="sm"
@@ -136,8 +165,11 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
               const targetMaterialId = chain ? getChainTargetMaterial(chain) : undefined
               const targetMaterialName = targetMaterialId ? getMaterialName(targetMaterialId) : null
               return chain ? (
-                <div className="explore-chain-progress">
-                  奇遇进度：{`${state.run.chain.chapter}/${chain.chapters.length}`}（继续深入可推进）
+                <div className="explore-chain-card">
+                  <AtmosIcon name="achievement" size={20} tone="gold" className="explore-chain-card-icon" />
+                  <div className="explore-chain-progress">
+                    奇遇进度：{`${state.run.chain.chapter}/${chain.chapters.length}`}（继续深入可推进）
+                  </div>
                   {targetMaterialName && <div className="explore-chain-target">目标材料：{targetMaterialName}</div>}
                   <div className="explore-chain-hint">终章必有大货</div>
                 </div>
@@ -157,9 +189,11 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
               <div className="explore-deepen-row">
                 <Button
                   variant="option-green"
-                  size="sm"
+                  size="md"
+                  className="explore-deepen-btn"
                   onClick={() => dispatch({ type: 'EXPLORE_DEEPEN' })}
                 >
+                  <AtmosIcon name="explore" size={22} tone="jade" className="explore-deepen-icon" />
                   继续深入
                 </Button>
                 <span className="explore-time-hint">不消耗时辰，仅推进危险与事件</span>
@@ -173,8 +207,9 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
             </div>
           </>
         )}
-        </Stack>
-      </Panel>
+          </Stack>
+        </Panel>
+      </div>
     </>
   )
 }
