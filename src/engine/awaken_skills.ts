@@ -76,6 +76,36 @@ export function getAwakenSkillIds(): AwakenSkillId[] {
   return Array.from(getRegistry().keys())
 }
 
+/** TICKET-35: modifier 键 → 短效果文案（供 UI 关键效果展示） */
+const MODIFIER_EFFECT_LABEL: Record<string, (v: number) => string> = {
+  breakthroughSuccessAdd: (v) => `突破成功率${v >= 0 ? '+' : ''}${(v * 100).toFixed(0)}%`,
+  breakthroughPityBonus: (v) => `突破保底+${v}`,
+  tribulationDamageMult: (v) => `天劫伤害×${v.toFixed(2)}`,
+  tribulationSurgeRateAdd: (v) => `逆冲成功率${(v * 100).toFixed(0)}%`,
+  alchemySuccessAdd: (v) => `炼丹成功率${(v * 100).toFixed(0)}%`,
+  alchemyBoomMul: (v) => `爆丹率×${v.toFixed(2)}`,
+  alchemyQualityShift: (v) => `品质偏移${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+  exploreRetreatAdd: (v) => `撤退成功率${(v * 100).toFixed(0)}%`,
+  exploreDangerIncMult: (v) => `危险增长×${v.toFixed(2)}`,
+  exploreRareWeightMult: (v) => `稀有掉落×${v.toFixed(2)}`,
+  exploreLegendWeightMult: (v) => `传奇掉落×${v.toFixed(2)}`,
+  exploreCashoutGoldMult: (v) => `收手灵石×${v.toFixed(2)}`,
+  exploreCashoutExpMult: (v) => `收手修为×${v.toFixed(2)}`,
+}
+
+/** TICKET-35: 从技能 modifiers 取最多 2 条关键效果文案 */
+export function getAwakenSkillEffectLines(def: AwakenSkillDef): string[] {
+  const lines: string[] = []
+  const mod = def.modifiers
+  if (!mod || typeof mod !== 'object') return lines
+  for (const [key, value] of Object.entries(mod)) {
+    const fn = MODIFIER_EFFECT_LABEL[key]
+    if (fn && typeof value === 'number') lines.push(fn(value))
+    if (lines.length >= 2) break
+  }
+  return lines
+}
+
 /** 将已觉醒技能 ID 列表合并为 modifiers（供 getKungfuModifiers 合并） */
 export function getAwakenModifiers(awakenSkillIds: string[]): KungfuModifiers {
   const reg = getRegistry()

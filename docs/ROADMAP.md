@@ -221,6 +221,14 @@
 - **UI**：ShopScreen 分类 Tab（炼丹材料 / 出售）；材料 Tab 支持按价格/稀有度排序、仅买得起筛选；出售 Tab 展示背包可售材料、回收单价与总价、卖1/卖全部，说明回收价=买价×0.8。
 - **测试**：content_validation obtainable；shop.test.ts 目录 16 种、买入、出售、卖全部、数量不足不可卖；market/pricing.test.ts rarity 映射、卖价=买价×0.8；npm test 全绿。
 
+## TICKET-35 完成项（觉醒技能池扩容：≥60、按流派分池、权重三选一、互斥、UI）
+
+- **内容**：`awaken_skills.v1.json` ≥60 条，每 tag 至少 8 条、legendary 至少 10 条；id/name/desc/rarity/tags[]/modifiers{}/exclusiveGroup?；modifiers 复用 mult/add 体系。
+- **引擎**：`src/engine/awaken/roll.ts` — getAwakenPoolByTags（基础权重 + tag 加权）、互斥过滤、weightedSampleWithoutReplacement；rollAwakenSkillChoices 三选一不重复；池不足时 fallback 返回全部。
+- **互斥**：exclusiveGroup 同组不同时出现/不可同时拥有。
+- **UI**：AwakenSkillScreen 卡片显示稀有度徽章、tags 徽章、短描述（≤18 字）、关键效果 2 条（modifiers 映射）。
+- **测试**：awaken_roll.test.ts 覆盖三选一不重复、互斥组过滤、权重偏好（explore 加权）、生效（getKungfuModifiers 改变）；content_validation 觉醒技能数量与 tag/legendary 约束。
+
 ## TICKET-31 完成项（UI 氛围感图标体系）
 
 - **AtmosIcon**：`src/app/ui/IconArt.tsx`，内联 SVG 氛围感图标，name 覆盖主界面入口（修炼/探索/炼丹/突破/坊市/功法/传承/成就/设置）与炼丹关键区（丹方/炉温/材料/概率/批量）；tone=gold|jade|purple|red；未知 name 回退不崩。

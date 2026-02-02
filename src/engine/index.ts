@@ -134,5 +134,6 @@ export {
 export type { BreakthroughView, BreakthroughPlan, PillOption } from './breakthrough/breakthrough'
 export { calcBreakthroughRate, calcBreakthroughRateWithBreakdown, realmIndex, nextRealm } from './breakthrough/rates'
 export type { BreakthroughPillEntry, BreakthroughRateBreakdown } from './breakthrough/rates'
-export { getAwakenSkill, getAllAwakenSkills, getAwakenModifiers } from './awaken_skills'
+export { getAwakenSkill, getAllAwakenSkills, getAwakenModifiers, getAwakenSkillEffectLines } from './awaken_skills'
 export type { AwakenSkillDef } from './awaken_skills'
+export { getAwakenPoolByTags, weightedSampleWithoutReplacement, AWAKEN_RARITY_WEIGHT, getTagWeightMult } from './awaken/roll'

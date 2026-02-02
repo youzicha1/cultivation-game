@@ -20,7 +20,7 @@ import { prevRealm as prevRealmFromReqs } from '../breakthrough_requirements'
 import { buildLegacyModifiers } from '../legacy'
 import { getKungfuModifiers } from '../kungfu_modifiers'
 import { getDailyModifiers } from '../daily'
-import { getAllAwakenSkills, getAwakenSkill } from '../awaken_skills'
+import { rollAwakenSkillChoices as rollAwakenChoicesFromPool } from '../awaken/roll'
 
 export type BreakthroughFocus = 'safe' | 'steady' | 'surge'
 
@@ -147,27 +147,9 @@ export function getBreakthroughView(state: GameState): BreakthroughView {
   }
 }
 
-/** 突破成功后抽 3 个不重复觉醒技能（排除已拥有、同 exclusiveGroup 已选） */
+/** TICKET-35: 突破成功后加权抽 3 个不重复觉醒技能（池/权重/互斥见 awaken/roll） */
 export function rollAwakenSkillChoices(state: GameState, rng: Rng): string[] {
-  const owned = new Set(state.player.awakenSkills ?? [])
-  const all = getAllAwakenSkills()
-  const ownedGroups = new Set<string>()
-  for (const id of owned) {
-    const def = getAwakenSkill(id)
-    if (def?.exclusiveGroup) ownedGroups.add(def.exclusiveGroup)
-  }
-  const pool = all.filter((s) => {
-    if (owned.has(s.id)) return false
-    if (s.exclusiveGroup && ownedGroups.has(s.exclusiveGroup)) return false
-    return true
-  })
-  if (pool.length <= 3) return pool.map((s) => s.id)
-  const indices: number[] = []
-  while (indices.length < 3) {
-    const i = randInt(rng, 0, pool.length - 1)
-    if (!indices.includes(i)) indices.push(i)
-  }
-  return indices.map((i) => pool[i].id)
+  return rollAwakenChoicesFromPool(state, rng)
 }
 
 /** 选择觉醒技能：加入 player.awakenSkills，清空 pendingAwakenChoices */

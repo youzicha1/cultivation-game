@@ -75,6 +75,14 @@
 - **全局挂钩**：修炼/探索/事件加经验统一走 `applyExpGain`；吃丹（突破页、天劫页）统一走 `canTakePill` + `recordPillUse`；功法装备走 `canEquipKungfu`；天劫进入走 `getTribulationGate`（不满足则禁入）
 - **觉醒技能 modifiers**：与功法 modifiers 在 `getKungfuModifiers(state)` 中合并，影响突破/天劫/炼丹/探索公式
 
+### Awaken 池/权重/互斥（TICKET-35）
+- **内容**：`src/content/awaken_skills.v1.json` 觉醒技能 ≥60 条，按 rarity（common/rare/epic/legendary）分层，按 tags 分池：explore / alchemy / tribulation / breakthrough / economy / survival / utility；每 tag 至少 8 条，legendary 至少 10 条；字段 id、name、desc、rarity、tags[]、modifiers{}、exclusiveGroup?；modifiers 复用现有 mult/add 体系。
+- **位置**：`src/engine/awaken/roll.ts`、`src/engine/awaken_skills.ts`（效果文案映射）
+- **权重池**：`getAwakenPoolByTags(state)` 返回 weightsBySkillId。基础权重：common 100、rare 35、epic 20、legendary 8；tag 加权乘数由 `getTagWeightMult(state, tag)` 计算（例：探索多 run_max_danger≥40 → explore×1.25，炼丹多 run_alchemy_count≥5 → alchemy×1.25，天劫频繁 tribulationLevel≥3 → tribulation×1.25）。
+- **互斥**：已拥有技能及其同 `exclusiveGroup` 的技能不再入池；选一个技能后，同组其他技能后续三选一不再出现、且不可同时拥有。
+- **三选一**：`rollAwakenSkillChoices(state, rng)` 使用加权无放回抽样 `weightedSampleWithoutReplacement` 从池中抽 3 个不重复技能 id；池不足 3 个时返回全部可用。
+- **UI**：AwakenSkillScreen 卡片展示稀有度徽章、tags 徽章、短描述（≤18 字）、关键效果 2 条（`getAwakenSkillEffectLines` 从 modifiers 映射）。
+
 ### Progression：realm + stage + level + exp 曲线 + cap挡经验 + 两类突破（TICKET-33）
 - **进度结构**：玩家始终有 `realm`（境界）+ `stageIndex`（阶 1..7）+ `level`（等级 1..99）。每境界内按阶推进：每阶 15 级，最后一阶 9 级（Lv91–99）；阶边界 15,30,45,60,75,90,99。
 - **位置**：`src/engine/progression/stage.ts` — `getStageIndex(level)`、`getStageCapByStage(stageIndex)`、`getStageCap(state)`、`isStageCapped(state)`、`canStageBreakthrough(state)`、`canRealmBreakthrough(state)`；`expNeededForNextLevel(level)` 二次曲线升级所需经验。

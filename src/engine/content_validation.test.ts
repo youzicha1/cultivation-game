@@ -419,4 +419,26 @@ describe('awaken_skills content validation (TICKET-30)', () => {
       }
     }
   })
+
+  it('TICKET-35: 觉醒技能总数≥60', () => {
+    expect(skills.length).toBeGreaterThanOrEqual(60)
+  })
+
+  it('TICKET-35: 每个 tag 至少 8 条', () => {
+    const tagCount: Record<string, number> = {}
+    for (const s of skills) {
+      for (const t of s.tags ?? []) {
+        tagCount[t] = (tagCount[t] ?? 0) + 1
+      }
+    }
+    const requiredTags = ['explore', 'alchemy', 'tribulation', 'breakthrough', 'economy', 'survival', 'utility']
+    for (const tag of requiredTags) {
+      expect(tagCount[tag] ?? 0).toBeGreaterThanOrEqual(8)
+    }
+  })
+
+  it('TICKET-35: legendary 至少 10 条', () => {
+    const legendary = skills.filter((s) => s.rarity === 'legendary')
+    expect(legendary.length).toBeGreaterThanOrEqual(10)
+  })
 })
