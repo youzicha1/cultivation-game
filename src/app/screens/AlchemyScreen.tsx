@@ -217,7 +217,11 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
             )}
           </div>
           <div className="alchemy-materials-row">
-            {alchemyMaterials.map((m) => {
+            {(
+              recipe
+                ? alchemyMaterials.filter((m) => (recipe.cost[m.id] ?? 0) > 0)
+                : []
+            ).map((m) => {
               const have = state.player.materials[m.id] ?? 0
               const need = recipe ? (recipe.cost[m.id] ?? 0) * batch : 0
               const isShort = need > 0 && have < need

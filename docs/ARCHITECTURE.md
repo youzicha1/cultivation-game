@@ -61,6 +61,15 @@
 - **失败惩罚**：失败时**高伤害**（约 14~26+，传承/功法可减伤）；**50% 概率境界跌落一重**（凡人不再降），保底+1、传承点补偿
 - **联动**：炼丹提供丹药→突破加概率；探索/事件链掉落功法→满足后期突破前置；传承树提供突破率/失败减伤/保底加成；功法提供突破率加值与保底倍率
 
+### TICKET-30：境界/等级门槛 + 突破重做 + 觉醒技能
+- **内容**：`src/content/realms.v1.json`（至少 6 境界：凡人/炼气/筑基/金丹/元婴/化神，levelCap 15/30/45/60/75/99，tribulationMaxTier、pillRules、kungfuRule）；`src/content/awaken_skills.v1.json`（觉醒技能 id/name/desc/modifiers/exclusiveGroup）
+- **状态**：`player.level`（1..99）、`player.awakenSkills`（突破成功三选一）；`run.pillUsedByQuality`（本局按品质服用次数）、`run.pendingAwakenChoices`（待选 3 技能）
+- **境界门槛**：`src/engine/realm/gates.ts` — `getLevelCap(state)`、`applyExpGain(state, amount)`（cap 挡住不再增长）、`canTakePill(state, quality)` / `recordPillUse(run, quality)`、`canEquipKungfu(state, kungfuId)`、`getTribulationGate(state, tier)`（tier>max 则禁止或 successRate=0）
+- **突破引擎**：`src/engine/breakthrough/breakthrough.ts` — `getBreakthroughView(state)`（UI 单一来源：境界/下一境界、Lv/Cap、成功率拆解、可用丹药列表与禁用原因）、`attemptBreakthrough(state, plan, rng)`（plan = pills + focus safe/steady/surge；成功则 realm 升级 + 进入觉醒三选一）、`rollAwakenSkillChoices(state, rng)`、`chooseAwakenSkill(state, skillId)`（modifiers 合并到全局）
+- **突破成功率**：`src/engine/breakthrough/rates.ts` — `calcBreakthroughRate` / `calcBreakthroughRateWithBreakdown`（支持多丹药 pills 数组）
+- **全局挂钩**：修炼/探索/事件加经验统一走 `applyExpGain`；吃丹（突破页、天劫页）统一走 `canTakePill` + `recordPillUse`；功法装备走 `canEquipKungfu`；天劫进入走 `getTribulationGate`（不满足则禁入）
+- **觉醒技能 modifiers**：与功法 modifiers 在 `getKungfuModifiers(state)` 中合并，影响突破/天劫/炼丹/探索公式
+
 ### Cultivation: mind 状态与系统联动（TICKET-23）
 - **状态**：`PlayerState.mind`（0~100，默认 50）、`PlayerState.injuredTurns`（受伤剩余回合）
 - **引擎入口**：`src/engine/cultivation.ts`

@@ -21,7 +21,6 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
   const currentEvent = state.run.currentEvent
   const danger = state.run.danger ?? 0
   const mult = getExploreMultiplier(danger)
-  const dangerHigh = danger >= 80
   const streak = state.run.streak ?? 0
   const pendingLoot = state.run.pendingLoot
 
@@ -96,6 +95,28 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
               </Button>
             </div>
           </>
+        ) : danger >= 100 ? (
+          /* 危险值 100：本次探索结束，突出领取奖励，体验更爽 */
+          <>
+            <div className="page-chips">
+              <Chip className="app-chip--danger">危险值 100</Chip>
+              <Chip className="app-chip--gold">收益倍率 ×{mult.toFixed(1)}</Chip>
+              <Chip className="app-chip--pity">连斩 {streak}</Chip>
+              <Chip className="app-chip--hp">{`${state.player.hp}/${state.player.maxHp}`}</Chip>
+            </div>
+            <div className="explore-ended-block">
+              <div className="explore-ended-title">本次探索结束</div>
+              <div className="explore-ended-desc">危险已满，收获满满！领取本次探索奖励。</div>
+              <Button
+                variant="primary"
+                size="lg"
+                className="explore-ended-claim"
+                onClick={() => dispatch({ type: 'EXPLORE_CASH_OUT' })}
+              >
+                领取奖励
+              </Button>
+            </div>
+          </>
         ) : (
           <>
             <div className="page-chips">
@@ -117,48 +138,22 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
                 </div>
               ) : null
             })()}
-            {danger >= 50 && (
-              <div className="explore-high-danger-hint">
-                危险值 ≥50：稀有/传说事件出现概率提升，收益倍率更高！
-              </div>
-            )}
-            {streak >= 3 && streak < 5 && (
-              <div className="explore-streak-hint">
-                连斩{streak}层：下次连斩奖励在 {5 - streak} 层后触发！
-              </div>
-            )}
-            {streak >= 5 && streak < 8 && (
-              <div className="explore-streak-hint">
-                连斩{streak}层：下次连斩奖励在 {8 - streak} 层后触发！
-              </div>
-            )}
-            {streak >= 8 && (
-              <div className="explore-streak-hint explore-streak-hint--max">
-                连斩{streak}层：收手时将获得连斩宝箱奖励！
-              </div>
-            )}
-            {dangerHigh && (
-              <div className="explore-danger-warning">危险值爆表！再深入可能出大事。</div>
-            )}
             {(() => {
-              const cashOutHeal = 6 + Math.round(danger * 0.12)
-              return (
-                <div className="explore-cashout-heal-hint">
-                  收手可回血：+{cashOutHeal}（危险值越高回血越多）
-                </div>
-              )
+              const tips: string[] = []
+              if (danger >= 50) tips.push('危险≥50 稀有/传说概率↑')
+              if (streak >= 3) tips.push(streak >= 8 ? `连斩${streak} 收手得宝箱` : `连斩${streak}`)
+              tips.push(`收手回血 +${6 + Math.round(danger * 0.12)}`)
+              if (danger >= 70 && (state.meta?.pityLegendLoot ?? 0) >= PITY_LEGEND_LOOT_THRESHOLD) tips.push('此时收手易出传奇')
+              return tips.length > 0 ? (
+                <div className="explore-tips-line">{tips.join(' · ')}</div>
+              ) : null
             })()}
-            {danger >= 70 && (state.meta?.pityLegendLoot ?? 0) >= PITY_LEGEND_LOOT_THRESHOLD && (
-              <div className="explore-cashout-pity-hint">此时收手，更容易吃到传奇保底</div>
-            )}
             <div className="page-actions page-actions--wrap">
               <div className="explore-deepen-row">
                 <Button
                   variant="option-green"
                   size="sm"
                   onClick={() => dispatch({ type: 'EXPLORE_DEEPEN' })}
-                  disabled={danger >= 100}
-                  title={danger >= 100 ? '危险值已达上限，无法继续深入' : ''}
                 >
                   继续深入
                 </Button>

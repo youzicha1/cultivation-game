@@ -7,6 +7,7 @@
 import type { PlayerState } from './state'
 import { getEquippedKungfa } from './kungfu'
 import type { KungfuDef } from './kungfu'
+import { getAwakenModifiers } from './awaken_skills'
 
 export type KungfuModifiers = Record<string, number>
 
@@ -79,11 +80,16 @@ function modifiersFromDef(def: KungfuDef): KungfuModifiers {
 }
 
 /**
- * 从三槽位功法合并 modifiers，单一来源供探索/炼丹/突破/天劫使用
+ * 从三槽位功法 + TICKET-30 觉醒技能合并 modifiers，单一来源供探索/炼丹/突破/天劫使用
  */
 export function getKungfuModifiers(state: { player: PlayerState }): KungfuModifiers {
   const equipped = getEquippedKungfa(state)
   const list = equipped.map((def) => modifiersFromDef(def))
+  const awakenIds = state.player.awakenSkills ?? []
+  if (awakenIds.length > 0) {
+    const awakenMod = getAwakenModifiers(awakenIds)
+    if (Object.keys(awakenMod).length > 0) list.push(awakenMod)
+  }
   const merged = mergeModifiers(list)
   // 软上限（兼容旧逻辑）
   if (merged.breakthroughSuccessAdd != null) {

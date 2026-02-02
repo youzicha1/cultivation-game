@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getAlchemyRates, getRecipe } from './alchemy'
-import {
-  calcBreakthroughRate,
-  createInitialGameState,
-  reduceGame,
-  shouldShowClutchHint,
-  type GameState,
-} from './game'
+import { createInitialGameState, reduceGame, shouldShowClutchHint, type GameState } from './game'
+import { calcBreakthroughRate } from './breakthrough/rates'
 import { clearStorage, loadFromStorage, saveToStorage } from './persistence'
 import { createSequenceRng } from './rng'
 import { buildLegacyModifiers } from './legacy'
@@ -20,10 +15,11 @@ describe('game reducer', () => {
     const state = createInitialGameState(1)
     const next = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
     const mind = state.player.mind ?? 50
-    const expGain = 10 + Math.floor(mind / 20)
     const hpGain = 3 + (mind >= 70 ? 1 : 0)
 
-    expect(next.player.exp).toBe(state.player.exp + expGain)
+    // TICKET-30: applyExpGain 用 level/exp，12 经验升到 2 级后 exp=1
+    expect(next.player.level).toBe(2)
+    expect(next.player.exp).toBe(1)
     expect(next.player.hp).toBe(Math.min(state.player.maxHp, state.player.hp + hpGain))
     expect(next.player.mind).toBe(Math.min(100, mind + 6))
     expect(next.run.turn).toBe(state.run.turn + 1)
@@ -233,7 +229,8 @@ describe('game reducer', () => {
   })
 
   it('BREAKTHROUGH_CONFIRM 成功路径：realm+1、pity清零、hp=maxHp', () => {
-    const rng = createSequenceRng([0.0, 0.0, 0.0])
+    // 1 次成功率判定 + rollAwakenSkillChoices 抽 3 个不重复索引（可能多次 randInt）
+    const rng = createSequenceRng(Array.from({ length: 24 }, (_, i) => i / 24))
     const base = createInitialGameState(1)
     const state: GameState = {
       ...base,
@@ -268,6 +265,7 @@ describe('game reducer', () => {
   it('BREAKTHROUGH_CONFIRM 失败路径：高伤害、pity+1、inheritance增加；凡人无降级', () => {
     const rng = createSequenceRng([0.99, 0.0, 0.0])
     const base = createInitialGameState(1)
+    // 凡人不能吃天丹（canTakePill 会拒绝），改用玄丹以便突破时实际消耗
     const state: GameState = {
       ...base,
       screen: 'breakthrough',
@@ -278,14 +276,14 @@ describe('game reducer', () => {
         maxHp: 100,
         elixirs: {
           ...base.player.elixirs,
-          foundation_pill: { fan: 0, xuan: 0, di: 0, tian: 1 },
+          foundation_pill: { fan: 0, xuan: 1, di: 0, tian: 0 },
         },
       },
       run: {
         ...base.run,
         breakthroughPlan: {
           inheritanceSpent: 0,
-          useElixir: { elixirId: 'foundation_pill', quality: 'tian', count: 1 },
+          useElixir: { elixirId: 'foundation_pill', quality: 'xuan', count: 1 },
           previewRate: 0.5,
         },
       },
@@ -298,7 +296,7 @@ describe('game reducer', () => {
     expect(next.player.hp).toBeLessThan(beforeHp)
     expect(next.player.inheritancePoints).toBeGreaterThan(beforeInheritance)
     expect(next.run.lastOutcome?.kind === 'breakthrough' && next.run.lastOutcome.success === false).toBe(true)
-    expect(next.player.elixirs.foundation_pill.tian).toBe(0)
+    expect(next.player.elixirs.foundation_pill.xuan).toBe(0)
     expect(next.player.realm).toBe('凡人')
   })
 
@@ -322,7 +320,7 @@ describe('game reducer', () => {
 
   // TICKET-9: 战报字段测试
   it('BREAKTHROUGH_CONFIRM 成功时 lastOutcome 包含消耗信息', () => {
-    const rng = createSequenceRng([0.0, 0.0, 0.0])
+    const rng = createSequenceRng(Array.from({ length: 24 }, (_, i) => i / 24))
     const base = createInitialGameState(1)
     const state: GameState = {
       ...base,
@@ -351,8 +349,11 @@ describe('game reducer', () => {
       expect(next.run.lastOutcome.success).toBe(true)
       expect(next.run.lastOutcome.consumed).toBeDefined()
       expect(next.run.lastOutcome.consumed?.inheritanceSpent).toBe(2)
-      expect(next.run.lastOutcome.consumed?.elixir?.elixirId).toBe('spirit_pill')
-      expect(next.run.lastOutcome.consumed?.elixir?.count).toBe(1)
+      // TICKET-30: consumed 为 { inheritanceSpent, pills }
+      const pills = next.run.lastOutcome.consumed?.pills
+      expect(pills?.length).toBeGreaterThan(0)
+      expect(pills?.[0].elixirId).toBe('spirit_pill')
+      expect(pills?.[0].count).toBe(1)
       expect(next.run.lastOutcome.deltas.realm).toBe(1)
       expect(next.run.lastOutcome.deltas.hp).toBeGreaterThan(0)
     }
@@ -391,7 +392,10 @@ describe('game reducer', () => {
       expect(next.run.lastOutcome.success).toBe(false)
       expect(next.run.lastOutcome.consumed).toBeDefined()
       expect(next.run.lastOutcome.consumed?.inheritanceSpent).toBe(0)
-      expect(next.run.lastOutcome.consumed?.elixir?.elixirId).toBe('foundation_pill')
+      // TICKET-30: consumed 为 { inheritanceSpent, pills }
+      const pills = next.run.lastOutcome.consumed?.pills
+      expect(pills?.length).toBeGreaterThan(0)
+      expect(pills?.[0].elixirId).toBe('foundation_pill')
       // 失败补偿
       expect(next.run.lastOutcome.deltas.inheritancePoints).toBeGreaterThan(0)
       expect(next.run.lastOutcome.deltas.pity).toBeGreaterThan(0)
@@ -464,7 +468,7 @@ describe('game reducer', () => {
   })
 
   it('rngCalls 增长符合调用次数', () => {
-    const rng = createSequenceRng([0.0, 0.0, 0.0])
+    const rng = createSequenceRng(Array.from({ length: 24 }, (_, i) => i / 24))
     const base = createInitialGameState(1)
     const state: GameState = {
       ...base,
@@ -818,7 +822,12 @@ describe('game reducer', () => {
     it('时辰耗尽进入天劫挑战：timeLeft=1 修炼后 screen=final_trial（TICKET-29 回合制 tribulation）', () => {
       const rng = createSequenceRng([0.9, 0.5, 0]) // 最后一格供 startTribulation pickIntent
       const base = createInitialGameState(1)
-      const state: GameState = { ...base, run: { ...base.run, timeLeft: 1, timeMax: TIME_MAX } }
+      // 凡人 tribulationMaxTier=0 会进 final_result；炼气及以上才进 final_trial
+      const state: GameState = {
+        ...base,
+        player: { ...base.player, realm: '炼气' },
+        run: { ...base.run, timeLeft: 1, timeMax: TIME_MAX },
+      }
       const next = reduceGame(state, { type: 'CULTIVATE_TICK', mode: 'breath' }, rng)
       expect(next.run.timeLeft).toBe(0)
       expect(next.screen).toBe('final_trial')
@@ -841,7 +850,12 @@ describe('game reducer', () => {
     it('DEBUG_SET_TIME_LEFT 可减时辰，耗尽进入天劫挑战（TICKET-29 需 1 次 rng 抽意图）', () => {
       const rng = createSequenceRng([0])
       const base = createInitialGameState(1)
-      const state: GameState = { ...base, screen: 'home', run: { ...base.run, timeLeft: 3, timeMax: TIME_MAX } }
+      const state: GameState = {
+        ...base,
+        screen: 'home',
+        player: { ...base.player, realm: '炼气' },
+        run: { ...base.run, timeLeft: 3, timeMax: TIME_MAX },
+      }
       const next = reduceGame(state, { type: 'DEBUG_SET_TIME_LEFT', value: 0 }, rng)
       expect(next.run.timeLeft).toBe(0)
       expect(next.screen).toBe('final_trial')

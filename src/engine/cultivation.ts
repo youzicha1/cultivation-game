@@ -1,12 +1,13 @@
 /**
  * TICKET-23: 修炼三模式（吐纳/冲脉/悟道）+ 心境 mind 与顿悟事件
- * 纯函数：getCultivateInfo、cultivate；RNG 可注入便于测试。
+ * TICKET-30: 经验统一走 applyExpGain（cap 挡住不再增长）
  */
 
 import type { GameState } from './game'
 import type { PlayerState } from './state'
 import type { Rng } from './rng'
 import { randInt } from './rng'
+import { applyExpGain } from './realm/gates'
 
 export type CultivateMode = 'breath' | 'pulse' | 'insight'
 
@@ -91,10 +92,11 @@ export function cultivateBreath(state: GameState, _rng: Rng): CultivateResult {
   const newHp = Math.min(player.maxHp, player.hp + hpGain)
   const danger = Math.max(0, (state.run.danger ?? 0) - 2)
   const cultivateCount = (state.run.cultivateCount ?? 0) + 1
-
+  const { nextPlayer: expPlayer } = applyExpGain(state, expGain)
   const nextPlayer: PlayerState = {
     ...player,
-    exp: player.exp + expGain,
+    level: expPlayer.level ?? player.level ?? 1,
+    exp: expPlayer.exp ?? 0,
     hp: newHp,
     mind: newMind,
     injuredTurns,
@@ -131,10 +133,11 @@ export function cultivatePulse(state: GameState, rng: Rng): CultivateResult {
   } else {
     spiritStonesGain = 3
   }
-
+  const { nextPlayer: expPlayer } = applyExpGain(state, expGain)
   const nextPlayer: PlayerState = {
     ...player,
-    exp: player.exp + expGain,
+    level: expPlayer.level ?? player.level ?? 1,
+    exp: expPlayer.exp ?? 0,
     hp,
     mind: newMind,
     injuredTurns,
@@ -174,9 +177,11 @@ export function cultivateInsight(state: GameState, rng: Rng): CultivateResult {
         ? { text: '险悟·借势冲关', exp: 25, dangerAdd: 8 }
         : { text: '险悟·以伤换悟', exp: 28, hpCost: 6 },
     }
+    const { nextPlayer: expPlayer } = applyExpGain(state, expGain)
     const nextPlayer: PlayerState = {
         ...player,
-        exp: player.exp + expGain,
+        level: expPlayer.level ?? player.level ?? 1,
+        exp: expPlayer.exp ?? 0,
         mind: clampMind(mind + 2),
       }
     return {
@@ -190,9 +195,11 @@ export function cultivateInsight(state: GameState, rng: Rng): CultivateResult {
 
   const mindDelta = 2
   const newMind = clampMind(mind + mindDelta)
+  const { nextPlayer: expPlayer } = applyExpGain(state, expGain)
   const nextPlayer: PlayerState = {
     ...player,
-    exp: player.exp + expGain,
+    level: expPlayer.level ?? player.level ?? 1,
+    exp: expPlayer.exp ?? 0,
     mind: newMind,
   }
   return {

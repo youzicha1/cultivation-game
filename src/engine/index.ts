@@ -92,3 +92,25 @@ export {
 export type { TribulationTurnView, TribulationState, TribulationActionId } from './tribulation/tribulation'
 export { TRIBULATION_INTENTS, getIntentById } from './tribulation/tribulation_intents'
 export * from './cultivation'
+export {
+  getLevelCap,
+  applyExpGain,
+  canTakePill,
+  recordPillUse,
+  canEquipKungfu,
+  getTribulationGate,
+  getRealmById,
+  getRealmOrder,
+} from './realm/gates'
+export type { RealmDef, PillRule, KungfuRule } from './realm/gates'
+export {
+  getBreakthroughView,
+  attemptBreakthrough,
+  rollAwakenSkillChoices,
+  chooseAwakenSkill,
+} from './breakthrough/breakthrough'
+export type { BreakthroughView, BreakthroughPlan, PillOption } from './breakthrough/breakthrough'
+export { calcBreakthroughRate, calcBreakthroughRateWithBreakdown, realmIndex, nextRealm } from './breakthrough/rates'
+export type { BreakthroughPillEntry, BreakthroughRateBreakdown } from './breakthrough/rates'
+export { getAwakenSkill, getAllAwakenSkills, getAwakenModifiers } from './awaken_skills'
+export type { AwakenSkillDef } from './awaken_skills'

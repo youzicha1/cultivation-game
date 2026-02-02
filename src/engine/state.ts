@@ -11,10 +11,14 @@ import type { RelicId } from './relics'
  * 玩家状态
  */
 export interface PlayerState {
-  /** 境界 */
+  /** 境界（与 realms.v1 的 id 一致） */
   realm: string
-  /** 经验值 */
+  /** TICKET-30: 修炼等级 1..99，达当前境界 cap 后需突破才能继续升 */
+  level: number
+  /** 经验值（达 cap 时不再增长） */
   exp: number
+  /** TICKET-30: 已觉醒技能 ID 列表（突破成功三选一） */
+  awakenSkills?: string[]
   /** 当前生命值 */
   hp: number
   /** 最大生命值 */
@@ -65,6 +69,7 @@ export interface PlayerState {
 export function createInitialState(): PlayerState {
   return {
     realm: '凡人',
+    level: 1,
     exp: 0,
     hp: 100,
     maxHp: 100,
@@ -89,5 +94,6 @@ export function createInitialState(): PlayerState {
     achievements: [],
     relics: [],
     equippedRelics: [null, null, null],
+    awakenSkills: [],
   }
 }

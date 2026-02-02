@@ -1,14 +1,9 @@
 import type { ElixirQuality, GameAction, GameState } from '../../engine'
 import {
-  buildKungfaModifiers,
-  calcBreakthroughRate,
+  getBreakthroughView,
   getDailyEnvironmentDef,
-  getDailyModifiers,
   shouldShowClutchHint,
-  hasBreakthroughPrereq,
-  getRequiredKungfuForTargetRealm,
 } from '../../engine'
-import { relicRegistry } from '../../engine/relics'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
 
@@ -16,8 +11,6 @@ type ScreenProps = {
   state: GameState
   dispatch: (action: GameAction) => void
 }
-
-const REALMS = ['凡人', '炼气', '筑基', '金丹', '元婴', '化神'] as const
 
 const QUALITY_LABEL: Record<ElixirQuality, string> = {
   fan: '凡',
@@ -27,16 +20,6 @@ const QUALITY_LABEL: Record<ElixirQuality, string> = {
 }
 
 const BEST_QUALITY_FIRST: ElixirQuality[] = ['tian', 'di', 'xuan', 'fan']
-
-function realmIndexForDisplay(realm: string): number {
-  const index = REALMS.indexOf(realm as (typeof REALMS)[number])
-  return index < 0 ? 0 : index
-}
-
-function nextRealmDisplay(realm: string): string {
-  const index = realmIndexForDisplay(realm)
-  return REALMS[Math.min(index + 1, REALMS.length - 1)] ?? realm
-}
 
 type UseElixirPlan = {
   elixirId: 'spirit_pill' | 'foundation_pill'
@@ -318,23 +301,11 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
     )
   }
 
-  // ——— 主界面：一屏布局 + 底部固定条 ———
+  // ——— 主界面：一屏布局 + 底部固定条（单一来源 getBreakthroughView） ———
+  const view = getBreakthroughView(state)
   const currentPlan = plan ?? { inheritanceSpent: 0, previewRate: 0, useElixir: undefined }
-  const useElixir = currentPlan.useElixir
-  const targetRealmIndex = realmIndexForDisplay(state.player.realm) + 1
-  const prereqOk = hasBreakthroughPrereq(state.player.relics, targetRealmIndex)
-  const requiredKungfuId = getRequiredKungfuForTargetRealm(targetRealmIndex)
-  const requiredKungfuName = requiredKungfuId ? relicRegistry[requiredKungfuId]?.name : null
-  const dailyMod = state.meta?.daily
-    ? getDailyModifiers(state.meta.daily.environmentId as import('../../engine').DailyEnvironmentId)
-    : undefined
-  const rate = calcBreakthroughRate(
-    state,
-    currentPlan.inheritanceSpent,
-    useElixir,
-    dailyMod?.breakthroughSuccessBonus ?? 0,
-  )
-  const kungfuAdd = buildKungfaModifiers(state).breakthroughRateAdd
+  const rate = view.successRate
+  const kungfuAdd = view.breakdown.kungfuAdd ?? 0
 
   const presetSteady = getPresetPlan(state, 'steady')
   const presetBalanced = getPresetPlan(state, 'balanced')
@@ -361,7 +332,7 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
       {/* 顶部：资源条 */}
       <header className="breakthrough-resource-bar">
         <h2 className="breakthrough-resource-title">
-          {state.player.realm} → {nextRealmDisplay(state.player.realm)}
+          {view.realm} → {view.nextRealm} · Lv.{view.level}/{view.cap}
         </h2>
         {dailyEnv && <div className="breakthrough-daily-hint">今日：{dailyEnv.name}</div>}
         <div className="breakthrough-realm-why" title="境界影响炼丹成功率、天劫难度与化解力、本局传承页点数结算">
@@ -378,16 +349,16 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
       {/* 中部：成功率大数字 + 临门一脚提示 */}
       <div className="breakthrough-main">
         <div className="breakthrough-rate-display">
-          {!prereqOk && requiredKungfuName && (
+          {!view.prereqOk && view.prereqReason && (
             <div className="breakthrough-prereq-warn">
-              需功法「{requiredKungfuName}」方可冲关，否则成功率 0%
+              {view.prereqReason}
             </div>
           )}
           <div className="breakthrough-rate-big">
             <span className="breakthrough-rate-big-value">{(rate * 100).toFixed(0)}%</span>
             <span className="breakthrough-rate-big-label">成功率</span>
           </div>
-          {prereqOk && rate === 0 && (
+          {view.prereqOk && rate === 0 && (
             <div className="breakthrough-kungfu-hint">需丹药或献祭传承增加成功率（基础 0%）</div>
           )}
           {kungfuAdd > 0 && (

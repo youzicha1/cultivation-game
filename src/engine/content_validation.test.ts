@@ -21,6 +21,8 @@ import {
   STREAK_KEYS as ACH_STREAK_KEYS,
   FLAG_KEYS as ACH_FLAG_KEYS,
 } from './achievements'
+import { getRealms } from './realm/gates'
+import { getAllAwakenSkills } from './awaken_skills'
 
 const MATERIAL_IDS: MaterialId[] = alchemyMaterials.map((m) => m.id)
 const VALID_RARITY = ['common', 'rare', 'legendary'] as const
@@ -310,5 +312,72 @@ describe('achievements content validation', () => {
   it('成就总数 ≥ 60，8 组', () => {
     expect(achievementDefsList.length).toBeGreaterThanOrEqual(60)
     expect(achievementGroupsList.length).toBe(8)
+  })
+})
+
+describe('realms content validation (TICKET-30)', () => {
+  it('realms id 唯一', () => {
+    const realms = getRealms()
+    const ids = realms.map((r) => r.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('realms order 连续 0..n', () => {
+    const realms = getRealms()
+    expect(realms.length).toBeGreaterThanOrEqual(6)
+    for (let i = 0; i < realms.length; i++) {
+      expect(realms[i].order).toBe(i)
+    }
+  })
+
+  it('levelCap 在 1..99', () => {
+    const realms = getRealms()
+    for (const r of realms) {
+      expect(r.levelCap).toBeGreaterThanOrEqual(1)
+      expect(r.levelCap).toBeLessThanOrEqual(99)
+    }
+  })
+
+  it('pillRules 含 fan/xuan/di/tian，每项有 minRealmOrder、maxPerRun', () => {
+    const realms = getRealms()
+    const qualities = ['fan', 'xuan', 'di', 'tian']
+    for (const r of realms) {
+      expect(r.pillRules).toBeDefined()
+      for (const q of qualities) {
+        const rule = (r.pillRules as Record<string, { minRealmOrder?: number; maxPerRun?: number }>)[q]
+        expect(rule).toBeDefined()
+        expect(typeof rule.minRealmOrder).toBe('number')
+        expect(typeof rule.maxPerRun).toBe('number')
+        expect(rule.maxPerRun).toBeGreaterThanOrEqual(0)
+      }
+    }
+  })
+})
+
+describe('awaken_skills content validation (TICKET-30)', () => {
+  const skills = getAllAwakenSkills()
+
+  it('awaken skills id 唯一', () => {
+    const ids = skills.map((s) => s.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('awaken skills 含 name、desc、modifiers', () => {
+    for (const s of skills) {
+      expect(s.id).toBeDefined()
+      expect(s.name).toBeDefined()
+      expect(s.desc).toBeDefined()
+      expect(s.modifiers != null && typeof s.modifiers === 'object').toBe(true)
+    }
+  })
+
+  it('modifiers 值为 number', () => {
+    for (const s of skills) {
+      if (s.modifiers && typeof s.modifiers === 'object') {
+        for (const k of Object.keys(s.modifiers)) {
+          expect(typeof (s.modifiers as Record<string, number>)[k]).toBe('number')
+        }
+      }
+    }
   })
 })

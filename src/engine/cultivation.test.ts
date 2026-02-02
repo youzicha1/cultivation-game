@@ -58,8 +58,11 @@ describe('cultivateBreath', () => {
     const result = cultivateBreath(state, rng)
     expect(result.nextPlayer.hp).toBe(80 + 3)
     expect(result.nextPlayer.mind).toBe(50 + 6)
-    expect(result.nextPlayer.exp).toBe(0 + (10 + Math.floor(50 / 20)))
-    expect(result.toast?.expGain).toBe(12)
+    // TICKET-30: applyExpGain 用 level/exp，12 经验升到 2 级后剩余 exp=1
+    const expGain = 10 + Math.floor(50 / 20)
+    expect(result.nextPlayer.level).toBe(2)
+    expect(result.nextPlayer.exp).toBe(1)
+    expect(result.toast?.expGain).toBe(expGain)
     expect(result.toast?.hpGain).toBe(3)
     expect(result.toast?.mindDelta).toBe(6)
   })
@@ -97,8 +100,10 @@ describe('cultivatePulse', () => {
     expect(result.nextPlayer.hp).toBe(state.player.hp)
     expect(result.nextPlayer.spiritStones).toBe(3)
     expect(result.nextPlayer.mind).toBe(56)
-    expect(result.nextPlayer.exp).toBeGreaterThanOrEqual(16)
-    expect(result.nextPlayer.exp).toBeLessThanOrEqual(22)
+    // TICKET-30: applyExpGain 用 level/exp，16~22 经验升到 2 级后 exp 在 [5,11]
+    expect(result.nextPlayer.level).toBe(2)
+    expect(result.nextPlayer.exp).toBeGreaterThanOrEqual(5)
+    expect(result.nextPlayer.exp).toBeLessThanOrEqual(11)
   })
   it('使用 sequence rng 翻车时 hp-8、injuredTurns+2', () => {
     const state = mockState({

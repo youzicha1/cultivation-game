@@ -190,6 +190,16 @@
 - **功法接入**：tribulationDamageMult 影响伤害；tribulationSurgeRateAdd 影响逆冲成功率；成就 build_mod_tribulation 在功法影响天劫时触发。
 - **单一来源**：getTribulationTurnView(state) 输出 UI 所需一切；startTribulation(state, rng)、applyTribulationAction(state, action, rng, pill?)；RNG 可 mock。
 - **UI**：FinalTrialScreen 重做——状态条（HP/护盾/回合/debuff）、天道意图卡、四行动按钮（吞丹展开丹药面板）、回合日志；数据仅来自 getTribulationTurnView。
+
+## TICKET-30 完成项（突破系统重做：99 级 + 境界门槛 + 觉醒技能三选一）
+
+- **境界/等级**：`realms.v1.json` 至少 6 境界，每境界 levelCap（凡人 15/炼气 30/筑基 45/金丹 60/元婴 75/化神 99）；player.level（1..99）、player.exp；达 cap 后经验不再增长，需突破才能继续升级。
+- **四类门槛**：经验（cap 挡）、丹药（地/天有境界与每局上限 pillRules）、功法（kungfuRule 限制可装备最高稀有度）、天劫（tier>max 则禁入或 successRate=0）。
+- **突破页**：getBreakthroughView(state) 单一来源；背包丹药通用选择 + 突破姿态三选一（safe/steady/surge）+ 成功率预览/拆解；attemptBreakthrough(state, plan, rng)，plan = { pills, focus }。
+- **觉醒技能**：突破成功后 rollAwakenSkillChoices(state, rng) 抽 3 选 1（不重复）；chooseAwakenSkill(state, skillId)；技能 modifiers 合并到全局（getKungfuModifiers 含 awaken）。
+- **全局挂钩**：修炼/探索/事件加经验走 applyExpGain；吃丹走 canTakePill + recordPillUse；功法装备走 canEquipKungfu；天劫进入走 getTribulationGate。
+- **UI**：BreakthroughScreen 用 getBreakthroughView 展示 Lv/Cap、成功率拆解；AwakenSkillScreen 三选一；CultivateScreen 显示 Lv/99、已到上限需突破提示。
+- **测试**：level_cap.test.ts、pill_gate.test.ts、kungfu_gate.test.ts、tribulation_gate.test.ts；content_validation 覆盖 realms/awaken_skills。
 - **测试**：tribulation.test.ts 覆盖 startTribulation 初始化、getTribulationTurnView、四动作各至少 1 例、胜负判定、RNG 可控；game.test.ts 更新时辰耗尽进入 tribulation。
 - **工程**：tribulation.ts、tribulation_intents.ts、persistence run.tribulation、kungfu_modifiers tribulationSurgeRateAdd、docs ARCHITECTURE + ROADMAP
 

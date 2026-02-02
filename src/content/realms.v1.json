@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "realms": [
+    { "id": "凡人", "name": "凡人", "order": 0, "levelCap": 15, "tribulationMaxTier": 0, "pillRules": { "fan": { "minRealmOrder": 0, "maxPerRun": 99 }, "xuan": { "minRealmOrder": 0, "maxPerRun": 99 }, "di": { "minRealmOrder": 2, "maxPerRun": 3 }, "tian": { "minRealmOrder": 4, "maxPerRun": 99 } }, "kungfuRule": { "maxRarityOrder": 0 } },
+    { "id": "炼气", "name": "炼气", "order": 1, "levelCap": 30, "tribulationMaxTier": 2, "pillRules": { "fan": { "minRealmOrder": 0, "maxPerRun": 99 }, "xuan": { "minRealmOrder": 0, "maxPerRun": 99 }, "di": { "minRealmOrder": 2, "maxPerRun": 3 }, "tian": { "minRealmOrder": 4, "maxPerRun": 99 } }, "kungfuRule": { "maxRarityOrder": 1 } },
+    { "id": "筑基", "name": "筑基", "order": 2, "levelCap": 45, "tribulationMaxTier": 4, "pillRules": { "fan": { "minRealmOrder": 0, "maxPerRun": 99 }, "xuan": { "minRealmOrder": 0, "maxPerRun": 99 }, "di": { "minRealmOrder": 2, "maxPerRun": 3 }, "tian": { "minRealmOrder": 4, "maxPerRun": 99 } }, "kungfuRule": { "maxRarityOrder": 2 } },
+    { "id": "金丹", "name": "金丹", "order": 3, "levelCap": 60, "tribulationMaxTier": 6, "pillRules": { "fan": { "minRealmOrder": 0, "maxPerRun": 99 }, "xuan": { "minRealmOrder": 0, "maxPerRun": 99 }, "di": { "minRealmOrder": 2, "maxPerRun": 3 }, "tian": { "minRealmOrder": 4, "maxPerRun": 99 } }, "kungfuRule": { "maxRarityOrder": 3 } },
+    { "id": "元婴", "name": "元婴", "order": 4, "levelCap": 75, "tribulationMaxTier": 9, "pillRules": { "fan": { "minRealmOrder": 0, "maxPerRun": 99 }, "xuan": { "minRealmOrder": 0, "maxPerRun": 99 }, "di": { "minRealmOrder": 2, "maxPerRun": 3 }, "tian": { "minRealmOrder": 4, "maxPerRun": 99 } }, "kungfuRule": { "maxRarityOrder": 4 } },
+    { "id": "化神", "name": "化神", "order": 5, "levelCap": 99, "tribulationMaxTier": 12, "pillRules": { "fan": { "minRealmOrder": 0, "maxPerRun": 99 }, "xuan": { "minRealmOrder": 0, "maxPerRun": 99 }, "di": { "minRealmOrder": 2, "maxPerRun": 3 }, "tian": { "minRealmOrder": 4, "maxPerRun": 99 } }, "kungfuRule": { "maxRarityOrder": 5 } }
+  ]
+}

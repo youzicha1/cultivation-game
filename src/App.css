@@ -1595,6 +1595,37 @@
 
 /* explore 已用 page-chips + page-actions */
 
+/* 危险值 100：本次探索结束，突出领取奖励 */
+.explore-ended-block {
+  text-align: center;
+  padding: 20px 16px;
+  border-radius: 12px;
+  background: linear-gradient(165deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 163, 74, 0.08) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  margin-top: 8px;
+}
+.explore-ended-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #86efac;
+  margin-bottom: 8px;
+}
+.explore-ended-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 16px;
+}
+.explore-ended-claim {
+  min-width: 160px;
+}
+
+/* 探索页小提示：单行精简，不占大块布局 */
+.explore-tips-line {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
 .explore-danger-warning {
   font-size: 13px;
   font-weight: 700;
@@ -3371,7 +3402,7 @@
   text-shadow: 0 0 12px rgba(255, 200, 80, 0.4);
 }
 
-/* 炉身：铜鼎体 */
+/* 炉身：葫芦体（下腹大球 → 收腰 → 上腹小球 → 炉口） */
 .alchemy-furnace__body {
   transition: opacity 0.2s ease;
 }

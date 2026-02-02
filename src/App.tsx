@@ -18,6 +18,7 @@ import { LegacyScreen } from './app/screens/LegacyScreen'
 import { FinalTrialScreen } from './app/screens/FinalTrialScreen'
 import { FinalResultScreen } from './app/screens/FinalResultScreen'
 import { VictoryScreen } from './app/screens/VictoryScreen'
+import { AwakenSkillScreen } from './app/screens/AwakenSkillScreen'
 import { ShopScreen } from './app/screens/ShopScreen'
 import { DiagnosticsScreen } from './app/screens/DiagnosticsScreen'
 import { APP_VERSION } from './app/version'
@@ -92,6 +93,8 @@ function App() {
             clearSave={clearSave}
           />
         )
+      case 'awaken_skill':
+        return <AwakenSkillScreen state={state} dispatch={dispatch} />
       default:
         return <HomeScreen state={state} dispatch={dispatch} />
     }

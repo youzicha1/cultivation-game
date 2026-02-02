@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "awakenSkills": [
+    { "id": "awaken_break_1", "name": "破障灵觉", "desc": "突破时成功率+3%。", "rarity": "common", "tags": ["breakthrough"], "modifiers": { "breakthroughSuccessAdd": 0.03 }, "exclusiveGroup": null },
+    { "id": "awaken_break_2", "name": "冲关锐意", "desc": "突破失败时保底+1额外增长。", "rarity": "rare", "tags": ["breakthrough"], "modifiers": { "breakthroughPityBonus": 0.5 }, "exclusiveGroup": null },
+    { "id": "awaken_trib_1", "name": "劫雷亲和", "desc": "天劫伤害×0.92。", "rarity": "common", "tags": ["tribulation"], "modifiers": { "tribulationDamageMult": 0.92 }, "exclusiveGroup": null },
+    { "id": "awaken_trib_2", "name": "逆冲之志", "desc": "天劫逆冲成功率+4%。", "rarity": "rare", "tags": ["tribulation"], "modifiers": { "tribulationSurgeRateAdd": 0.04 }, "exclusiveGroup": null },
+    { "id": "awaken_alch_1", "name": "丹感", "desc": "炼丹成功率+2%。", "rarity": "common", "tags": ["alchemy"], "modifiers": { "alchemySuccessAdd": 0.02 }, "exclusiveGroup": null },
+    { "id": "awaken_alch_2", "name": "稳火", "desc": "爆丹率×0.95。", "rarity": "rare", "tags": ["alchemy"], "modifiers": { "alchemyBoomMul": 0.95 }, "exclusiveGroup": null },
+    { "id": "awaken_explore_1", "name": "险中求", "desc": "探索收手撤退成功率+2%。", "rarity": "common", "tags": ["explore"], "modifiers": { "exploreRetreatAdd": 0.02 }, "exclusiveGroup": null },
+    { "id": "awaken_explore_2", "name": "深境步", "desc": "深入时危险增长×0.97。", "rarity": "rare", "tags": ["explore"], "modifiers": { "exploreDangerIncMult": 0.97 }, "exclusiveGroup": null },
+    { "id": "awaken_mixed_1", "name": "天人一线", "desc": "突破+2%、天劫逆冲+2%。", "rarity": "epic", "tags": ["breakthrough", "tribulation"], "modifiers": { "breakthroughSuccessAdd": 0.02, "tribulationSurgeRateAdd": 0.02 }, "exclusiveGroup": "mixed_a" },
+    { "id": "awaken_mixed_2", "name": "丹武同修", "desc": "炼丹成功率+1%、探索撤退+1%。", "rarity": "epic", "tags": ["alchemy", "explore"], "modifiers": { "alchemySuccessAdd": 0.01, "exploreRetreatAdd": 0.01 }, "exclusiveGroup": "mixed_b" }
+  ]
+}

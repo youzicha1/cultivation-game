@@ -230,6 +230,8 @@ function normalizeLoadedState(state: GameState): GameState {
       : defaultPlayer.equippedRelics,
     mind: typeof loadedPlayer.mind === 'number' ? Math.max(0, Math.min(100, loadedPlayer.mind)) : defaultPlayer.mind,
     injuredTurns: typeof loadedPlayer.injuredTurns === 'number' && loadedPlayer.injuredTurns >= 0 ? loadedPlayer.injuredTurns : 0,
+    level: typeof loadedPlayer.level === 'number' ? Math.max(1, Math.min(99, loadedPlayer.level)) : (defaultPlayer as { level?: number }).level ?? 1,
+    awakenSkills: Array.isArray(loadedPlayer.awakenSkills) ? loadedPlayer.awakenSkills : (defaultPlayer as { awakenSkills?: string[] }).awakenSkills ?? [],
   }
 
   const loadedChain = (state.run as { chain?: { activeChainId?: string; chapter?: number; completed?: Record<string, boolean> } }).chain

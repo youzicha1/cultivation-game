@@ -39,9 +39,9 @@ export function AlchemyFurnaceGauge(props: AlchemyFurnaceGaugeProps) {
   const gradElixirId = `furnace-elixir-grad-${safeId}`
   const gradPillId = `furnace-pill-grad-${safeId}`
 
-  /* 葫芦丹炉：炉口 y≈38，炉底 y≈262，液面在此范围内 */
+  /* 葫芦丹炉：炉口 y≈36，炉底 y≈276，液面在此范围内 */
   const fillTopY = 42
-  const fillBottomY = 258
+  const fillBottomY = 266
   const fillRange = fillBottomY - fillTopY
   const fillY = fillTopY + (1 - success) * fillRange
 
@@ -65,10 +65,10 @@ export function AlchemyFurnaceGauge(props: AlchemyFurnaceGaugeProps) {
     >
       <div className="alchemy-furnace__svgWrap">
         <svg className="alchemy-furnace__svg" viewBox="0 0 240 280" aria-hidden="true">
-          {/* 葫芦丹炉轮廓：下腹大 → 收腰 → 上腹小 → 炉口 */}
+          {/* 葫芦丹炉轮廓：下腹大球 → 明显收腰 → 上腹小球 → 细颈 → 炉口 */}
           <defs>
             <clipPath id={clipId}>
-              <path d="M50 260 C50 232 62 204 86 186 C84 170 82 142 82 112 C82 82 98 54 120 40 C142 54 158 82 158 112 C158 142 156 170 154 186 C178 204 190 232 190 260 Q120 272 50 260 Z" />
+              <path d="M120 36 Q98 40 84 52 C68 66 64 86 64 102 C64 118 74 128 84 132 C86 144 78 158 72 178 C62 208 56 242 56 262 Q56 272 120 276 Q184 272 184 262 C184 242 178 208 168 178 C162 158 154 144 156 132 C166 128 176 118 176 102 C176 86 172 66 156 52 Q142 40 120 36 Z" />
             </clipPath>
             <linearGradient id={gradBodyId} x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="rgba(180, 120, 60, 0.85)" />
@@ -95,28 +95,28 @@ export function AlchemyFurnaceGauge(props: AlchemyFurnaceGaugeProps) {
             </radialGradient>
           </defs>
 
-          {/* 炉身（葫芦体） */}
+          {/* 炉身（葫芦体：下腹大球 → 收腰 → 上腹小球 → 细颈 → 炉口） */}
           <path
             className="alchemy-furnace__body"
             fill={`url(#${gradBodyId})`}
-            d="M50 260 C50 232 62 204 86 186 C84 170 82 142 82 112 C82 82 98 54 120 40 C142 54 158 82 158 112 C158 142 156 170 154 186 C178 204 190 232 190 260 Q120 272 50 260 Z"
+            d="M120 36 Q98 40 84 52 C68 66 64 86 64 102 C64 118 74 128 84 132 C86 144 78 158 72 178 C62 208 56 242 56 262 Q56 272 120 276 Q184 272 184 262 C184 242 178 208 168 178 C162 158 154 144 156 132 C166 128 176 118 176 102 C176 86 172 66 156 52 Q142 40 120 36 Z"
           />
           <g clipPath={fillClipUrl}>
             <ellipse
               className="alchemy-furnace__innerGlow"
               cx="120"
               cy="155"
-              rx="52"
-              ry="58"
+              rx="48"
+              ry="62"
               fill={`url(#furnace-innerGlow-${safeId})`}
             />
           </g>
           <path
             className="alchemy-furnace__bodyStroke"
             fill="none"
-            d="M50 260 C50 232 62 204 86 186 C84 170 82 142 82 112 C82 82 98 54 120 40 C142 54 158 82 158 112 C158 142 156 170 154 186 C178 204 190 232 190 260 Q120 272 50 260 Z"
+            d="M120 36 Q98 40 84 52 C68 66 64 86 64 102 C64 118 74 128 84 132 C86 144 78 158 72 178 C62 208 56 242 56 262 Q56 272 120 276 Q184 272 184 262 C184 242 178 208 168 178 C162 158 154 144 156 132 C166 128 176 118 176 102 C176 86 172 66 156 52 Q142 40 120 36 Z"
           />
-          <path className="alchemy-furnace__rim" d="M80 42 Q120 32 160 42" />
+          <path className="alchemy-furnace__rim" d="M84 50 Q120 44 156 50" />
 
           {/* 药液 + 丹丸 + 雾气（炉内） */}
           <g clipPath={fillClipUrl}>

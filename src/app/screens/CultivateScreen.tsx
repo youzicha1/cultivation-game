@@ -1,5 +1,5 @@
 import type { GameAction, GameState } from '../../engine'
-import { getCultivateInfo } from '../../engine'
+import { getCultivateInfo, getLevelCap } from '../../engine'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
 import { Panel } from '../ui/Panel'
@@ -44,9 +44,12 @@ export function CultivateScreen({ state, dispatch }: ScreenProps) {
             />
           </div>
           <div className="stat-row">
-            <span className="stat-label">修为</span>
+            <span className="stat-label">修为 · Lv.{state.player.level ?? 1}/{getLevelCap(state)}</span>
             <span className="stat-value">{state.player.exp}</span>
           </div>
+          {(state.player.level ?? 1) >= getLevelCap(state) && (
+            <div className="cultivate-cap-hint">已到上限，需突破</div>
+          )}
           <div className="stat-bar">
             <div
               className="stat-bar-fill stat-bar-fill-exp"

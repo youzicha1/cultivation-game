@@ -44,13 +44,9 @@ import {
   type DailyReward,
 } from './daily'
 import { relicRegistry, RELIC_IDS, type RelicId } from './relics'
-import {
-  hasBreakthroughPrereq,
-  prevRealm as prevRealmFromReqs,
-} from './breakthrough_requirements'
 import { buildKungfaModifiers, getKungfu } from './kungfu'
 import { getKungfuModifiers } from './kungfu_modifiers'
-import { getMindBreakthroughBonus, getMindDangerIncMult, getMindAlchemySuccessBonus, cultivate, type CultivateMode, type InsightEvent } from './cultivation'
+import { getMindDangerIncMult, getMindAlchemySuccessBonus, cultivate, type CultivateMode, type InsightEvent } from './cultivation'
 import {
   buildLegacyModifiers,
   purchaseUpgrade,
@@ -114,6 +110,13 @@ import {
   type TribulationState,
   type TribulationActionId,
 } from './tribulation/tribulation'
+import {
+  attemptBreakthrough,
+  chooseAwakenSkill,
+  type BreakthroughPlan,
+} from './breakthrough/breakthrough'
+import { calcBreakthroughRateWithBreakdown, realmIndex } from './breakthrough/rates'
+import { applyExpGain, canEquipKungfu, canTakePill, recordPillUse, getTribulationGate } from './realm/gates'
 
 export type ScreenId =
   | 'start'
@@ -135,6 +138,7 @@ export type ScreenId =
   | 'victory'
   | 'shop'
   | 'diagnostics'
+  | 'awaken_skill'
 
 /** TICKET-28: 成就系统 v2 — 已领取成就 ID */
 export type AchievementClaimed = Record<string, true>
@@ -164,6 +168,10 @@ export type GameState = {
     shardExchangeJustClaimed?: string
     /** TICKET-5: 事件链进度 chainId -> 当前步序 */
     chainProgress: Record<string, number>
+    /** TICKET-30: 本局按品质已服用丹药次数（用于境界/每局上限门槛） */
+    pillUsedByQuality?: { fan: number; xuan: number; di: number; tian: number }
+    /** TICKET-30: 突破成功后待选觉醒技能（3 选 1，选完清空） */
+    pendingAwakenChoices?: string[]
     /** TICKET-11: 章节奇遇链（存档可续） */
     chain?: {
       activeChainId?: string
@@ -209,14 +217,17 @@ export type GameState = {
     }
     /** 上次抽到事件的稀有度（调试用） */
     exploreLastRarity?: 'common' | 'rare' | 'legendary'
+    /** TICKET-30: 支持 pills[]+focus 或旧 useElixir 单丹 */
     breakthroughPlan?: {
       useElixir?: {
         elixirId: 'spirit_pill' | 'foundation_pill'
         quality: ElixirQuality
         count: number
       }
+      pills?: import('./breakthrough/rates').BreakthroughPillEntry[]
       inheritanceSpent: number
-      previewRate: number
+      focus?: 'safe' | 'steady' | 'surge'
+      previewRate?: number
     }
     alchemyPlan?: { recipeId: RecipeId; batch: number; heat?: import('./alchemy').HeatLevel }
     /** TICKET-18: 从炼丹页带入的缺口（坊市一键补齐用） */
@@ -252,6 +263,7 @@ export type GameState = {
           consumed?: {
             inheritanceSpent: number
             elixir?: { elixirId: 'spirit_pill' | 'foundation_pill'; quality: ElixirQuality; count: number }
+            pills?: import('./breakthrough/rates').BreakthroughPillEntry[]
           }
         }
       | {
@@ -328,6 +340,8 @@ export type GameAction =
         quality: ElixirQuality
         count: number
       }
+      pills?: import('./breakthrough/rates').BreakthroughPillEntry[]
+      focus?: 'safe' | 'steady' | 'surge'
     }
   | { type: 'BREAKTHROUGH_CONFIRM' }
   | { type: 'OUTCOME_CONTINUE'; to: ScreenId }
@@ -354,6 +368,7 @@ export type GameAction =
     }
   | { type: 'CLAIM_ACHIEVEMENT'; id: string }
   | { type: 'CLAIM_ALL_ACHIEVEMENTS' }
+  | { type: 'CHOOSE_AWAKEN_SKILL'; skillId: string }
 
 /** 功法/碎片跨局种子：新游戏时继承已获得功法与碎片 */
 export type PersistentKungfuSeed = { unlockedKungfu: string[]; kungfaShards: number }
@@ -418,10 +433,6 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
 
-function clampRate(value: number): number {
-  return clamp(value, 0, 0.95)
-}
-
 function addLog(state: GameState, message: string): GameState {
   const nextLog = [...state.log, message]
   if (nextLog.length > 50) {
@@ -473,8 +484,21 @@ function applyTimeAndMaybeFinale(state: GameState, cost: number, rng: Rng): Game
   return next
 }
 
-/** TICKET-29: 时辰已耗尽时，进入天劫回合制挑战页（startTribulation） */
+/** TICKET-29: 时辰已耗尽时，进入天劫回合制挑战页（startTribulation）；TICKET-30: 境界不足则禁入 */
 function enterFinalTrial(state: GameState, rng: Rng): GameState {
+  const tier = (state.run.tribulationLevel ?? 0) + 1
+  const gate = getTribulationGate(state, tier)
+  if (!gate.allowed) {
+    return {
+      ...state,
+      screen: 'final_result',
+      summary: {
+        cause: gate.reason ?? '境界不足，无法渡此劫',
+        turns: state.run.turn,
+        endingId: 'retire',
+      },
+    }
+  }
   return startTribulation(state, rng)
 }
 
@@ -504,75 +528,6 @@ function calculateLegacyPointsReward(state: GameState): number {
   return points
 }
 
-function nextRealm(current: string): string {
-  const realms = ['凡人', '炼气', '筑基', '金丹', '元婴', '化神']
-  const index = realms.indexOf(current)
-  if (index < 0) {
-    return current
-  }
-  return realms[Math.min(index + 1, realms.length - 1)]
-}
-
-function realmIndex(realm: string): number {
-  const realms = ['凡人', '炼气', '筑基', '金丹', '元婴', '化神']
-  const index = realms.indexOf(realm)
-  return index < 0 ? 0 : index
-}
-
-/** 突破基础成功率 0%；仅丹药/传承/功法/心境等可加概率；后期境界需特定功法否则为 0 */
-export function calcBreakthroughRate(
-  state: GameState,
-  inheritanceSpent: number,
-  useElixir?: {
-    elixirId: 'spirit_pill' | 'foundation_pill'
-    quality: ElixirQuality
-    count: number
-  },
-  dailySuccessBonus: number = 0,
-): number {
-  const targetRealmIndex = realmIndex(state.player.realm) + 1
-  if (!hasBreakthroughPrereq(state.player.relics, targetRealmIndex)) {
-    return 0
-  }
-
-  const base = 0
-  const inheritanceBonus = inheritanceSpent * 0.08
-  const legacyCtx = buildLegacyModifiers(state.meta)
-  const pityBonusBase = state.player.pity * 0.02
-  const pityBonus = Math.min(0.08, pityBonusBase) + (state.player.pity >= 5 ? legacyCtx.breakthroughPityBonusRate : 0)
-  const dangerPenalty = state.run.danger > 0 ? state.run.danger * 0.015 : 0
-
-  const elixirBonus = (() => {
-    if (!useElixir || useElixir.count <= 0) {
-      return 0
-    }
-    const count = useElixir.count
-    const spiritBonus: Record<ElixirQuality, number> = {
-      fan: 0.04,
-      xuan: 0.07,
-      di: 0.11,
-      tian: 0.16,
-    }
-    const foundationBonus: Record<ElixirQuality, number> = {
-      fan: 0.06,
-      xuan: 0.1,
-      di: 0.15,
-      tian: 0.22,
-    }
-    const per =
-      useElixir.elixirId === 'foundation_pill'
-        ? foundationBonus[useElixir.quality]
-        : spiritBonus[useElixir.quality]
-    return Math.min(0.6, per * count)
-  })()
-
-  const mod = getKungfuModifiers(state)
-  const kungfuAdd = mod.breakthroughSuccessAdd ?? 0
-  const legacyAdd = buildLegacyModifiers(state.meta).breakthroughRateAdd
-  const mindBonus = getMindBreakthroughBonus(state.player.mind ?? 50)
-  return clampRate(base + inheritanceBonus + pityBonus + elixirBonus - dangerPenalty + dailySuccessBonus + kungfuAdd + legacyAdd + mindBonus)
-}
-
 /** TICKET-9: 临门一脚提示判定（纯函数，便于测试） */
 export function shouldShowClutchHint(state: GameState): {
   show: boolean
@@ -597,6 +552,18 @@ export function shouldShowClutchHint(state: GameState): {
   return { show: false, level: null, message: '' }
 }
 
+type BreakthroughPillEntry = import('./breakthrough/rates').BreakthroughPillEntry
+
+/** 本次突破计划内天丹合计最多 1 颗（失败后下次突破仍可用 1 颗，由本函数与 maxPerRun 共同实现） */
+function capTianPerBreakthroughAttempt(pills: BreakthroughPillEntry[]): BreakthroughPillEntry[] {
+  const tianEntries = pills.filter((p) => p.quality === 'tian')
+  const tianTotal = tianEntries.reduce((s, p) => s + p.count, 0)
+  if (tianTotal <= 1) return pills
+  const rest = pills.filter((p) => p.quality !== 'tian')
+  const first = tianEntries[0]
+  return [...rest, { ...first, count: 1 }]
+}
+
 function createBreakthroughPlan(
   state: GameState,
   inheritanceSpent: number,
@@ -605,39 +572,36 @@ function createBreakthroughPlan(
     quality: ElixirQuality
     count: number
   },
+  pills?: import('./breakthrough/rates').BreakthroughPillEntry[],
+  focus?: 'safe' | 'steady' | 'surge',
 ): NonNullable<GameState['run']['breakthroughPlan']> {
-  const inheritance = clamp(inheritanceSpent, 0, state.player.inheritancePoints)
+  const inheritance = clamp(inheritanceSpent, 0, state.player.inheritancePoints ?? 0)
   let normalizedUseElixir: NonNullable<GameState['run']['breakthroughPlan']>['useElixir']
-  if (useElixir && useElixir.count > 0) {
-    const available = state.player.elixirs[useElixir.elixirId][useElixir.quality]
-    const finalCount = clamp(useElixir.count, 0, available)
+  let normalizedPills = pills ?? []
+  if (useElixir && useElixir.count > 0 && normalizedPills.length === 0) {
+    const available = (state.player.elixirs[useElixir.elixirId]?.[useElixir.quality] ?? 0)
+    let finalCount = clamp(useElixir.count, 0, available)
+    // 天丹：每次突破最多只能用 1 颗加持概率（失败后下次突破仍可用 1 颗）
+    if (useElixir.quality === 'tian' && finalCount > 1) finalCount = 1
     if (finalCount > 0) {
       normalizedUseElixir = {
         elixirId: useElixir.elixirId,
         quality: useElixir.quality,
         count: finalCount,
       }
+      normalizedPills = [normalizedUseElixir]
     }
   }
+  // 本次突破计划内天丹合计最多 1 颗（与境界“本局可多次、每次 1 颗”一致）
+  normalizedPills = capTianPerBreakthroughAttempt(normalizedPills)
+  const dailyBonus = state.meta?.daily ? getDailyModifiersFromState(state).breakthroughSuccessBonus ?? 0 : 0
+  const { rate } = calcBreakthroughRateWithBreakdown(state, inheritance, normalizedPills, dailyBonus)
   return {
     inheritanceSpent: inheritance,
     useElixir: normalizedUseElixir,
-    previewRate: calcBreakthroughRate(state, inheritance, normalizedUseElixir),
-  }
-}
-
-function buildOutcomeDeltas(
-  before: GameState['player'],
-  after: GameState['player'],
-): Extract<NonNullable<GameState['run']['lastOutcome']>, { kind: 'breakthrough' }>['deltas'] {
-  return {
-    realm: realmIndex(after.realm) - realmIndex(before.realm),
-    hp: after.hp - before.hp,
-    maxHp: after.maxHp - before.maxHp,
-    exp: after.exp - before.exp,
-    pills: after.pills - before.pills,
-    inheritancePoints: after.inheritancePoints - before.inheritancePoints,
-    pity: after.pity - before.pity,
+    pills: normalizedPills.length > 0 ? normalizedPills : undefined,
+    focus: focus ?? 'steady',
+    previewRate: rate,
   }
 }
 
@@ -963,7 +927,10 @@ export function reduceGame(
           logMsg = `【顿悟·稳】${ev.choiceA.text}。`
         }
       } else {
-        if (ev.choiceB.exp != null) nextPlayer = { ...nextPlayer, exp: nextPlayer.exp + ev.choiceB.exp }
+        if (ev.choiceB.exp != null) {
+          const { nextPlayer: expPlayer } = applyExpGain({ ...state, player: nextPlayer }, ev.choiceB.exp)
+          nextPlayer = { ...nextPlayer, level: expPlayer.level ?? nextPlayer.level ?? 1, exp: expPlayer.exp ?? 0 }
+        }
         if (ev.choiceB.dangerAdd != null) nextRun = { ...nextRun, danger: Math.min(DANGER_MAX, (baseRun.danger ?? 0) + ev.choiceB.dangerAdd) }
         if (ev.choiceB.hpCost != null) nextPlayer = { ...nextPlayer, hp: Math.max(0, nextPlayer.hp - ev.choiceB.hpCost) }
         logMsg = `【顿悟·险】${ev.choiceB.text}${ev.choiceB.exp != null ? `，修为+${ev.choiceB.exp}` : ''}${ev.choiceB.hpCost != null ? `，生命-${ev.choiceB.hpCost}` : ''}${ev.choiceB.dangerAdd != null ? `，危险+${ev.choiceB.dangerAdd}` : ''}。`
@@ -1175,13 +1142,15 @@ export function reduceGame(
         nextState = addLog(nextState, `【连斩宝箱】连斩${streak}层结算，额外掉落！`)
       }
       
+      const { nextPlayer: expPlayer } = applyExpGain(nextState, expGain)
       nextState = {
         ...nextState,
         screen: 'home',
         player: {
           ...nextState.player,
+          level: expPlayer.level ?? nextState.player.level ?? 1,
+          exp: expPlayer.exp ?? 0,
           spiritStones: nextState.player.spiritStones + goldGain,
-          exp: nextState.player.exp + expGain,
           hp: newHp,
         },
         run: {
@@ -1567,6 +1536,8 @@ export function reduceGame(
         state,
         action.inheritanceSpent,
         action.useElixir,
+        action.pills,
+        action.focus,
       )
       let nextState: GameState = {
         ...state,
@@ -1577,76 +1548,30 @@ export function reduceGame(
     case 'BREAKTHROUGH_CONFIRM': {
       const finaleBreak = tryTribulationFinaleIfNoTime(state, rngWithCount)
       if (finaleBreak) return { ...finaleBreak, run: { ...finaleBreak.run, rngCalls } }
-      const plan: NonNullable<GameState['run']['breakthroughPlan']> =
+      const planRaw: NonNullable<GameState['run']['breakthroughPlan']> =
         baseRun.breakthroughPlan ?? createBreakthroughPlan(state, 0, undefined)
-      const inheritanceSpent = plan.inheritanceSpent
-      const useElixir = plan.useElixir
-
-      let nextPlayer = {
-        ...basePlayer,
-        inheritancePoints: basePlayer.inheritancePoints - inheritanceSpent,
+      const pills = planRaw.pills ?? (planRaw.useElixir ? [planRaw.useElixir] : [])
+      const btPlan: BreakthroughPlan = {
+        pills,
+        inheritanceSpent: planRaw.inheritanceSpent,
+        focus: planRaw.focus ?? 'steady',
       }
-      if (useElixir) {
-        nextPlayer.elixirs = {
-          ...nextPlayer.elixirs,
-          [useElixir.elixirId]: {
-            ...nextPlayer.elixirs[useElixir.elixirId],
-            [useElixir.quality]:
-              nextPlayer.elixirs[useElixir.elixirId][useElixir.quality] -
-              useElixir.count,
-          },
-        }
-      }
-
-      const beforePlayer = { ...basePlayer }
-      const dailyMod = getDailyModifiersFromState(state)
-      const rate = calcBreakthroughRate(
-        state,
-        inheritanceSpent,
-        useElixir,
-        dailyMod.breakthroughSuccessBonus ?? 0,
-      )
-      const success = next01() < rate
-      const turn = baseRun.turn + 1
+      const result = attemptBreakthrough(state, btPlan, rngWithCount)
       let stateAfterMission = advanceDailyMission(state, 'attempt_breakthrough')
-      const modBreakthrough = getKungfuModifiers(stateAfterMission)
-
-      if (success) {
-        const maxHpGain = nextInt(0, 2)
-        const maxHp = nextPlayer.maxHp + 2 + maxHpGain
-        const expGain = nextInt(3, 8)
-        nextPlayer = {
-          ...nextPlayer,
-          realm: nextRealm(nextPlayer.realm),
-          maxHp,
-          hp: maxHp,
-          exp: nextPlayer.exp + expGain,
-          pity: 0,
-        }
-        const deltas = buildOutcomeDeltas(beforePlayer, nextPlayer)
-        let nextState: GameState = {
-          ...stateAfterMission,
-          player: nextPlayer,
-          run: {
-            ...baseRun,
-            turn,
-            breakthroughPlan: undefined,
-            lastOutcome: {
-              kind: 'breakthrough',
-              success: true,
-              title: '境界突破！',
-              text: `金光冲天，天地为你让路！你冲破瓶颈，踏入${nextPlayer.realm}之境！`,
-              deltas,
-              consumed: {
-                inheritanceSpent,
-                elixir: useElixir,
-              },
-            },
-          },
-        }
-        nextState = addLog(nextState, `突破成功，境界提升至${nextPlayer.realm}`)
+      let nextState: GameState = {
+        ...stateAfterMission,
+        player: result.nextPlayer,
+        run: { ...baseRun, ...result.runDelta },
+      }
+      const dailyBonusForRate = getDailyModifiersFromState(state).breakthroughSuccessBonus ?? 0
+      const rate = result.runDelta.lastOutcome?.kind === 'breakthrough'
+        ? calcBreakthroughRateWithBreakdown(state, planRaw.inheritanceSpent, pills, dailyBonusForRate).rate
+        : 0
+      if (result.success) {
+        nextState = addLog(nextState, `突破成功，境界提升至${result.nextPlayer.realm}`)
         const btStreak = (baseRun.streaks?.breakthrough_success_streak ?? 0) + 1
         const hpPctBt = basePlayer.maxHp > 0 ? basePlayer.hp / basePlayer.maxHp : 1
+        const modBreakthrough = getKungfuModifiers(nextState)
         const flagsBt: Record<string, true> = {}
         if (rate < 0.4) flagsBt.breakthrough_low_rate_success = true
         if (hpPctBt <= 0.35) flagsBt.breakthrough_low_hp_success = true
@@ -1657,71 +1582,47 @@ export function reduceGame(
           streaksSet: { breakthrough_success_streak: btStreak },
           ...(Object.keys(flagsBt).length > 0 ? { flagsSet: flagsBt } : {}),
         })
-        nextState = applyTimeAndMaybeFinale(nextState, 1, rngWithCount)
+        if (result.runDelta.pendingAwakenChoices?.length) {
+          nextState = { ...nextState, screen: 'awaken_skill' }
+        } else {
+          nextState = applyTimeAndMaybeFinale(nextState, 1, rngWithCount)
+        }
         return { ...nextState, run: { ...nextState.run, rngCalls } }
       }
-
       const legacyCtx = buildLegacyModifiers(stateAfterMission.meta)
-      const mod = modBreakthrough
-      const baseDmg = nextInt(14, 26)
-      const dmgRaw = useElixir?.elixirId === 'foundation_pill' ? baseDmg + 3 : baseDmg
-      const dmg = Math.max(8, dmgRaw + (dailyMod.damageBonus ?? 0) - legacyCtx.breakthroughFailureDamageReduction)
-      const pityBonus = (dailyMod.breakthroughPityBonusOnFail ?? 0) + legacyCtx.breakthroughPityBonus
-      const pityGainBase = 1 + pityBonus
-      const pityGainMult = mod.breakthroughPityGainMult ?? 1
-      const pityGain = Math.max(0, Math.floor(pityGainBase * pityGainMult))
-      const inheritanceGain = 1 + nextInt(0, 1)
-      const dropRealm = nextPlayer.realm !== '凡人' && next01() < 0.5
-      nextPlayer = {
-        ...nextPlayer,
-        hp: nextPlayer.hp - dmg,
-        inheritancePoints: nextPlayer.inheritancePoints + inheritanceGain,
-        pity: nextPlayer.pity + pityGain,
-        ...(dropRealm ? { realm: prevRealmFromReqs(nextPlayer.realm) } : {}),
-      }
-      const deltas = buildOutcomeDeltas(beforePlayer, nextPlayer)
-      let nextState: GameState = {
-        ...stateAfterMission,
-        player: nextPlayer,
-        run: {
-          ...baseRun,
-          turn,
-          breakthroughPlan: undefined,
-            lastOutcome: {
-              kind: 'breakthrough',
-              success: false,
-              title: '心魔反噬！',
-              text: `心魔一击，但你已窥见天机。献祭传承+${inheritanceGain}（本局突破用），保底+${pityGain}${dropRealm ? '；境界跌落一重' : ''}`,
-              deltas,
-            consumed: {
-              inheritanceSpent,
-              elixir: useElixir,
-            },
-          },
-        },
-      }
+      const inheritanceGain = (result.nextPlayer.inheritancePoints ?? 0) - (basePlayer.inheritancePoints - planRaw.inheritanceSpent)
+      const dropRealm = result.nextPlayer.realm !== basePlayer.realm
       nextState = addLog(nextState, `突破失败，获得${inheritanceGain}点献祭传承（本局突破用，非传承页点数）${dropRealm ? '，心魔反噬境界跌落一重' : ''}`)
       nextState = mergeAchievementProgress(nextState, {
         statsLifetimeAdd: { breakthrough_fail_lifetime: 1 },
         streaksSet: { breakthrough_success_streak: 0 },
       })
-      // TICKET-12: 突破死亡保护（本局第一次失败不死）
-      if (nextPlayer.hp <= 0 && legacyCtx.breakthroughDeathProtectionOnce > 0) {
-        nextPlayer.hp = 1
+      if (result.nextPlayer.hp <= 0 && legacyCtx.breakthroughDeathProtectionOnce > 0) {
         nextState = {
           ...nextState,
-          player: nextPlayer,
+          player: { ...result.nextPlayer, hp: 1 },
         }
         nextState = addLog(nextState, '【逆天改命】心魔一击本应致命，但你已窥见天机，保命至1点生命！')
       }
-      if (nextPlayer.hp <= 0) {
+      if (result.nextPlayer.hp <= 0) {
         nextState = {
           ...nextState,
           screen: 'death',
-          summary: { cause: '心魔反噬', turns: turn, endingId: 'death' },
-          // 突破失败致死不发放传承页点数，避免刷传承点
+          summary: { cause: '心魔反噬', turns: result.runDelta.turn, endingId: 'death' },
         }
       }
+      nextState = applyTimeAndMaybeFinale(nextState, 1, rngWithCount)
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'CHOOSE_AWAKEN_SKILL': {
+      const { nextPlayer, nextRun } = chooseAwakenSkill(state, action.skillId)
+      let nextState: GameState = {
+        ...state,
+        player: nextPlayer,
+        run: { ...baseRun, ...nextRun },
+        screen: 'home',
+      }
+      nextState = addLog(nextState, '觉醒成功，已领悟新技能。')
       nextState = applyTimeAndMaybeFinale(nextState, 1, rngWithCount)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
@@ -1765,6 +1666,10 @@ export function reduceGame(
       const current = [...(basePlayer.equippedRelics ?? [null, null, null])] as (RelicId | null)[]
       if (relicId !== null) {
         if (!basePlayer.relics?.includes(relicId as RelicId) || !relicRegistry[relicId as RelicId]) {
+          return { ...state, run: { ...state.run, rngCalls } }
+        }
+        const gate = canEquipKungfu(state, relicId)
+        if (!gate.ok) {
           return { ...state, run: { ...state.run, rngCalls } }
         }
         const alreadySlot = current.indexOf(relicId as RelicId)
@@ -1891,12 +1796,22 @@ export function reduceGame(
       if (action.action === 'PILL' && !action.pill) {
         return { ...state, run: { ...state.run, rngCalls } }
       }
-      const { state: nextState, outcome } = applyTribulationAction(
+      if (action.action === 'PILL' && action.pill) {
+        const gate = canTakePill(state, action.pill.quality)
+        if (!gate.ok) {
+          return { ...state, run: { ...state.run, rngCalls } }
+        }
+      }
+      const { state: nextStateRaw, outcome } = applyTribulationAction(
         state,
         action.action,
         rngWithCount,
         action.pill,
       )
+      let nextState: GameState = nextStateRaw
+      if (action.action === 'PILL' && action.pill) {
+        nextState = { ...nextState, run: recordPillUse(nextState.run, action.pill.quality) }
+      }
       const tribulationReduction = baseRun.tribulationDmgReductionPercent ?? 0
       const flagsTrib: Record<string, true> = tribulationReduction > 0 ? { tribulation_dmg_reduced: true } : {}
 
