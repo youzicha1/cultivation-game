@@ -5,6 +5,7 @@ import { createInitialGameState } from './game'
 import { TIME_MAX } from './time'
 import type { InsightEvent } from './cultivation'
 import type { TribulationState } from './tribulation/tribulation'
+import { getStageIndex } from './progression/stage'
 
 const SAVE_KEY = 'cultivation_save_v1'
 /** 功法/碎片跨局持久化：新游戏继承已获得功法与碎片 */
@@ -231,6 +232,9 @@ function normalizeLoadedState(state: GameState): GameState {
     mind: typeof loadedPlayer.mind === 'number' ? Math.max(0, Math.min(100, loadedPlayer.mind)) : defaultPlayer.mind,
     injuredTurns: typeof loadedPlayer.injuredTurns === 'number' && loadedPlayer.injuredTurns >= 0 ? loadedPlayer.injuredTurns : 0,
     level: typeof loadedPlayer.level === 'number' ? Math.max(1, Math.min(99, loadedPlayer.level)) : (defaultPlayer as { level?: number }).level ?? 1,
+    stageIndex: (typeof loadedPlayer.stageIndex === 'number' && loadedPlayer.stageIndex >= 1 && loadedPlayer.stageIndex <= 7)
+      ? loadedPlayer.stageIndex
+      : getStageIndex(typeof loadedPlayer.level === 'number' ? Math.max(1, Math.min(99, loadedPlayer.level)) : 1),
     awakenSkills: Array.isArray(loadedPlayer.awakenSkills) ? loadedPlayer.awakenSkills : (defaultPlayer as { awakenSkills?: string[] }).awakenSkills ?? [],
   }
 

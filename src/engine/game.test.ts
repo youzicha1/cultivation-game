@@ -17,9 +17,9 @@ describe('game reducer', () => {
     const mind = state.player.mind ?? 50
     const hpGain = 3 + (mind >= 70 ? 1 : 0)
 
-    // TICKET-30: applyExpGain 用 level/exp，12 经验升到 2 级后 exp=1
-    expect(next.player.level).toBe(2)
-    expect(next.player.exp).toBe(1)
+    // TICKET-33: 经验曲线 expNeeded(1)=18，一次吐纳 12 经验不足升级
+    expect(next.player.level).toBe(1)
+    expect(next.player.exp).toBe(10 + Math.floor((state.player.mind ?? 50) / 20))
     expect(next.player.hp).toBe(Math.min(state.player.maxHp, state.player.hp + hpGain))
     expect(next.player.mind).toBe(Math.min(100, mind + 6))
     expect(next.run.turn).toBe(state.run.turn + 1)
@@ -229,7 +229,7 @@ describe('game reducer', () => {
   })
 
   it('BREAKTHROUGH_CONFIRM 成功路径：realm+1、pity清零、hp=maxHp', () => {
-    // 1 次成功率判定 + rollAwakenSkillChoices 抽 3 个不重复索引（可能多次 randInt）
+    // TICKET-33: 境界突破仅 Lv99+第7阶可用；成功则 level=1、stageIndex=1
     const rng = createSequenceRng(Array.from({ length: 24 }, (_, i) => i / 24))
     const base = createInitialGameState(1)
     const state: GameState = {
@@ -237,6 +237,8 @@ describe('game reducer', () => {
       screen: 'breakthrough',
       player: {
         ...base.player,
+        level: 99,
+        stageIndex: 7,
         pity: 2,
         elixirs: {
           ...base.player.elixirs,
@@ -265,12 +267,13 @@ describe('game reducer', () => {
   it('BREAKTHROUGH_CONFIRM 失败路径：高伤害、pity+1、inheritance增加；凡人无降级', () => {
     const rng = createSequenceRng([0.99, 0.0, 0.0])
     const base = createInitialGameState(1)
-    // 凡人不能吃天丹（canTakePill 会拒绝），改用玄丹以便突破时实际消耗
     const state: GameState = {
       ...base,
       screen: 'breakthrough',
       player: {
         ...base.player,
+        level: 99,
+        stageIndex: 7,
         pity: 1,
         hp: 100,
         maxHp: 100,
@@ -318,7 +321,7 @@ describe('game reducer', () => {
     expect(hintHigh.message).toContain('临门一脚')
   })
 
-  // TICKET-9: 战报字段测试
+  // TICKET-9: 战报字段测试；TICKET-33: 境界突破需 Lv99+stageIndex=7
   it('BREAKTHROUGH_CONFIRM 成功时 lastOutcome 包含消耗信息', () => {
     const rng = createSequenceRng(Array.from({ length: 24 }, (_, i) => i / 24))
     const base = createInitialGameState(1)
@@ -327,6 +330,8 @@ describe('game reducer', () => {
       screen: 'breakthrough',
       player: {
         ...base.player,
+        level: 99,
+        stageIndex: 7,
         inheritancePoints: 2,
         elixirs: {
           ...base.player.elixirs,
@@ -367,6 +372,8 @@ describe('game reducer', () => {
       screen: 'breakthrough',
       player: {
         ...base.player,
+        level: 99,
+        stageIndex: 7,
         inheritancePoints: 1,
         pity: 1,
         elixirs: {
@@ -445,6 +452,8 @@ describe('game reducer', () => {
       screen: 'breakthrough',
       player: {
         ...base.player,
+        level: 99,
+        stageIndex: 7,
         hp: 1,
         elixirs: {
           ...base.player.elixirs,
@@ -475,6 +484,8 @@ describe('game reducer', () => {
       screen: 'breakthrough',
       player: {
         ...base.player,
+        level: 99,
+        stageIndex: 7,
         elixirs: {
           ...base.player.elixirs,
           spirit_pill: { fan: 1, xuan: 0, di: 0, tian: 0 },

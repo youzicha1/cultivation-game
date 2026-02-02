@@ -203,6 +203,15 @@
 - **测试**：tribulation.test.ts 覆盖 startTribulation 初始化、getTribulationTurnView、四动作各至少 1 例、胜负判定、RNG 可控；game.test.ts 更新时辰耗尽进入 tribulation。
 - **工程**：tribulation.ts、tribulation_intents.ts、persistence run.tribulation、kungfu_modifiers tribulationSurgeRateAdd、docs ARCHITECTURE + ROADMAP
 
+## TICKET-33 完成项（修炼系统大改：等级经验曲线 + 阶进阶循环 + 99级境界突破）
+
+- **进度结构**：realm + stageIndex（1..7）+ level（1..99）；每阶 15 级，最后一阶 Lv91–99；阶边界 15,30,45,60,75,90,99。
+- **经验曲线**：`expNeededForNextLevel(level)` 二次曲线；修炼/探索经验经 `applyExpGain`，达本阶上限时经验停止并提示需阶突破。
+- **阶突破**：达本阶上限且 stageIndex<7 可进行阶突破；成功 stageIndex++、level++、maxHp+10、回气丹×1；失败扣血、保底+1。
+- **境界突破**：仅 Lv99 且 stageIndex=7 可进行境界突破；成功 realm 升级、level=1、stageIndex=1、觉醒技能三选一。
+- **UI**：修炼页境界+阶+等级/本阶上限+经验条，cap 时提示需阶突破；突破页明确区分阶突破与境界突破及收益说明。
+- **测试**：progression_exp_curve.test.ts、stage_breakthrough.test.ts；经验曲线、cap 挡经验、阶突破/境界突破状态与奖励落地；npm test 全绿。
+
 ## TICKET-31 完成项（UI 氛围感图标体系）
 
 - **AtmosIcon**：`src/app/ui/IconArt.tsx`，内联 SVG 氛围感图标，name 覆盖主界面入口（修炼/探索/炼丹/突破/坊市/功法/传承/成就/设置）与炼丹关键区（丹方/炉温/材料/概率/批量）；tone=gold|jade|purple|red；未知 name 回退不崩。

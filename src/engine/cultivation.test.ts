@@ -58,10 +58,10 @@ describe('cultivateBreath', () => {
     const result = cultivateBreath(state, rng)
     expect(result.nextPlayer.hp).toBe(80 + 3)
     expect(result.nextPlayer.mind).toBe(50 + 6)
-    // TICKET-30: applyExpGain 用 level/exp，12 经验升到 2 级后剩余 exp=1
+    // TICKET-33: 经验曲线 expNeeded(1)=18，12 经验不足升级，仍 1 级
     const expGain = 10 + Math.floor(50 / 20)
-    expect(result.nextPlayer.level).toBe(2)
-    expect(result.nextPlayer.exp).toBe(1)
+    expect(result.nextPlayer.level).toBe(1)
+    expect(result.nextPlayer.exp).toBe(expGain)
     expect(result.toast?.expGain).toBe(expGain)
     expect(result.toast?.hpGain).toBe(3)
     expect(result.toast?.mindDelta).toBe(6)
@@ -100,10 +100,12 @@ describe('cultivatePulse', () => {
     expect(result.nextPlayer.hp).toBe(state.player.hp)
     expect(result.nextPlayer.spiritStones).toBe(3)
     expect(result.nextPlayer.mind).toBe(56)
-    // TICKET-30: applyExpGain 用 level/exp，16~22 经验升到 2 级后 exp 在 [5,11]
-    expect(result.nextPlayer.level).toBe(2)
-    expect(result.nextPlayer.exp).toBeGreaterThanOrEqual(5)
-    expect(result.nextPlayer.exp).toBeLessThanOrEqual(11)
+    // TICKET-33: 经验曲线 expNeeded(1)=18，16~22 经验可能 1 级或 2 级
+    expect(result.nextPlayer.level).toBeGreaterThanOrEqual(1)
+    expect(result.nextPlayer.level).toBeLessThanOrEqual(2)
+    if (result.nextPlayer.level === 2) {
+      expect(result.nextPlayer.exp).toBeLessThan(23)
+    }
   })
   it('使用 sequence rng 翻车时 hp-8、injuredTurns+2', () => {
     const state = mockState({

@@ -112,6 +112,7 @@ import {
 } from './tribulation/tribulation'
 import {
   attemptBreakthrough,
+  attemptStageBreakthrough,
   chooseAwakenSkill,
   type BreakthroughPlan,
 } from './breakthrough/breakthrough'
@@ -344,6 +345,7 @@ export type GameAction =
       focus?: 'safe' | 'steady' | 'surge'
     }
   | { type: 'BREAKTHROUGH_CONFIRM' }
+  | { type: 'STAGE_BREAKTHROUGH_CONFIRM' }
   | { type: 'OUTCOME_CONTINUE'; to: ScreenId }
   | { type: 'OUTCOME_RETRY_BREAKTHROUGH' }
   | { type: 'CLEAR_LOG' }
@@ -1543,6 +1545,23 @@ export function reduceGame(
         ...state,
         run: { ...baseRun, breakthroughPlan: plan },
       }
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'STAGE_BREAKTHROUGH_CONFIRM': {
+      const finaleBreak = tryTribulationFinaleIfNoTime(state, rngWithCount)
+      if (finaleBreak) return { ...finaleBreak, run: { ...finaleBreak.run, rngCalls } }
+      const result = attemptStageBreakthrough(state, rngWithCount)
+      let nextState: GameState = {
+        ...state,
+        player: result.nextPlayer,
+        run: { ...baseRun, ...result.runDelta },
+      }
+      if (result.success) {
+        nextState = addLog(nextState, `阶突破成功！进入第${result.nextPlayer.stageIndex ?? 0}阶，等级${result.nextPlayer.level}。`)
+      } else if (result.runDelta.lastOutcome?.kind === 'breakthrough' && !result.runDelta.lastOutcome.success) {
+        nextState = addLog(nextState, result.runDelta.lastOutcome.text ?? '阶突破失败。')
+      }
+      nextState = applyTimeAndMaybeFinale(nextState, 1, rngWithCount)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'BREAKTHROUGH_CONFIRM': {

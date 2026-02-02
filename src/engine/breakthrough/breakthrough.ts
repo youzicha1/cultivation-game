@@ -8,7 +8,8 @@ import type { Rng } from '../rng'
 import { randInt } from '../rng'
 import type { ElixirId, ElixirQuality } from '../alchemy'
 import { getElixirName } from '../alchemy'
-import { getLevelCap, canTakePill, recordPillUse } from '../realm/gates'
+import { getStageCap, getStageIndex, canStageBreakthrough, canRealmBreakthrough } from '../progression/stage'
+import { canTakePill, recordPillUse } from '../realm/gates'
 import {
   calcBreakthroughRateWithBreakdown,
   nextRealm,
@@ -45,6 +46,14 @@ export type BreakthroughView = {
   cap: number
   exp: number
   capped: boolean
+  /** TICKET-33: 阶 1..7 */
+  stageIndex: number
+  /** 是否可进行阶突破（level==stageCap 且 stageIndex<7） */
+  canStageBreakthrough: boolean
+  /** 是否可进行境界突破（Lv99 且 stageIndex==7） */
+  canRealmBreakthrough: boolean
+  /** 阶突破成功率（仅当 canStageBreakthrough 时有意义） */
+  stageBreakthroughRate: number
   successRate: number
   breakdown: ReturnType<typeof calcBreakthroughRateWithBreakdown>['breakdown']
   pillOptions: PillOption[]
@@ -61,9 +70,12 @@ import { relicRegistry } from '../relics'
 export function getBreakthroughView(state: GameState): BreakthroughView {
   const player = state.player
   const level = Math.max(1, Math.min(99, player.level ?? 1))
-  const cap = getLevelCap(state)
+  const stageIndex = player.stageIndex ?? getStageIndex(level)
+  const cap = getStageCap(state)
   const exp = player.exp ?? 0
   const capped = level >= cap
+  const canStage = canStageBreakthrough(state)
+  const canRealm = canRealmBreakthrough(state)
 
   const plan = state.run.breakthroughPlan
   const pills: BreakthroughPillEntry[] =
@@ -80,6 +92,10 @@ export function getBreakthroughView(state: GameState): BreakthroughView {
     inheritanceSpent,
     pills,
     dailyBonus,
+  )
+  const stageBreakthroughRate = Math.min(
+    0.95,
+    STAGE_BREAKTHROUGH_BASE_RATE + (stageIndex - 1) * STAGE_BREAKTHROUGH_RATE_PER_STAGE + dailyBonus,
   )
 
   const pillOptions: PillOption[] = []
@@ -117,6 +133,10 @@ export function getBreakthroughView(state: GameState): BreakthroughView {
     cap,
     exp,
     capped,
+    stageIndex,
+    canStageBreakthrough: canStage,
+    canRealmBreakthrough: canRealm,
+    stageBreakthroughRate,
     successRate: rate,
     breakdown,
     pillOptions,
@@ -177,17 +197,157 @@ export type AttemptBreakthroughResult = {
   }
 }
 
-/** 执行突破：扣资源、掷骰、成功则升级+待选觉醒，失败则反噬 */
+/** TICKET-33: 阶突破成功率（基础 0.85 + 阶加成） */
+const STAGE_BREAKTHROUGH_BASE_RATE = 0.85
+const STAGE_BREAKTHROUGH_RATE_PER_STAGE = 0.02
+
+/** TICKET-33: 阶突破奖励：maxHp+10、回气丹·凡×1 */
+const STAGE_BREAKTHROUGH_HP_GAIN = 10
+
+export type AttemptStageBreakthroughResult = {
+  success: boolean
+  nextPlayer: PlayerState
+  runDelta: Partial<GameState['run']> & {
+    turn: number
+    lastOutcome: NonNullable<GameState['run']['lastOutcome']>
+  }
+}
+
+/** TICKET-33: 执行阶突破；条件 level==stageCap 且 stageIndex<7 */
+export function attemptStageBreakthrough(
+  state: GameState,
+  rng: Rng,
+): AttemptStageBreakthroughResult {
+  const run = state.run
+  const turn = run.turn + 1
+  if (!canStageBreakthrough(state)) {
+    return {
+      success: false,
+      nextPlayer: state.player,
+      runDelta: {
+        turn,
+        lastOutcome: {
+          kind: 'breakthrough',
+          success: false,
+          title: '未达条件',
+          text: '需达到当前阶等级上限方可进行阶突破。',
+          deltas: { realm: 0, hp: 0, maxHp: 0, exp: 0, pills: 0, inheritancePoints: 0, pity: 0 },
+        },
+      },
+    }
+  }
+  const player = state.player
+  const level = Math.max(1, Math.min(99, player.level ?? 1))
+  const stageIndex = player.stageIndex ?? getStageIndex(level)
+  const dailyMod = state.meta?.daily
+    ? getDailyModifiers(state.meta.daily.environmentId as import('../daily').DailyEnvironmentId)
+    : {}
+  const dailyBonus = dailyMod.breakthroughSuccessBonus ?? 0
+  const rate = Math.min(
+    0.95,
+    STAGE_BREAKTHROUGH_BASE_RATE + (stageIndex - 1) * STAGE_BREAKTHROUGH_RATE_PER_STAGE + dailyBonus,
+  )
+  const success = rng.next() < rate
+
+  if (success) {
+    const nextStageIndex = Math.min(7, stageIndex + 1)
+    const nextLevel = level + 1
+    const maxHp = player.maxHp + STAGE_BREAKTHROUGH_HP_GAIN
+    const elixirs = { ...player.elixirs }
+    if (!elixirs.qi_pill) elixirs.qi_pill = { fan: 0, xuan: 0, di: 0, tian: 0 }
+    elixirs.qi_pill = { ...elixirs.qi_pill, fan: (elixirs.qi_pill.fan ?? 0) + 1 }
+    const nextPlayer: PlayerState = {
+      ...player,
+      level: nextLevel,
+      exp: 0,
+      stageIndex: nextStageIndex,
+      maxHp,
+      hp: maxHp,
+    }
+    return {
+      success: true,
+      nextPlayer: { ...nextPlayer, elixirs },
+      runDelta: {
+        turn,
+        lastOutcome: {
+          kind: 'breakthrough',
+          success: true,
+          title: '阶突破！',
+          text: `突破至第${nextStageIndex}阶！生命上限+${STAGE_BREAKTHROUGH_HP_GAIN}，获得回气丹×1。`,
+          deltas: {
+            realm: 0,
+            hp: STAGE_BREAKTHROUGH_HP_GAIN,
+            maxHp: STAGE_BREAKTHROUGH_HP_GAIN,
+            exp: -player.exp,
+            pills: 0,
+            inheritancePoints: 0,
+            pity: 0,
+          },
+        },
+      },
+    }
+  }
+
+  const nextInt = (a: number, b: number) => randInt(rng, a, b)
+  const dmg = nextInt(5, 12)
+  const nextPlayer: PlayerState = {
+    ...player,
+    hp: Math.max(0, player.hp - dmg),
+    pity: player.pity + 1,
+  }
+  return {
+    success: false,
+    nextPlayer,
+    runDelta: {
+      turn,
+      lastOutcome: {
+        kind: 'breakthrough',
+        success: false,
+        title: '阶突破失败',
+        text: `气血翻涌，生命-${dmg}；保底+1。`,
+        deltas: {
+          realm: 0,
+          hp: -dmg,
+          maxHp: 0,
+          exp: 0,
+          pills: 0,
+          inheritancePoints: 0,
+          pity: 1,
+        },
+      },
+    },
+  }
+}
+
+/** 执行境界突破：仅 Lv99 且第7阶可用；成功则 realm 升级、level=1、stageIndex=1、觉醒三选一 */
 export function attemptBreakthrough(
   state: GameState,
   plan: BreakthroughPlan,
   rng: Rng,
 ): AttemptBreakthroughResult {
-  const nextInt = (a: number, b: number) => randInt(rng, a, b)
-  const player = state.player
   const run = state.run
   const turn = run.turn + 1
+  if (!canRealmBreakthrough(state)) {
+    return {
+      success: false,
+      nextPlayer: state.player,
+      runDelta: {
+        ...run,
+        turn,
+        breakthroughPlan: undefined,
+        lastOutcome: {
+          kind: 'breakthrough',
+          success: false,
+          title: '未达境界突破条件',
+          text: '需达到 Lv99 且完成第7阶后方可进行境界突破。',
+          deltas: { realm: 0, hp: 0, maxHp: 0, exp: 0, pills: 0, inheritancePoints: 0, pity: 0 },
+        },
+      },
+    }
+  }
 
+  const nextInt = (a: number, b: number) => randInt(rng, a, b)
+  const player = state.player
   const inheritanceSpent = Math.max(0, Math.min(plan.inheritanceSpent, player.inheritancePoints ?? 0))
   const pills: BreakthroughPillEntry[] = []
   for (const p of plan.pills) {
@@ -239,12 +399,12 @@ export function attemptBreakthrough(
   if (success) {
     const maxHpGain = nextInt(0, 2)
     const maxHp = nextPlayer.maxHp + 2 + maxHpGain
-    const expGain = nextInt(3, 8)
     nextPlayer = {
       ...nextPlayer,
       realm: nextRealm(nextPlayer.realm),
-      level: Math.min(99, (nextPlayer.level ?? 1) + 1),
-      exp: nextPlayer.exp + expGain,
+      level: 1,
+      exp: 0,
+      stageIndex: 1,
       maxHp,
       hp: maxHp,
       pity: 0,

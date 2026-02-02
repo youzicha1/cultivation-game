@@ -32,7 +32,7 @@ describe('level cap', () => {
 
   it('突破后 cap 提升可继续增长', () => {
     const state = createInitialGameState(1)
-    const player = { ...state.player, realm: '炼气', level: 16, exp: 0 }
+    const player = { ...state.player, realm: '炼气', level: 16, stageIndex: 2, exp: 0 }
     const s = { ...state, player }
     const cap = getLevelCap(s)
     expect(cap).toBe(30)

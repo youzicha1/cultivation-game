@@ -116,9 +116,21 @@ export type { RealmDef, PillRule, KungfuRule } from './realm/gates'
 export {
   getBreakthroughView,
   attemptBreakthrough,
+  attemptStageBreakthrough,
   rollAwakenSkillChoices,
   chooseAwakenSkill,
 } from './breakthrough/breakthrough'
+export {
+  getStageCap,
+  getStageIndex,
+  getStageCapByStage,
+  expNeededForNextLevel,
+  isStageCapped,
+  canStageBreakthrough,
+  canRealmBreakthrough,
+  STAGE_BOUNDARIES,
+  STAGE_COUNT,
+} from './progression/stage'
 export type { BreakthroughView, BreakthroughPlan, PillOption } from './breakthrough/breakthrough'
 export { calcBreakthroughRate, calcBreakthroughRateWithBreakdown, realmIndex, nextRealm } from './breakthrough/rates'
 export type { BreakthroughPillEntry, BreakthroughRateBreakdown } from './breakthrough/rates'

@@ -75,6 +75,15 @@
 - **全局挂钩**：修炼/探索/事件加经验统一走 `applyExpGain`；吃丹（突破页、天劫页）统一走 `canTakePill` + `recordPillUse`；功法装备走 `canEquipKungfu`；天劫进入走 `getTribulationGate`（不满足则禁入）
 - **觉醒技能 modifiers**：与功法 modifiers 在 `getKungfuModifiers(state)` 中合并，影响突破/天劫/炼丹/探索公式
 
+### Progression：realm + stage + level + exp 曲线 + cap挡经验 + 两类突破（TICKET-33）
+- **进度结构**：玩家始终有 `realm`（境界）+ `stageIndex`（阶 1..7）+ `level`（等级 1..99）。每境界内按阶推进：每阶 15 级，最后一阶 9 级（Lv91–99）；阶边界 15,30,45,60,75,90,99。
+- **位置**：`src/engine/progression/stage.ts` — `getStageIndex(level)`、`getStageCapByStage(stageIndex)`、`getStageCap(state)`、`isStageCapped(state)`、`canStageBreakthrough(state)`、`canRealmBreakthrough(state)`；`expNeededForNextLevel(level)` 二次曲线升级所需经验。
+- **经验与 cap**：`src/engine/realm/gates.ts` 的 `applyExpGain(state, amount)` 以当前阶上限为 cap；`level === stageCap` 时经验不再增长并返回提示「已到上限，需阶突破」。修炼/探索经验统一走 `applyExpGain`。
+- **两类突破**：
+  - **阶突破**（`attemptStageBreakthrough`）：条件 `level === stageCap` 且 `stageIndex < 7`；成功则 `stageIndex++`、`level++`、exp 清零，奖励包（maxHp+10、回气丹×1）；失败扣血、保底+1。`STAGE_BREAKTHROUGH_CONFIRM` 触发。
+  - **境界突破**（`attemptBreakthrough`）：条件 Lv99 且 `stageIndex === 7`；成功则 realm 升级、level=1、stageIndex=1、exp 清零，触发觉醒技能三选一；失败高伤害、50% 境界跌落。`BREAKTHROUGH_CONFIRM` 触发。
+- **单一真相**：所有 cap/经验/突破判定与收益均在 engine；UI 只展示 `getBreakthroughView`/`getStageCap` 等与触发 action。CultivateScreen 展示境界+阶+等级/本阶上限+经验条；BreakthroughScreen 区分阶突破与境界突破并写清收益。
+
 ### Cultivation: mind 状态与系统联动（TICKET-23）
 - **状态**：`PlayerState.mind`（0~100，默认 50）、`PlayerState.injuredTurns`（受伤剩余回合）
 - **引擎入口**：`src/engine/cultivation.ts`

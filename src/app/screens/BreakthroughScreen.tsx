@@ -142,14 +142,14 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
         <div className="breakthrough-page__mask" />
         <div className="breakthrough-page__result-modal">
           <div className={`breakthrough-battle-report breakthrough-battle-report--${isSuccess ? 'success' : 'failure'}`}>
-            {/* 强反馈横幅 */}
+            {/* 强反馈横幅（阶突破 / 境界突破共用 outcome.title） */}
             {isSuccess ? (
               <div className="breakthrough-banner breakthrough-banner--success">
-                ✨ 境界突破！✨
+                ✨ {outcome.title} ✨
               </div>
             ) : (
               <div className="breakthrough-banner breakthrough-banner--failure">
-                ⚠️ 心魔反噬！⚠️
+                ⚠️ {outcome.title} ⚠️
               </div>
             )}
 
@@ -329,10 +329,11 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
 
   return (
     <div className="breakthrough-page">
-      {/* 顶部：资源条 */}
+      {/* 顶部：资源条（境界 + 阶 + 等级/本阶上限） */}
       <header className="breakthrough-resource-bar">
         <h2 className="breakthrough-resource-title">
-          {view.realm} → {view.nextRealm} · Lv.{view.level}/{view.cap}
+          {view.realm} {view.stageIndex}阶 · Lv.{view.level}/{view.cap}
+          {view.canRealmBreakthrough && ` → ${view.nextRealm}`}
         </h2>
         {dailyEnv && <div className="breakthrough-daily-hint">今日：{dailyEnv.name}</div>}
         <div className="breakthrough-realm-why" title="境界影响炼丹成功率、天劫难度与化解力、本局传承页点数结算">
@@ -346,98 +347,143 @@ export function BreakthroughScreen({ state, dispatch }: ScreenProps) {
         </div>
       </header>
 
-      {/* 中部：成功率大数字 + 临门一脚提示 */}
+      {/* 中部：阶突破 / 境界突破 二选一展示 */}
       <div className="breakthrough-main">
-        <div className="breakthrough-rate-display">
-          {!view.prereqOk && view.prereqReason && (
-            <div className="breakthrough-prereq-warn">
-              {view.prereqReason}
+        {view.canStageBreakthrough && (
+          <div className="breakthrough-stage-block">
+            <div className="breakthrough-block-title">阶突破</div>
+            <p className="breakthrough-block-desc">
+              当前已达本阶上限（Lv{view.level}/{view.cap}），进行阶突破后可继续获得经验。
+            </p>
+            <div className="breakthrough-rate-display">
+              <div className="breakthrough-rate-big">
+                <span className="breakthrough-rate-big-value">{(view.stageBreakthroughRate * 100).toFixed(0)}%</span>
+                <span className="breakthrough-rate-big-label">阶突破成功率</span>
+              </div>
+              <p className="breakthrough-rewards-desc">奖励：生命上限+10、回气丹×1；阶越高后续突破/渡劫基础成功率微幅提升。</p>
             </div>
-          )}
-          <div className="breakthrough-rate-big">
-            <span className="breakthrough-rate-big-value">{(rate * 100).toFixed(0)}%</span>
-            <span className="breakthrough-rate-big-label">成功率</span>
           </div>
-          {view.prereqOk && rate === 0 && (
-            <div className="breakthrough-kungfu-hint">需丹药或献祭传承增加成功率（基础 0%）</div>
-          )}
-          {kungfuAdd > 0 && (
-            <div className="breakthrough-kungfu-hint">功法加成 +{(kungfuAdd * 100).toFixed(0)}%</div>
-          )}
-          {clutchHint.show && (
-            <div className={`breakthrough-clutch-hint breakthrough-clutch-hint--${clutchHint.level}`}>
-              {clutchHint.message}
-            </div>
-          )}
-        </div>
+        )}
 
-        {/* 预设策略 */}
-        <div className="breakthrough-presets">
-          <div className="breakthrough-label">预设策略</div>
-          <div className="breakthrough-presets-grid">
-            <Button
-              variant="option-green"
-              size="sm"
-              className={`breakthrough-preset-btn ${planMatches(currentPlan, { useElixir: presetSteady.useElixir, inheritanceSpent: presetSteady.inheritanceSpent }) ? 'breakthrough-preset-btn--selected' : ''}`}
-              onClick={() => applyPreset('steady')}
-              disabled={presetSteady.disabled}
-              title={presetSteady.disabled ? presetSteady.missingHint : presetSteady.reason}
-            >
-              <div className="breakthrough-preset-name">稳</div>
-              {presetSteady.disabled && presetSteady.missingHint && (
-                <div className="breakthrough-preset-missing">{presetSteady.missingHint}</div>
+        {view.canRealmBreakthrough && (
+          <>
+            <div className="breakthrough-realm-block">
+              <div className="breakthrough-block-title">境界突破</div>
+              <p className="breakthrough-block-desc">
+                已至 Lv99 且完成第7阶，可进行境界突破进入「{view.nextRealm}」。成功：境界+1、回满血、觉醒技能三选一；失败：高伤害，50% 概率境界跌落，保底+1、献祭传承补偿。
+              </p>
+            </div>
+            <div className="breakthrough-rate-display">
+              {!view.prereqOk && view.prereqReason && (
+                <div className="breakthrough-prereq-warn">{view.prereqReason}</div>
               )}
-            </Button>
-            <Button
-              variant="option-blue"
-              size="sm"
-              className={`breakthrough-preset-btn ${planMatches(currentPlan, { useElixir: presetBalanced.useElixir, inheritanceSpent: presetBalanced.inheritanceSpent }) ? 'breakthrough-preset-btn--selected' : ''}`}
-              onClick={() => applyPreset('balanced')}
-              disabled={presetBalanced.disabled}
-              title={presetBalanced.disabled ? presetBalanced.missingHint : presetBalanced.reason}
-            >
-              <div className="breakthrough-preset-name">均衡</div>
-              {presetBalanced.disabled && presetBalanced.missingHint && (
-                <div className="breakthrough-preset-missing">{presetBalanced.missingHint}</div>
+              <div className="breakthrough-rate-big">
+                <span className="breakthrough-rate-big-value">{(rate * 100).toFixed(0)}%</span>
+                <span className="breakthrough-rate-big-label">境界突破成功率</span>
+              </div>
+              {view.prereqOk && rate === 0 && (
+                <div className="breakthrough-kungfu-hint">需丹药或献祭传承增加成功率（基础 0%）</div>
               )}
-            </Button>
-            <Button
-              variant="option-purple"
-              size="sm"
-              className={`breakthrough-preset-btn ${planMatches(currentPlan, { useElixir: presetAllin.useElixir, inheritanceSpent: presetAllin.inheritanceSpent }) ? 'breakthrough-preset-btn--selected' : ''}`}
-              onClick={() => applyPreset('allin')}
-              disabled={presetAllin.disabled}
-              title={presetAllin.disabled ? presetAllin.missingHint : presetAllin.reason}
-            >
-              <div className="breakthrough-preset-name">梭哈</div>
-              {presetAllin.disabled && presetAllin.missingHint && (
-                <div className="breakthrough-preset-missing">{presetAllin.missingHint}</div>
+              {kungfuAdd > 0 && (
+                <div className="breakthrough-kungfu-hint">功法加成 +{(kungfuAdd * 100).toFixed(0)}%</div>
               )}
-              {!presetAllin.disabled && presetAllin.missingHint && (
-                <div className="breakthrough-preset-partial">{presetAllin.missingHint}</div>
+              {clutchHint.show && (
+                <div className={`breakthrough-clutch-hint breakthrough-clutch-hint--${clutchHint.level}`}>
+                  {clutchHint.message}
+                </div>
               )}
-            </Button>
+            </div>
+            <div className="breakthrough-presets">
+              <div className="breakthrough-label">预设策略</div>
+              <div className="breakthrough-presets-grid">
+                <Button
+                  variant="option-green"
+                  size="sm"
+                  className={`breakthrough-preset-btn ${planMatches(currentPlan, { useElixir: presetSteady.useElixir, inheritanceSpent: presetSteady.inheritanceSpent }) ? 'breakthrough-preset-btn--selected' : ''}`}
+                  onClick={() => applyPreset('steady')}
+                  disabled={presetSteady.disabled}
+                  title={presetSteady.disabled ? presetSteady.missingHint : presetSteady.reason}
+                >
+                  <div className="breakthrough-preset-name">稳</div>
+                  {presetSteady.disabled && presetSteady.missingHint && (
+                    <div className="breakthrough-preset-missing">{presetSteady.missingHint}</div>
+                  )}
+                </Button>
+                <Button
+                  variant="option-blue"
+                  size="sm"
+                  className={`breakthrough-preset-btn ${planMatches(currentPlan, { useElixir: presetBalanced.useElixir, inheritanceSpent: presetBalanced.inheritanceSpent }) ? 'breakthrough-preset-btn--selected' : ''}`}
+                  onClick={() => applyPreset('balanced')}
+                  disabled={presetBalanced.disabled}
+                  title={presetBalanced.disabled ? presetBalanced.missingHint : presetBalanced.reason}
+                >
+                  <div className="breakthrough-preset-name">均衡</div>
+                  {presetBalanced.disabled && presetBalanced.missingHint && (
+                    <div className="breakthrough-preset-missing">{presetBalanced.missingHint}</div>
+                  )}
+                </Button>
+                <Button
+                  variant="option-purple"
+                  size="sm"
+                  className={`breakthrough-preset-btn ${planMatches(currentPlan, { useElixir: presetAllin.useElixir, inheritanceSpent: presetAllin.inheritanceSpent }) ? 'breakthrough-preset-btn--selected' : ''}`}
+                  onClick={() => applyPreset('allin')}
+                  disabled={presetAllin.disabled}
+                  title={presetAllin.disabled ? presetAllin.missingHint : presetAllin.reason}
+                >
+                  <div className="breakthrough-preset-name">梭哈</div>
+                  {presetAllin.disabled && presetAllin.missingHint && (
+                    <div className="breakthrough-preset-missing">{presetAllin.missingHint}</div>
+                  )}
+                  {!presetAllin.disabled && presetAllin.missingHint && (
+                    <div className="breakthrough-preset-partial">{presetAllin.missingHint}</div>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {!view.canStageBreakthrough && !view.canRealmBreakthrough && (
+          <div className="breakthrough-hint-block">
+            <p>继续修炼或探索提升等级；到达本阶上限（Lv{view.cap}）后可进行<strong>阶突破</strong>；Lv99 且完成第7阶后可进行<strong>境界突破</strong>。</p>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 底部固定操作条 */}
       <footer className="breakthrough-footer">
         <div className="breakthrough-footer-preview">
-          <div>成功：境界+1 回满血；失败：高伤害，50% 概率境界跌落（凡人不再降），保底+1、献祭传承补偿（本局用）</div>
-          <div className="breakthrough-why-hint">境界越高：炼丹成功率微幅提升；天劫化解力与难度同步提升；本局结算时传承页点数更多。冲关是为了走得更远、渡劫拿更多传承点与碎片。</div>
+          <div><strong>阶突破</strong>（达本阶上限）：生命+10、回气丹×1；<strong>境界突破</strong>（Lv99 第7阶）：境界+1、觉醒三选一、回满血。</div>
+          <div className="breakthrough-why-hint">境界越高：炼丹成功率微幅提升；天劫化解力与难度同步提升；本局结算时传承页点数更多。</div>
         </div>
         <div className="breakthrough-footer-actions">
           <div className="breakthrough-confirm-row">
-            <Button
-              variant="primary"
-              size="md"
-              className="breakthrough-footer-main-btn"
-              onClick={() => dispatch({ type: 'BREAKTHROUGH_CONFIRM' })}
-            >
-              开始突破
-            </Button>
-            <span className="breakthrough-time-hint">消耗：1 时辰</span>
+            {view.canStageBreakthrough && (
+              <Button
+                variant="primary"
+                size="md"
+                className="breakthrough-footer-main-btn"
+                onClick={() => dispatch({ type: 'STAGE_BREAKTHROUGH_CONFIRM' })}
+              >
+                阶突破
+              </Button>
+            )}
+            {view.canRealmBreakthrough && (
+              <Button
+                variant="primary"
+                size="md"
+                className="breakthrough-footer-main-btn"
+                onClick={() => dispatch({ type: 'BREAKTHROUGH_CONFIRM' })}
+              >
+                开始境界突破
+              </Button>
+            )}
+            {!view.canStageBreakthrough && !view.canRealmBreakthrough && (
+              <span className="breakthrough-time-hint">达本阶上限或 Lv99 第7阶后可突破</span>
+            )}
+            {(view.canStageBreakthrough || view.canRealmBreakthrough) && (
+              <span className="breakthrough-time-hint">消耗：1 时辰</span>
+            )}
           </div>
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'home' })}>
             返回

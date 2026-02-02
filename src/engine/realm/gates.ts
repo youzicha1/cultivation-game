@@ -10,6 +10,7 @@ import type { ElixirQuality } from '../alchemy'
 import type { RelicId } from '../relics'
 import { getKungfu } from '../kungfu'
 import type { KungfuRarity } from '../kungfu'
+import { getStageCap, expNeededForNextLevel } from '../progression/stage'
 
 export type RealmId = string
 
@@ -86,40 +87,38 @@ export function getLevelCap(state: GameState): number {
 }
 
 /**
- * 增加经验；若 level === cap 则不再增长，返回 { nextPlayer, capped, message }。
+ * TICKET-33: 增加经验；阶 cap 挡住不再增长（需阶突破）。经验曲线二次平滑。
  */
 export function applyExpGain(
   state: GameState,
   amount: number,
 ): { nextPlayer: PlayerState; capped: boolean; message: string } {
   const player = state.player
-  const cap = getLevelCap(state)
+  const stageCap = getStageCap(state)
   const level = Math.max(1, Math.min(99, player.level ?? 1))
-  if (level >= cap) {
+  if (level >= stageCap) {
     return {
-      nextPlayer: { ...player, level, exp: player.exp },
+      nextPlayer: { ...player, level, exp: player.exp ?? 0 },
       capped: true,
-      message: '已到上限，需突破',
+      message: '已到上限，需阶突破',
     }
   }
   let exp = (player.exp ?? 0) + amount
   let nextLevel = level
-  while (nextLevel < cap && exp >= getExpToNextLevel(nextLevel)) {
-    exp -= getExpToNextLevel(nextLevel)
+  const maxLevel = Math.min(stageCap, 99)
+  while (nextLevel < maxLevel && exp >= expNeededForNextLevel(nextLevel)) {
+    exp -= expNeededForNextLevel(nextLevel)
     nextLevel += 1
   }
-  exp = Math.min(exp, getExpToNextLevel(nextLevel) - 1)
-  if (nextLevel >= cap) exp = 0
+  if (nextLevel >= maxLevel) {
+    exp = Math.min(exp, expNeededForNextLevel(nextLevel) - 1)
+    if (nextLevel >= stageCap) exp = 0
+  }
   return {
     nextPlayer: { ...player, level: nextLevel, exp },
-    capped: false,
-    message: '',
+    capped: nextLevel >= stageCap,
+    message: nextLevel >= stageCap ? '已到上限，需阶突破' : '',
   }
-}
-
-/** 升到下一级所需经验（简易：每级 10 + level） */
-function getExpToNextLevel(level: number): number {
-  return Math.max(10, 10 + level)
 }
 
 /** 当前境界是否允许服用该品质丹药（境界 + 每局上限） */

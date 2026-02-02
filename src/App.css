@@ -683,12 +683,37 @@
   line-height: 1.2;
 }
 
-/* 中部：成功率 + 预设 */
+/* 中部：阶突破 / 境界突破 区块 */
 .breakthrough-main {
   flex: 1;
   min-height: 0;
   overflow: auto;
   padding: 12px 14px;
+}
+.breakthrough-stage-block,
+.breakthrough-realm-block {
+  margin-bottom: 16px;
+}
+.breakthrough-block-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.breakthrough-block-desc,
+.breakthrough-rewards-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+.breakthrough-hint-block {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 .breakthrough-rate-display {
   text-align: center;

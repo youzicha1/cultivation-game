@@ -1,5 +1,5 @@
 import type { GameAction, GameState } from '../../engine'
-import { getCultivateInfo, getLevelCap } from '../../engine'
+import { getCultivateInfo, getStageCap, expNeededForNextLevel } from '../../engine'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
 import { Panel } from '../ui/Panel'
@@ -12,19 +12,25 @@ type ScreenProps = {
 
 export function CultivateScreen({ state, dispatch }: ScreenProps) {
   const info = getCultivateInfo(state)
-  const expProgress = Math.max(0, Math.min(1, (state.player.exp % 100) / 100))
+  const level = Math.max(1, Math.min(99, state.player.level ?? 1))
+  const stageIndex = state.player.stageIndex ?? (level <= 15 ? 1 : level <= 30 ? 2 : level <= 45 ? 3 : level <= 60 ? 4 : level <= 75 ? 5 : level <= 90 ? 6 : 7)
+  const stageCap = getStageCap(state)
+  const expToNext = expNeededForNextLevel(level)
+  const expProgress = level >= stageCap ? 1 : Math.max(0, Math.min(1, (state.player.exp ?? 0) / expToNext))
   const hpProgress = Math.max(0, Math.min(1, state.player.hp / state.player.maxHp))
   const mindProgress = Math.max(0, Math.min(1, info.mind / 100))
   const cultivateCount = state.run.cultivateCount ?? 0
   const toast = state.run.cultivateToast
   const insight = state.run.pendingInsightEvent
   const injuredTurns = state.player.injuredTurns ?? 0
+  const capped = level >= stageCap
 
   return (
     <Panel title="修炼">
       <Stack gap={10}>
         <div className="page-chips">
           <Chip className="app-chip--gold">{state.player.realm}</Chip>
+          <Chip className="app-chip--muted">{stageIndex}阶</Chip>
           <Chip className="app-chip--hp">{`${state.player.hp}/${state.player.maxHp}`}</Chip>
           <Chip className="app-chip--muted">本局修炼 {cultivateCount} 次</Chip>
           {injuredTurns > 0 && (
@@ -44,11 +50,11 @@ export function CultivateScreen({ state, dispatch }: ScreenProps) {
             />
           </div>
           <div className="stat-row">
-            <span className="stat-label">修为 · Lv.{state.player.level ?? 1}/{getLevelCap(state)}</span>
-            <span className="stat-value">{state.player.exp}</span>
+            <span className="stat-label">修为 · Lv.{level}/{stageCap}</span>
+            <span className="stat-value">{state.player.exp ?? 0}{!capped ? ` / ${expToNext}` : ''}</span>
           </div>
-          {(state.player.level ?? 1) >= getLevelCap(state) && (
-            <div className="cultivate-cap-hint">已到上限，需突破</div>
+          {capped && (
+            <div className="cultivate-cap-hint">已到上限，需阶突破</div>
           )}
           <div className="stat-bar">
             <div

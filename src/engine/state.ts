@@ -17,6 +17,8 @@ export interface PlayerState {
   level: number
   /** 经验值（达 cap 时不再增长） */
   exp: number
+  /** TICKET-33: 阶 1..7，每阶 15 级（最后一阶 9 级） */
+  stageIndex?: number
   /** TICKET-30: 已觉醒技能 ID 列表（突破成功三选一） */
   awakenSkills?: string[]
   /** 当前生命值 */
@@ -71,6 +73,7 @@ export function createInitialState(): PlayerState {
     realm: '凡人',
     level: 1,
     exp: 0,
+    stageIndex: 1,
     hp: 100,
     maxHp: 100,
     inheritancePoints: 0,
