@@ -115,7 +115,7 @@ describe('alchemy', () => {
     expect(next.log.length).toBe(1)
   })
 
-  it('品质可预测：rng=0.999 -> tian', () => {
+  it('TICKET-32 凡方只出凡：rng=0.999 仍为 fan', () => {
     const base = createInitialGameState(1)
     const state = {
       ...base,
@@ -125,7 +125,6 @@ describe('alchemy', () => {
       },
       log: [],
     }
-    // boom false, success true, quality roll high -> tian
     const rng = createSequenceRng([0.99, 0.0, 0.999])
     const { next } = resolveBrew(
       state,
@@ -135,9 +134,9 @@ describe('alchemy', () => {
       () => 1,
       'wu',
     )
-
-    expect(next.player.elixirs.qi_pill.tian).toBe(1)
-    expect(next.player.codex.bestQualityByRecipe.qi_pill_recipe).toBe('tian')
+    expect(next.player.elixirs.qi_pill.fan).toBe(1)
+    expect(next.player.elixirs.qi_pill.tian).toBe(0)
+    expect(next.player.codex.bestQualityByRecipe.qi_pill_recipe).toBe('fan')
   })
 
   // TICKET-8: 炉温测试
@@ -241,22 +240,28 @@ describe('alchemy', () => {
       ...base,
       player: {
         ...base.player,
-        materials: { ...base.player.materials, spirit_herb: 10, moon_dew: 10 },
-        recipesUnlocked: { ...base.player.recipesUnlocked, qi_pill_recipe: true },
+        materials: {
+          ...base.player.materials,
+          dragon_root: 5,
+          soul_infant: 5,
+          bodhi_seed: 5,
+          earth_milk: 5,
+          moon_dew: 10,
+        },
+        recipesUnlocked: { ...base.player.recipesUnlocked, realm_break_recipe: true },
       },
       log: [],
     }
-    // 不爆(0.99)，成功(0.0)，品质roll高值(0.999) -> tian
-    const rng = createSequenceRng([0.99, 0.0, 0.999])
+    // 天方 realm_break_recipe：不爆(0.99)，成功(0.0)，品质 roll>0.98 进 tian 桶(约2%)
+    const rng = createSequenceRng([0.99, 0.0, 0.99])
     const { next } = resolveBrew(
       state,
-      'qi_pill_recipe',
+      'realm_break_recipe',
       1,
       () => rng.next(),
       () => 1,
       'wu',
     )
-
     const tianLog = next.log.find((msg) => msg.includes('【金') && msg.includes('天丹'))
     expect(tianLog).toBeDefined()
   })

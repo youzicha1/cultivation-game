@@ -247,10 +247,36 @@ describe('alchemy_recipes content validation', () => {
     }
   })
 
-  it('配方 qualityBase 和为 1', () => {
+  it('配方 qualityBase 若存在则和为 1', () => {
     for (const r of recipes) {
-      const sum = (r.qualityBase.fan + r.qualityBase.xuan + r.qualityBase.di + r.qualityBase.tian)
-      expect(Math.abs(sum - 1)).toBeLessThan(1e-6)
+      if (r.qualityBase) {
+        const sum = (r.qualityBase.fan + r.qualityBase.xuan + r.qualityBase.di + r.qualityBase.tian)
+        expect(Math.abs(sum - 1)).toBeLessThan(1e-6)
+      }
+    }
+  })
+
+  it('TICKET-32: 配方 tier 为 fan/xuan/di/tian', () => {
+    const validTiers = ['fan', 'xuan', 'di', 'tian']
+    for (const r of recipes) {
+      expect(validTiers).toContain(r.tier)
+    }
+  })
+
+  it('TICKET-32: 配方 tags 为合法枚举', () => {
+    const validTags = new Set(['tribulation', 'explore', 'breakthrough', 'cultivate', 'survival', 'economy', 'utility'])
+    for (const r of recipes) {
+      expect(Array.isArray(r.tags)).toBe(true)
+      for (const t of r.tags) {
+        expect(validTags.has(t)).toBe(true)
+      }
+    }
+  })
+
+  it('TICKET-32: 配方 difficulty 在 1..10', () => {
+    for (const r of recipes) {
+      expect(r.difficulty).toBeGreaterThanOrEqual(1)
+      expect(r.difficulty).toBeLessThanOrEqual(10)
     }
   })
 })

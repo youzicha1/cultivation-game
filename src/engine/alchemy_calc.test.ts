@@ -62,6 +62,19 @@ describe('alchemy_calc', () => {
       expect(result!.breakdown.boom.final).toBe(result!.boomRate)
     })
 
+    it('TICKET-32: qualityDist 存在且 sum=1，凡方只出凡', () => {
+      const state = createInitialGameState(1)
+      const result = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wu' })
+      expect(result).not.toBeNull()
+      const d = result!.qualityDist
+      expect(d.fan + d.xuan + d.di + d.tian).toBeCloseTo(1, 9)
+      expect(d.fan).toBe(1)
+      expect(d.xuan).toBe(0)
+      expect(d.di).toBe(0)
+      expect(d.tian).toBe(0)
+      expect(result!.breakdown.qualityDist).toEqual(d)
+    })
+
     it('文火时爆丹率低于武火', () => {
       const state = createInitialGameState(1)
       const wen = getAlchemyChances(state, { recipeId: 'qi_pill_recipe', batch: 1, heat: 'wen' })

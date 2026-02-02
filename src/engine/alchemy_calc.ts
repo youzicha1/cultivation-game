@@ -12,7 +12,9 @@ import {
   type HeatLevel,
   type AlchemyRatesBreakdown,
   type MaterialId,
+  type ElixirQuality,
 } from './alchemy'
+import { getQualityDist } from './alchemy/quality_weights'
 import { getKungfuModifiers } from './kungfu_modifiers'
 import { getMindAlchemySuccessBonus } from './cultivation'
 import { getDailyModifiers } from './daily'
@@ -32,10 +34,15 @@ export type ShortageItem = {
   missing: number
 }
 
+/** TICKET-32: 品质分布（凡/玄/地/天概率），sum=1 */
+export type QualityDist = Record<ElixirQuality, number>
+
 export type AlchemyChancesResult = {
   successRate: number
   boomRate: number
-  breakdown: AlchemyRatesBreakdown
+  breakdown: AlchemyRatesBreakdown & { qualityDist?: QualityDist }
+  /** TICKET-32: 丹方品质&分布，单一来源 */
+  qualityDist: QualityDist
 }
 
 const REALMS = ['凡人', '炼气', '筑基', '金丹', '元婴', '化神']
@@ -95,12 +102,18 @@ export function getAlchemyChances(
   const mindBonus = getMindAlchemySuccessBonus(state.player.mind ?? 50)
   const successRate = Math.min(0.95, Math.max(0.01, rates.finalSuccessRate + mindBonus))
 
+  const qualityDist = getQualityDist(recipe.tier, {
+    shiftToHigh: mod.alchemyQualityShift ?? 0,
+  })
+
   return {
     successRate,
     boomRate: rates.finalBoomRate,
     breakdown: {
       ...rates.breakdown,
       success: { ...rates.breakdown.success, mindBonus, final: successRate },
+      qualityDist,
     },
+    qualityDist,
   }
 }

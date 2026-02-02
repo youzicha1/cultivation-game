@@ -14,7 +14,7 @@ import {
   PITY_DEBUG_SHOW_VALUES,
 } from '../../engine'
 import { getAlchemyChances, getAlchemyShortage, type AlchemySelection } from '../../engine/alchemy_calc'
-import type { HeatLevel } from '../../engine'
+import type { HeatLevel, RecipeTier, RecipeTagId } from '../../engine'
 import { AlchemyFurnaceGauge } from '../ui/AlchemyFurnaceGauge'
 import { AlchemyResultEffect, getAlchemyResultGrade, type AlchemyGrade } from '../ui/AlchemyResultEffect'
 import { AtmosIcon } from '../ui/IconArt'
@@ -35,6 +35,23 @@ const HEAT_OPTIONS: { value: HeatLevel; label: string }[] = [
 ]
 
 const BOOM_RATE_HIGH_THRESHOLD = 0.15
+
+const TIER_LABELS: Record<RecipeTier, string> = {
+  fan: '凡',
+  xuan: '玄',
+  di: '地',
+  tian: '天',
+}
+
+const TAG_LABELS: Record<RecipeTagId, string> = {
+  tribulation: '天劫',
+  explore: '探索',
+  breakthrough: '突破',
+  cultivate: '修炼',
+  survival: '保命',
+  economy: '经济',
+  utility: '通用',
+}
 
 export function AlchemyScreen({ state, dispatch }: ScreenProps) {
   const outcome = state.run.lastOutcome
@@ -295,7 +312,9 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                   <AtmosIcon name="recipe" size={22} tone="gold" />
                 </span>
                 <span className="alchemy-recipe-scroll-label">
-                  {recipe ? `${recipe.name} · ${getElixirName(recipe.elixirId)}` : '选择丹方'}
+                  {recipe
+                    ? `${TIER_LABELS[recipe.tier]}方 · ${recipe.name} · ${getElixirName(recipe.elixirId)}`
+                    : '选择丹方'}
                 </span>
               </button>
             </div>
@@ -305,37 +324,50 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                   <div className="alchemy-recipe-picker-title">丹方书卷</div>
                   <p className="alchemy-recipe-picker-hint">选择已拥有的丹方进行炼制</p>
                   <ul className="alchemy-recipe-picker-list">
-                    {alchemyRecipes.map((r) => {
-                      const isUnlocked = state.player.recipesUnlocked[r.id]
-                      const fragNeed = r.unlock.type === 'fragment' ? r.unlock.need : 0
-                      const fragHave = state.player.fragments[r.id] ?? 0
-                      const selected = plan.recipeId === r.id
-                      return (
-                        <li key={r.id}>
-                          <button
-                            type="button"
-                            className={`alchemy-recipe-picker-item ${selected ? 'alchemy-recipe-picker-item--selected' : ''} ${!isUnlocked ? 'alchemy-recipe-picker-item--locked' : ''}`}
-                            onClick={() => {
-                              if (isUnlocked) {
-                                dispatch({ type: 'ALCHEMY_SET_RECIPE', recipeId: r.id, batch, heat })
-                                setRecipePickerOpen(false)
-                              }
-                            }}
-                            disabled={!isUnlocked}
-                            title={!isUnlocked && r.unlock.type === 'fragment' ? `需残页 ${fragHave}/${fragNeed}` : getElixirDesc(r.elixirId)}
-                          >
-                            <span className="alchemy-recipe-picker-item-name">{r.name}</span>
-                            <span className="alchemy-recipe-picker-item-effect">{getElixirDesc(r.elixirId)}</span>
-                            {r.recommendedHeat && (
-                              <span className="alchemy-recipe-picker-item-heat">推荐炉温：{HEAT_LABELS[r.recommendedHeat]}</span>
-                            )}
-                            {!isUnlocked && r.unlock.type === 'fragment' && (
-                              <span className="alchemy-recipe-picker-item-frag">残页 {fragHave}/{fragNeed}</span>
-                            )}
-                          </button>
-                        </li>
-                      )
-                    })}
+                    {[...alchemyRecipes]
+                      .sort((a, b) => a.difficulty - b.difficulty)
+                      .map((r) => {
+                        const isUnlocked = state.player.recipesUnlocked[r.id]
+                        const fragNeed = r.unlock.type === 'fragment' ? r.unlock.need : 0
+                        const fragHave = state.player.fragments[r.id] ?? 0
+                        const selected = plan.recipeId === r.id
+                        return (
+                          <li key={r.id}>
+                            <button
+                              type="button"
+                              className={`alchemy-recipe-picker-item alchemy-recipe-picker-item--tier-${r.tier} ${selected ? 'alchemy-recipe-picker-item--selected' : ''} ${!isUnlocked ? 'alchemy-recipe-picker-item--locked' : ''}`}
+                              onClick={() => {
+                                if (isUnlocked) {
+                                  dispatch({ type: 'ALCHEMY_SET_RECIPE', recipeId: r.id, batch, heat })
+                                  setRecipePickerOpen(false)
+                                }
+                              }}
+                              disabled={!isUnlocked}
+                              title={!isUnlocked && r.unlock.type === 'fragment' ? `需残页 ${fragHave}/${fragNeed}` : getElixirDesc(r.elixirId)}
+                            >
+                              <span className="alchemy-recipe-picker-item-tier" title={`丹方品质：${TIER_LABELS[r.tier]}方`}>
+                                {TIER_LABELS[r.tier]}方
+                              </span>
+                              <span className="alchemy-recipe-picker-item-name">{r.name}</span>
+                              <span className="alchemy-recipe-picker-item-effect">{getElixirDesc(r.elixirId)}</span>
+                              {r.tags.length > 0 && (
+                                <span className="alchemy-recipe-picker-item-tags">
+                                  {r.tags.map((t) => TAG_LABELS[t] ?? t).join('、')}
+                                </span>
+                              )}
+                              <span className="alchemy-recipe-picker-item-difficulty" title={`难度 ${r.difficulty}/10`}>
+                                {'★'.repeat(Math.min(10, Math.max(1, Math.round(r.difficulty))))}
+                              </span>
+                              {r.recommendedHeat && (
+                                <span className="alchemy-recipe-picker-item-heat">推荐炉温：{HEAT_LABELS[r.recommendedHeat]}</span>
+                              )}
+                              {!isUnlocked && r.unlock.type === 'fragment' && (
+                                <span className="alchemy-recipe-picker-item-frag">残页 {fragHave}/{fragNeed}</span>
+                              )}
+                            </button>
+                          </li>
+                        )
+                      })}
                   </ul>
                   <Button variant="ghost" size="sm" onClick={() => setRecipePickerOpen(false)}>
                     关闭
@@ -460,6 +492,17 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                         <li><strong>最终：{(chances.breakdown.success.final * 100).toFixed(1)}%</strong></li>
                       </ul>
                     </div>
+                    {chances.qualityDist && (
+                      <div className="alchemy-breakdown-section">
+                        <div className="alchemy-breakdown-title">丹方品质&分布</div>
+                        <ul>
+                          <li>凡：{(chances.qualityDist.fan * 100).toFixed(1)}%</li>
+                          <li>玄：{(chances.qualityDist.xuan * 100).toFixed(1)}%</li>
+                          <li>地：{(chances.qualityDist.di * 100).toFixed(1)}%</li>
+                          <li>天：{(chances.qualityDist.tian * 100).toFixed(1)}%</li>
+                        </ul>
+                      </div>
+                    )}
                     <div className="alchemy-breakdown-section">
                       <div className="alchemy-breakdown-title">爆丹率</div>
                       <ul>

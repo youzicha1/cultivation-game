@@ -1,6 +1,7 @@
 import recipesFile from '../content/alchemy_recipes.v1.json'
 import type { GameState } from './game'
 import type { PlayerState } from './state'
+import { getQualityDist, rollQualityFromDist } from './alchemy/quality_weights'
 
 /** 材料/丹药/丹方 ID 由 alchemy_recipes 数据定义，支持任意数量 */
 export type MaterialId = string
@@ -16,6 +17,21 @@ export type RecipeUnlock =
   | { type: 'default' }
   | { type: 'fragment'; need: number }
 
+/** TICKET-32: 丹方品质档位，决定可产出丹药品质上限 */
+export type RecipeTier = 'fan' | 'xuan' | 'di' | 'tian'
+
+/** TICKET-32: 丹方用途 tag 枚举 */
+export const RECIPE_TAG_IDS = [
+  'tribulation',
+  'explore',
+  'breakthrough',
+  'cultivate',
+  'survival',
+  'economy',
+  'utility',
+] as const
+export type RecipeTagId = (typeof RECIPE_TAG_IDS)[number]
+
 export type RecipeDef = {
   id: RecipeId
   name: string
@@ -23,10 +39,17 @@ export type RecipeDef = {
   unlock: RecipeUnlock
   cost: Partial<Record<MaterialId, number>>
   baseSuccess: number
-  qualityBase: Record<ElixirQuality, number>
+  /** 可选，若存在则需和为 1；引擎品质分布以 tier 为准 */
+  qualityBase?: Record<ElixirQuality, number>
   boomRate: number
-  /** 推荐炉温：匹配时成功率+5%、爆丹率×0.9，不同丹方适配不同炉温 */
+  /** 推荐炉温：匹配时成功率+5%、爆丹率×0.9 */
   recommendedHeat?: HeatLevel
+  /** TICKET-32: 丹方品质档位（凡/玄/地/天） */
+  tier: RecipeTier
+  /** TICKET-32: 用途标签 */
+  tags: RecipeTagId[]
+  /** TICKET-32: 获取难度 1..10，用于梯度与 UI 排序 */
+  difficulty: number
 }
 
 export type AlchemyRecipesFile = {
@@ -59,17 +82,31 @@ export function validateAlchemyFile(file: AlchemyRecipesFile): AlchemyRecipesFil
     throw new Error('AlchemyRecipesFile: recipes must be non-empty')
   }
 
+  const validTiers = ['fan', 'xuan', 'di', 'tian'] as const
+  const validTags = new Set(RECIPE_TAG_IDS)
   file.recipes.forEach((recipe) => {
     if (!recipe.id || !recipe.name || !recipe.elixirId) {
       throw new Error(`RecipeDef: missing fields for ${recipe.id ?? 'unknown'}`)
     }
-    const sum =
-      recipe.qualityBase.fan +
-      recipe.qualityBase.xuan +
-      recipe.qualityBase.di +
-      recipe.qualityBase.tian
-    if (Math.abs(sum - 1) > 1e-6) {
-      throw new Error(`RecipeDef: qualityBase must sum to 1 for ${recipe.id}`)
+    if (!validTiers.includes(recipe.tier as any)) {
+      throw new Error(`RecipeDef: tier must be fan/xuan/di/tian for ${recipe.id}`)
+    }
+    if (!Array.isArray(recipe.tags) || recipe.tags.some((t: string) => !validTags.has(t as RecipeTagId))) {
+      throw new Error(`RecipeDef: tags must be array of valid tag ids for ${recipe.id}`)
+    }
+    const d = Number(recipe.difficulty)
+    if (!Number.isFinite(d) || d < 1 || d > 10) {
+      throw new Error(`RecipeDef: difficulty must be 1..10 for ${recipe.id}`)
+    }
+    if (recipe.qualityBase) {
+      const sum =
+        recipe.qualityBase.fan +
+        recipe.qualityBase.xuan +
+        recipe.qualityBase.di +
+        recipe.qualityBase.tian
+      if (Math.abs(sum - 1) > 1e-6) {
+        throw new Error(`RecipeDef: qualityBase must sum to 1 for ${recipe.id}`)
+      }
     }
     if (recipe.boomRate < 0 || recipe.boomRate > 1) {
       throw new Error(`RecipeDef: boomRate out of range for ${recipe.id}`)
@@ -146,6 +183,18 @@ const QUALITY_LABELS: Record<ElixirQuality, string> = {
 
 export function getQualityLabel(quality: ElixirQuality): string {
   return QUALITY_LABELS[quality] ?? quality
+}
+
+/** TICKET-32: 丹药品质倍率（凡1.0 玄1.5 地2.2 天3.5），用于效果入口挂钩 */
+export const PILL_QUALITY_MULTIPLIER: Record<ElixirQuality, number> = {
+  fan: 1.0,
+  xuan: 1.5,
+  di: 2.2,
+  tian: 3.5,
+}
+
+export function getPillQualityMultiplier(quality: ElixirQuality): number {
+  return PILL_QUALITY_MULTIPLIER[quality] ?? 1
 }
 
 /** 材料缺口：当前拥有 vs 配方所需，返回缺项列表与是否可炼。UI 单一来源。costMult 为功法材料消耗倍率（TICKET-22）。 */
@@ -575,8 +624,9 @@ export function resolveBrew(
       // b) 未爆丹：成功判定
       const success = rng01() < successRate
       if (success) {
-        // c) 成功：抽品质（带炉温品质偏移）
-        const quality = rollQuality(rng01, recipe.qualityBase, heat, qualityShift)
+        // c) 成功：TICKET-32 用 tier 品质分布 roll 品质
+        const qualityDist = getQualityDist(recipe.tier, { shiftToHigh: qualityShift })
+        const quality = rollQualityFromDist(rng01, qualityDist)
         if (!nextPlayer.elixirs[recipe.elixirId]) {
           nextPlayer.elixirs[recipe.elixirId] = { fan: 0, xuan: 0, di: 0, tian: 0 }
         }

@@ -48,9 +48,11 @@
       "unlock": { "type": "default" },
       "cost": { "spirit_herb": 2, "moon_dew": 1 },
       "baseSuccess": 0.78,
-      "qualityBase": { "fan": 0.72, "xuan": 0.22, "di": 0.05, "tian": 0.01 },
       "boomRate": 0.06,
-      "recommendedHeat": "wen"
+      "recommendedHeat": "wen",
+      "tier": "fan",
+      "tags": ["cultivate", "utility"],
+      "difficulty": 1
     },
     {
       "id": "spirit_pill_recipe",
@@ -59,9 +61,11 @@
       "unlock": { "type": "fragment", "need": 3 },
       "cost": { "spirit_herb": 2, "beast_core": 1 },
       "baseSuccess": 0.65,
-      "qualityBase": { "fan": 0.6, "xuan": 0.28, "di": 0.1, "tian": 0.02 },
       "boomRate": 0.1,
-      "recommendedHeat": "wu"
+      "recommendedHeat": "wu",
+      "tier": "xuan",
+      "tags": ["breakthrough"],
+      "difficulty": 3
     },
     {
       "id": "foundation_pill_recipe",
@@ -70,9 +74,11 @@
       "unlock": { "type": "fragment", "need": 5 },
       "cost": { "beast_core": 2, "moon_dew": 2, "iron_sand": 1 },
       "baseSuccess": 0.55,
-      "qualityBase": { "fan": 0.48, "xuan": 0.32, "di": 0.16, "tian": 0.04 },
       "boomRate": 0.14,
-      "recommendedHeat": "zhen"
+      "recommendedHeat": "zhen",
+      "tier": "di",
+      "tags": ["breakthrough"],
+      "difficulty": 5
     },
     {
       "id": "blood_lotus_recipe",
@@ -81,9 +87,11 @@
       "unlock": { "type": "fragment", "need": 3 },
       "cost": { "blood_lotus": 1, "spirit_herb": 2, "moon_dew": 1 },
       "baseSuccess": 0.72,
-      "qualityBase": { "fan": 0.68, "xuan": 0.24, "di": 0.06, "tian": 0.02 },
       "boomRate": 0.08,
-      "recommendedHeat": "wen"
+      "recommendedHeat": "wen",
+      "tier": "xuan",
+      "tags": ["survival", "cultivate"],
+      "difficulty": 3
     },
     {
       "id": "purple_heart_recipe",
@@ -92,9 +100,11 @@
       "unlock": { "type": "fragment", "need": 3 },
       "cost": { "purple_leaf": 2, "spirit_herb": 1, "moon_dew": 1 },
       "baseSuccess": 0.70,
-      "qualityBase": { "fan": 0.65, "xuan": 0.26, "di": 0.07, "tian": 0.02 },
       "boomRate": 0.07,
-      "recommendedHeat": "wen"
+      "recommendedHeat": "wen",
+      "tier": "xuan",
+      "tags": ["cultivate", "utility"],
+      "difficulty": 3
     },
     {
       "id": "green_spirit_recipe",
@@ -103,9 +113,11 @@
       "unlock": { "type": "fragment", "need": 4 },
       "cost": { "green_vine": 1, "spirit_herb": 2, "beast_core": 1 },
       "baseSuccess": 0.62,
-      "qualityBase": { "fan": 0.58, "xuan": 0.30, "di": 0.10, "tian": 0.02 },
       "boomRate": 0.11,
-      "recommendedHeat": "wu"
+      "recommendedHeat": "wu",
+      "tier": "xuan",
+      "tags": ["cultivate"],
+      "difficulty": 4
     },
     {
       "id": "ice_heart_recipe",
@@ -114,9 +126,11 @@
       "unlock": { "type": "fragment", "need": 4 },
       "cost": { "ice_fruit": 1, "moon_dew": 2, "spirit_herb": 1 },
       "baseSuccess": 0.68,
-      "qualityBase": { "fan": 0.62, "xuan": 0.28, "di": 0.08, "tian": 0.02 },
       "boomRate": 0.09,
-      "recommendedHeat": "wen"
+      "recommendedHeat": "wen",
+      "tier": "xuan",
+      "tags": ["survival", "cultivate"],
+      "difficulty": 4
     },
     {
       "id": "fire_sun_recipe",
@@ -125,9 +139,11 @@
       "unlock": { "type": "fragment", "need": 4 },
       "cost": { "fire_grass": 2, "iron_sand": 1, "beast_core": 1 },
       "baseSuccess": 0.58,
-      "qualityBase": { "fan": 0.50, "xuan": 0.32, "di": 0.14, "tian": 0.04 },
       "boomRate": 0.13,
-      "recommendedHeat": "zhen"
+      "recommendedHeat": "zhen",
+      "tier": "di",
+      "tags": ["tribulation", "explore"],
+      "difficulty": 5
     },
     {
       "id": "dragon_force_recipe",
@@ -136,9 +152,11 @@
       "unlock": { "type": "fragment", "need": 5 },
       "cost": { "dragon_root": 1, "beast_core": 2, "moon_dew": 1 },
       "baseSuccess": 0.52,
-      "qualityBase": { "fan": 0.46, "xuan": 0.32, "di": 0.18, "tian": 0.04 },
       "boomRate": 0.15,
-      "recommendedHeat": "zhen"
+      "recommendedHeat": "zhen",
+      "tier": "di",
+      "tags": ["explore", "economy"],
+      "difficulty": 5
     },
     {
       "id": "yellow_essence_recipe",
@@ -147,9 +165,11 @@
       "unlock": { "type": "fragment", "need": 4 },
       "cost": { "yellow_essence": 1, "spirit_herb": 2, "moon_dew": 2 },
       "baseSuccess": 0.66,
-      "qualityBase": { "fan": 0.60, "xuan": 0.28, "di": 0.10, "tian": 0.02 },
       "boomRate": 0.09,
-      "recommendedHeat": "wu"
+      "recommendedHeat": "wu",
+      "tier": "xuan",
+      "tags": ["cultivate", "economy"],
+      "difficulty": 4
     },
     {
       "id": "earth_milk_recipe",
@@ -158,9 +178,11 @@
       "unlock": { "type": "fragment", "need": 5 },
       "cost": { "earth_milk": 1, "beast_core": 1, "iron_sand": 2, "moon_dew": 1 },
       "baseSuccess": 0.54,
-      "qualityBase": { "fan": 0.48, "xuan": 0.30, "di": 0.18, "tian": 0.04 },
       "boomRate": 0.14,
-      "recommendedHeat": "wu"
+      "recommendedHeat": "wu",
+      "tier": "di",
+      "tags": ["breakthrough", "cultivate"],
+      "difficulty": 6
     },
     {
       "id": "snake_saliva_recipe",
@@ -169,9 +191,11 @@
       "unlock": { "type": "fragment", "need": 4 },
       "cost": { "snake_saliva": 1, "blood_lotus": 1, "spirit_herb": 2 },
       "baseSuccess": 0.60,
-      "qualityBase": { "fan": 0.54, "xuan": 0.30, "di": 0.12, "tian": 0.04 },
       "boomRate": 0.12,
-      "recommendedHeat": "zhen"
+      "recommendedHeat": "zhen",
+      "tier": "xuan",
+      "tags": ["survival", "utility"],
+      "difficulty": 4
     },
     {
       "id": "demon_core_recipe",
@@ -180,9 +204,11 @@
       "unlock": { "type": "fragment", "need": 6 },
       "cost": { "demon_core": 1, "beast_core": 2, "blood_lotus": 1 },
       "baseSuccess": 0.48,
-      "qualityBase": { "fan": 0.42, "xuan": 0.30, "di": 0.20, "tian": 0.08 },
       "boomRate": 0.18,
-      "recommendedHeat": "zhen"
+      "recommendedHeat": "zhen",
+      "tier": "di",
+      "tags": ["cultivate", "explore"],
+      "difficulty": 6
     },
     {
       "id": "soul_infant_recipe",
@@ -191,9 +217,11 @@
       "unlock": { "type": "fragment", "need": 5 },
       "cost": { "soul_infant": 1, "moon_dew": 2, "purple_leaf": 1 },
       "baseSuccess": 0.56,
-      "qualityBase": { "fan": 0.50, "xuan": 0.30, "di": 0.16, "tian": 0.04 },
       "boomRate": 0.13,
-      "recommendedHeat": "wu"
+      "recommendedHeat": "wu",
+      "tier": "di",
+      "tags": ["cultivate", "breakthrough"],
+      "difficulty": 5
     },
     {
       "id": "bodhi_recipe",
@@ -202,9 +230,11 @@
       "unlock": { "type": "fragment", "need": 5 },
       "cost": { "bodhi_seed": 1, "green_vine": 1, "spirit_herb": 2, "moon_dew": 1 },
       "baseSuccess": 0.52,
-      "qualityBase": { "fan": 0.46, "xuan": 0.32, "di": 0.18, "tian": 0.04 },
       "boomRate": 0.14,
-      "recommendedHeat": "wen"
+      "recommendedHeat": "wen",
+      "tier": "di",
+      "tags": ["utility", "cultivate"],
+      "difficulty": 5
     },
     {
       "id": "barrier_break_recipe",
@@ -213,9 +243,11 @@
       "unlock": { "type": "fragment", "need": 6 },
       "cost": { "dragon_root": 1, "yellow_essence": 1, "beast_core": 2, "moon_dew": 2 },
       "baseSuccess": 0.50,
-      "qualityBase": { "fan": 0.44, "xuan": 0.32, "di": 0.20, "tian": 0.04 },
       "boomRate": 0.16,
-      "recommendedHeat": "zhen"
+      "recommendedHeat": "zhen",
+      "tier": "di",
+      "tags": ["breakthrough"],
+      "difficulty": 6
     },
     {
       "id": "marrow_wash_recipe",
@@ -224,9 +256,11 @@
       "unlock": { "type": "fragment", "need": 6 },
       "cost": { "earth_milk": 2, "yellow_essence": 1, "beast_core": 1, "iron_sand": 2 },
       "baseSuccess": 0.46,
-      "qualityBase": { "fan": 0.40, "xuan": 0.32, "di": 0.22, "tian": 0.06 },
       "boomRate": 0.17,
-      "recommendedHeat": "wu"
+      "recommendedHeat": "wu",
+      "tier": "di",
+      "tags": ["cultivate", "breakthrough"],
+      "difficulty": 7
     },
     {
       "id": "soul_fuse_recipe",
@@ -235,9 +269,11 @@
       "unlock": { "type": "fragment", "need": 7 },
       "cost": { "soul_infant": 2, "bodhi_seed": 1, "moon_dew": 3 },
       "baseSuccess": 0.44,
-      "qualityBase": { "fan": 0.38, "xuan": 0.30, "di": 0.24, "tian": 0.08 },
       "boomRate": 0.19,
-      "recommendedHeat": "zhen"
+      "recommendedHeat": "zhen",
+      "tier": "tian",
+      "tags": ["breakthrough", "cultivate"],
+      "difficulty": 8
     },
     {
       "id": "shape_shift_recipe",
@@ -246,9 +282,11 @@
       "unlock": { "type": "fragment", "need": 7 },
       "cost": { "demon_core": 2, "earth_milk": 1, "blood_lotus": 2, "beast_core": 2 },
       "baseSuccess": 0.42,
-      "qualityBase": { "fan": 0.36, "xuan": 0.30, "di": 0.26, "tian": 0.08 },
       "boomRate": 0.20,
-      "recommendedHeat": "zhen"
+      "recommendedHeat": "zhen",
+      "tier": "tian",
+      "tags": ["utility", "survival"],
+      "difficulty": 8
     },
     {
       "id": "realm_break_recipe",
@@ -257,9 +295,11 @@
       "unlock": { "type": "fragment", "need": 8 },
       "cost": { "dragon_root": 2, "soul_infant": 1, "bodhi_seed": 1, "earth_milk": 2, "moon_dew": 3 },
       "baseSuccess": 0.38,
-      "qualityBase": { "fan": 0.32, "xuan": 0.28, "di": 0.28, "tian": 0.12 },
       "boomRate": 0.22,
-      "recommendedHeat": "zhen"
+      "recommendedHeat": "zhen",
+      "tier": "tian",
+      "tags": ["breakthrough", "tribulation"],
+      "difficulty": 10
     }
   ]
 }

@@ -9,6 +9,16 @@ export * from './persistence'
 export * from './events'
 export * from './alchemy'
 export * from './alchemy_calc'
+export {
+  getQualityDist,
+  rollQualityFromDist,
+  clampWeightsToTier,
+  normalizeDist,
+  DEFAULT_WEIGHTS_BY_TIER,
+  type RecipeTier as RecipeTierQuality,
+  type QualityDist,
+  type QualityModifiers,
+} from './alchemy/quality_weights'
 export * from './shop'
 export * from './achievements'
 export {
