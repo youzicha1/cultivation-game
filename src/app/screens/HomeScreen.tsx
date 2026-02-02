@@ -3,6 +3,7 @@ import type { GameAction, GameState } from '../../engine'
 import { getDailyEnvironmentDef } from '../../engine'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
+import { LootToast } from '../ui/LootToast'
 import { Panel } from '../ui/Panel'
 import { Stack } from '../ui/Stack'
 
@@ -37,9 +38,17 @@ export function HomeScreen({ state, dispatch }: ScreenProps) {
   const missionComplete = mission && mission.progress >= mission.target
   const canClaim = missionComplete && !mission.claimed
   const dailyRewardJustClaimed = state.run.dailyRewardJustClaimed
+  const pendingLoot = state.run.pendingLoot
 
   return (
     <>
+      {pendingLoot && pendingLoot.length > 0 && (
+        <LootToast
+          drops={pendingLoot}
+          onDismiss={() => dispatch({ type: 'CLEAR_LOOT' })}
+          variant={pendingLoot.some((d) => d.rarity === 'legendary') ? 'chainComplete' : undefined}
+        />
+      )}
       {dailyRewardJustClaimed && (
         <div
           className="daily-reward-overlay"

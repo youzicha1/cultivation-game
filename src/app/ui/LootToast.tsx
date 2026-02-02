@@ -14,6 +14,8 @@ import { relicRegistry } from '../../engine'
 type LootToastProps = {
   drops: LootDrop[]
   onDismiss: () => void
+  /** 传说奇遇通关时使用，加强金光/爆发感 */
+  variant?: 'chainComplete'
 }
 
 function getItemLabel(item: LootDrop['item']): string {
@@ -38,17 +40,18 @@ function getItemLabel(item: LootDrop['item']): string {
   return '未知物品'
 }
 
-export function LootToast({ drops, onDismiss }: LootToastProps) {
+export function LootToast({ drops, onDismiss, variant }: LootToastProps) {
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     if (drops.length === 0) return
+    const duration = variant === 'chainComplete' ? 4500 : 3000
     const timer = setTimeout(() => {
       setVisible(false)
       setTimeout(onDismiss, 300)
-    }, 3000)
+    }, duration)
     return () => clearTimeout(timer)
-  }, [drops, onDismiss])
+  }, [drops, onDismiss, variant])
 
   if (drops.length === 0 || !visible) return null
 
@@ -62,9 +65,10 @@ export function LootToast({ drops, onDismiss }: LootToastProps) {
   const highestDrop = drops.find((d) => d.rarity === highestRarity) ?? drops[0]
   const toastText = getRarityToastText(highestRarity)
   const itemLabel = getItemLabel(highestDrop.item)
+  const variantClass = variant === 'chainComplete' ? ' loot-toast--chain-complete' : ''
 
   return (
-    <div className={`loot-toast loot-toast--${highestRarity} ${visible ? 'loot-toast--visible' : ''}`}>
+    <div className={`loot-toast loot-toast--${highestRarity}${variantClass} ${visible ? 'loot-toast--visible' : ''}`}>
       <div className="loot-toast__content">
         {toastText && <div className="loot-toast__text">{toastText}</div>}
         <div className="loot-toast__item">

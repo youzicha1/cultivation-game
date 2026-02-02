@@ -1707,6 +1707,16 @@
   box-shadow: 0 0 32px rgba(250, 204, 21, 0.7);
   animation: loot-toast-legendary 0.6s ease-out;
 }
+.loot-toast--chain-complete.loot-toast--legendary .loot-toast__content {
+  box-shadow: 0 0 48px rgba(250, 204, 21, 0.9), 0 0 80px rgba(255, 215, 0, 0.4);
+  animation: loot-toast-chain-complete 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes loot-toast-chain-complete {
+  0% { transform: scale(0.5); opacity: 0; filter: brightness(0.5); }
+  40% { transform: scale(1.12); opacity: 1; filter: brightness(1.3); }
+  70% { transform: scale(1.02); filter: brightness(1.1); }
+  100% { transform: scale(1); opacity: 1; filter: brightness(1); }
+}
 .loot-toast__text {
   font-size: 16px;
   font-weight: 700;
@@ -2986,15 +2996,18 @@
   text-align: center;
 }
 
-/* ===== TICKET-28: Alchemy Furnace Gauge ===== */
+/* ===== TICKET-28: Alchemy Furnace Gauge（爽文风重绘） ===== */
 .alchemy-furnace {
   width: 100%;
   max-width: 320px;
-  border-radius: 16px;
-  padding: 12px;
-  background: rgba(10, 14, 26, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  border-radius: 20px;
+  padding: 14px;
+  background: linear-gradient(165deg, rgba(28, 22, 18, 0.92) 0%, rgba(18, 12, 8, 0.95) 100%);
+  border: 2px solid rgba(200, 150, 80, 0.4);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 200, 100, 0.08) inset,
+    0 0 24px rgba(255, 180, 60, 0.06);
 }
 
 .alchemy-furnace__svgWrap {
@@ -3002,6 +3015,7 @@
   aspect-ratio: 240 / 280;
   display: grid;
   place-items: center;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
 }
 
 .alchemy-furnace__svg {
@@ -3011,9 +3025,10 @@
 }
 
 .alchemy-furnace__numbers {
-  margin-top: 10px;
+  margin-top: 12px;
   display: grid;
   gap: 6px;
+  padding: 0 4px;
 }
 
 .alchemy-furnace__row {
@@ -3024,47 +3039,68 @@
 }
 
 .alchemy-furnace__label {
-  opacity: 0.78;
+  opacity: 0.85;
+  color: rgba(255, 230, 180, 0.9);
 }
 
 .alchemy-furnace__value {
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  color: rgba(255, 220, 140, 1);
+  text-shadow: 0 0 12px rgba(255, 200, 80, 0.4);
 }
 
+/* 炉身：铜鼎体 */
 .alchemy-furnace__body {
   transition: opacity 0.2s ease;
 }
 
 .alchemy-furnace__bodyStroke {
-  stroke: rgba(180, 140, 90, 0.35);
-  stroke-width: 1.5;
+  stroke: rgba(220, 170, 90, 0.5);
+  stroke-width: 2;
   vector-effect: non-scaling-stroke;
 }
 
-.alchemy-furnace__rim {
-  fill: none;
-  stroke: rgba(220, 180, 120, 0.35);
-  stroke-width: 3;
-  stroke-linecap: round;
+/* 炉内火光 */
+.alchemy-furnace__innerGlow {
+  opacity: 0.9;
+  animation: furnaceInnerGlow 2.5s ease-in-out infinite;
 }
 
+@keyframes furnaceInnerGlow {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+/* 炉口：受火映照 */
+.alchemy-furnace__rim {
+  fill: none;
+  stroke: rgba(255, 220, 140, 0.55);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(255, 180, 80, 0.35));
+}
+
+/* 药液 */
 .alchemy-furnace__fill {
-  transition: y 260ms ease;
+  transition: y 280ms ease-out;
 }
 
 .alchemy-furnace__fillShine {
-  opacity: 0.7;
-  animation: furnaceElixirShine 3s ease-in-out infinite;
+  opacity: 0.85;
+  animation: furnaceElixirShine 2.8s ease-in-out infinite;
 }
 
 @keyframes furnaceElixirShine {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.85; }
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
+/* 丹丸：宝丹质感 + 高光点 */
 .alchemy-furnace__pill {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  filter:
+    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 14px rgba(255, 180, 60, 0.35));
   transform-origin: center;
 }
 
@@ -3080,99 +3116,140 @@
   animation: furnacePillFloat 2.6s ease-in-out 0.8s infinite;
 }
 
-@keyframes furnacePillFloat {
-  0%, 100% { transform: translateY(0) scale(1); opacity: 0.95; }
-  50% { transform: translateY(-3px) scale(1.02); opacity: 1; }
+.alchemy-furnace__pillHighlight {
+  opacity: 0.9;
+  animation: furnacePillHighlight 3s ease-in-out infinite;
 }
 
+@keyframes furnacePillHighlight {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+@keyframes furnacePillFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.98; }
+  50% { transform: translateY(-4px) scale(1.04); opacity: 1; }
+}
+
+/* 炉内雾气 */
 .alchemy-furnace__mist {
   fill: none;
-  stroke: rgba(255, 230, 180, 0.28);
+  stroke: rgba(255, 240, 200, 0.32);
   stroke-width: 5;
   stroke-linecap: round;
-  opacity: 0.6;
-  animation: furnaceMistPulse 4s ease-in-out infinite;
+  opacity: 0.7;
+  animation: furnaceMistPulse 3.5s ease-in-out infinite;
 }
 
 @keyframes furnaceMistPulse {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 0.7; }
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
 }
 
+/* 铭文 */
 .alchemy-furnace__glyph {
   fill: none;
-  stroke: rgba(255, 215, 120, 0.25);
+  stroke: rgba(255, 225, 150, 0.35);
   stroke-width: 2;
   stroke-linecap: round;
 }
 
+/* 火焰三层：外 / 中 / 焰心 */
 .alchemy-furnace__flameOuter {
-  fill: rgba(255, 200, 80, 0.5);
-  filter: drop-shadow(0 0 12px rgba(255, 180, 50, 0.4));
+  fill: rgba(255, 200, 80, 0.55);
+  filter:
+    drop-shadow(0 0 16px rgba(255, 180, 50, 0.5))
+    drop-shadow(0 0 28px rgba(255, 140, 30, 0.25));
   transform-origin: 120px 125px;
 }
 
 .alchemy-furnace__flame {
-  fill: rgba(255, 120, 40, 0.85);
-  filter: drop-shadow(0 0 10px rgba(255, 100, 30, 0.5));
+  fill: rgba(255, 140, 50, 0.9);
+  filter:
+    drop-shadow(0 0 14px rgba(255, 120, 40, 0.6))
+    drop-shadow(0 0 22px rgba(255, 80, 20, 0.35));
   transform-origin: 120px 125px;
 }
 
+.alchemy-furnace__flameCore {
+  fill: rgba(255, 248, 220, 0.95);
+  filter:
+    drop-shadow(0 0 12px rgba(255, 240, 180, 0.8))
+    drop-shadow(0 0 20px rgba(255, 220, 120, 0.4));
+  transform-origin: 120px 130px;
+}
+
+/* Idle：炉火呼吸 + 焰心闪烁 */
 .alchemy-furnace--idle .alchemy-furnace__flame,
-.alchemy-furnace--idle .alchemy-furnace__flameOuter {
-  animation: furnaceFlameBreath 1.9s ease-in-out infinite;
+.alchemy-furnace--idle .alchemy-furnace__flameOuter,
+.alchemy-furnace--idle .alchemy-furnace__flameCore {
+  animation: furnaceFlameBreath 2s ease-in-out infinite;
 }
 
 .alchemy-furnace--idle .alchemy-furnace__flameOuter {
-  animation-delay: 0.15s;
+  animation-delay: 0.12s;
+}
+
+.alchemy-furnace--idle .alchemy-furnace__flameCore {
+  animation: furnaceFlameBreath 1.6s ease-in-out 0.25s infinite;
 }
 
 @keyframes furnaceFlameBreath {
-  0% { transform: scale(0.98) rotate(-1deg); opacity: 0.85; }
-  50% { transform: scale(1.06) rotate(1deg); opacity: 1; }
-  100% { transform: scale(0.98) rotate(-1deg); opacity: 0.85; }
+  0% { transform: scale(0.97) rotate(-1.2deg); opacity: 0.88; }
+  45% { transform: scale(1.08) rotate(1.5deg); opacity: 1; }
+  100% { transform: scale(0.97) rotate(-1.2deg); opacity: 0.88; }
 }
 
+/* Boom 档位：火焰更躁 */
 .alchemy-furnace--boom0 .alchemy-furnace__flame {
-  filter: drop-shadow(0 0 8px rgba(255, 140, 40, 0.25));
+  filter: drop-shadow(0 0 12px rgba(255, 140, 40, 0.4)) drop-shadow(0 0 20px rgba(255, 100, 20, 0.2));
 }
 .alchemy-furnace--boom0 .alchemy-furnace__flameOuter {
-  filter: drop-shadow(0 0 10px rgba(255, 180, 50, 0.2));
+  filter: drop-shadow(0 0 14px rgba(255, 180, 50, 0.35)) drop-shadow(0 0 24px rgba(255, 140, 30, 0.15));
 }
 .alchemy-furnace--boom1 .alchemy-furnace__flame,
-.alchemy-furnace--boom1 .alchemy-furnace__flameOuter { animation-duration: 1.5s; }
+.alchemy-furnace--boom1 .alchemy-furnace__flameOuter,
+.alchemy-furnace--boom1 .alchemy-furnace__flameCore { animation-duration: 1.6s; }
 .alchemy-furnace--boom2 .alchemy-furnace__flame,
-.alchemy-furnace--boom2 .alchemy-furnace__flameOuter { animation-duration: 1.2s; }
+.alchemy-furnace--boom2 .alchemy-furnace__flameOuter,
+.alchemy-furnace--boom2 .alchemy-furnace__flameCore { animation-duration: 1.25s; }
 .alchemy-furnace--boom3 .alchemy-furnace__flame,
-.alchemy-furnace--boom3 .alchemy-furnace__flameOuter { animation-duration: 0.95s; }
+.alchemy-furnace--boom3 .alchemy-furnace__flameOuter,
+.alchemy-furnace--boom3 .alchemy-furnace__flameCore { animation-duration: 1s; }
 
+/* Brewing：炉火爆发 */
 .alchemy-furnace--brewing .alchemy-furnace__flame,
-.alchemy-furnace--brewing .alchemy-furnace__flameOuter {
-  animation: furnaceFlameBurst 0.55s ease-out 1;
+.alchemy-furnace--brewing .alchemy-furnace__flameOuter,
+.alchemy-furnace--brewing .alchemy-furnace__flameCore {
+  animation: furnaceFlameBurst 0.5s ease-out 1;
 }
+
 @keyframes furnaceFlameBurst {
   0% { transform: scale(1) rotate(0deg); opacity: 0.9; }
-  45% { transform: scale(1.22) rotate(2deg); opacity: 1; }
+  50% { transform: scale(1.25) rotate(2deg); opacity: 1; }
   100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
 }
 
 .alchemy-furnace--resultSuccess {
-  border-color: rgba(160, 240, 180, 0.35);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(160, 240, 180, 0.1) inset;
+  border-color: rgba(160, 240, 180, 0.5);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(160, 240, 180, 0.15) inset, 0 0 20px rgba(160, 240, 180, 0.08);
 }
 
 .alchemy-furnace--resultBoom {
-  border-color: rgba(255, 120, 120, 0.35);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 120, 120, 0.1) inset;
+  border-color: rgba(255, 120, 120, 0.5);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(255, 120, 120, 0.15) inset, 0 0 20px rgba(255, 120, 120, 0.08);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .alchemy-furnace__flame,
-  .alchemy-furnace__flameOuter { animation: none !important; }
+  .alchemy-furnace__flameOuter,
+  .alchemy-furnace__flameCore { animation: none !important; }
   .alchemy-furnace__fill { transition: none !important; }
   .alchemy-furnace__fillShine,
   .alchemy-furnace__pill,
-  .alchemy-furnace__mist { animation: none !important; }
+  .alchemy-furnace__pillHighlight,
+  .alchemy-furnace__mist,
+  .alchemy-furnace__innerGlow { animation: none !important; }
 }
 
 .alchemy-furnace-wrap {

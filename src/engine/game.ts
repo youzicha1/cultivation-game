@@ -73,6 +73,7 @@ import {
   shouldForceAlchemyAtLeastDi,
   getLegendLootWeightMul,
   shouldForceLegendLoot,
+  PITY_LEGEND_LOOT_HARD,
   addKungfaShards,
   spendKungfaShardsForRarity,
 } from './pity'
@@ -974,7 +975,7 @@ export function reduceGame(
             },
           }
           nextState = addLog(nextState, `继续深入，危险值 +${inc} → ${nextDanger}。奇遇·《${chainDef.name}》 ${chain.chapter}/${chainDef.chapters.length}：${ch.title}`)
-          nextState = applyTimeAndMaybeFinale(nextState, 1)
+          nextState = applyTimeAndMaybeFinale(nextState, 0)
           return { ...nextState, run: { ...nextState.run, rngCalls } }
         }
       }
@@ -999,7 +1000,7 @@ export function reduceGame(
               },
             }
             nextState = addLog(nextState, `继续深入，危险值 +${inc} → ${nextDanger}。【奇遇】《${picked.name}》 1/${picked.chapters.length}：${ch1.title}`)
-            nextState = applyTimeAndMaybeFinale(nextState, 1)
+            nextState = applyTimeAndMaybeFinale(nextState, 0)
             return { ...nextState, run: { ...nextState.run, rngCalls } }
           }
         }
@@ -1026,7 +1027,7 @@ export function reduceGame(
       } else {
         nextState = addLog(nextState, `继续深入，危险值 +${inc} → ${nextDanger}。遭遇：${event.title}`)
       }
-      nextState = applyTimeAndMaybeFinale(nextState, 1)
+      nextState = applyTimeAndMaybeFinale(nextState, 0)
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'EXPLORE_DISMISS_EVENT': {
@@ -1203,17 +1204,48 @@ export function reduceGame(
         if (nextState.screen !== 'death') {
           const danger = nextState.run.danger
           const streak = nextState.run.streak ?? 0
-          const { nextState: stateWithEventLoot, drops: eventDrops } = generateAndApplyLoot(
-            nextState,
-            danger,
-            streak,
-            rngWithCount,
-            1,
-          )
-          nextState = {
-            ...stateWithEventLoot,
-            screen: 'explore',
-            run: { ...stateWithEventLoot.run, pendingLoot: eventDrops.length > 0 ? eventDrops : undefined },
+          if (ch.final && ch.guaranteedReward) {
+            // 传说奇遇终章：强制一次传说掉落 + 结束本次探索
+            const chainCompleteMeta = { ...nextState.meta, pityLegendLoot: PITY_LEGEND_LOOT_HARD }
+            const chainCompleteState = { ...nextState, meta: chainCompleteMeta }
+            const lootDanger = Math.max(danger, 70)
+            const { nextState: stateWithLoot, drops: chainDrops } = generateAndApplyLoot(
+              chainCompleteState,
+              lootDanger,
+              streak,
+              rngWithCount,
+              1,
+            )
+            const completedChain = stateWithLoot.run.chain?.completed ?? {}
+            nextState = addLog(
+              stateWithLoot,
+              `🌟【传说奇遇】《${chainDef.name}》通关！终章大货与天降机缘已入手，本次探索结束。`,
+            )
+            nextState = {
+              ...nextState,
+              screen: 'home',
+              run: {
+                ...stateWithLoot.run,
+                danger: 0,
+                streak: 0,
+                currentEvent: undefined,
+                chain: { completed: completedChain },
+                pendingLoot: chainDrops.length > 0 ? chainDrops : undefined,
+              },
+            }
+          } else {
+            const { nextState: stateWithEventLoot, drops: eventDrops } = generateAndApplyLoot(
+              nextState,
+              danger,
+              streak,
+              rngWithCount,
+              1,
+            )
+            nextState = {
+              ...stateWithEventLoot,
+              screen: 'explore',
+              run: { ...stateWithEventLoot.run, pendingLoot: eventDrops.length > 0 ? eventDrops : undefined },
+            }
           }
         }
         nextState = applyTimeAndMaybeFinale(nextState, 1)

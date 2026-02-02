@@ -11,7 +11,7 @@ import type { LootRarity } from './loot'
 export const PITY_ALCHEMY_THRESHOLD = 6   // 达到后对下一炉品质施加向地/天偏移
 export const PITY_ALCHEMY_HARD = 10      // 达到后下一炉至少出地品
 export const PITY_LEGEND_LOOT_THRESHOLD = 12  // 达到后传奇权重提升
-export const PITY_LEGEND_LOOT_HARD = 20   // 达到后下一次宝箱必出传奇
+export const PITY_LEGEND_LOOT_HARD = 12   // 达到后下一次宝箱必出传奇（满 12/12 即触发）
 export const PITY_LEGEND_KUNGFU_THRESHOLD = 10 // 达到后传奇功法权重提升
 
 /** 碎片兑换消耗 */
