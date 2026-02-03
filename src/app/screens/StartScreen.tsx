@@ -49,7 +49,7 @@ export function StartScreen({ state, dispatch, newGame }: ScreenProps) {
               newGame()
             }}
           >
-            新开局
+            传承续局
           </Button>
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'settings' })}>
             设置

@@ -26,15 +26,8 @@ export function SettingsScreen({ state, dispatch, clearSave }: ScreenProps) {
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'diagnostics' })}>
             诊断 / 自检
           </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => {
-              clearSave()
-              dispatch({ type: 'GO', screen: 'start' })
-            }}
-          >
-            清档
+          <Button variant="danger" size="sm" onClick={() => clearSave()} title="清空存档与传承，回到初始状态">
+            清档（重置一切）
           </Button>
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'start' })}>
             回到开局

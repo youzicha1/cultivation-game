@@ -1,5 +1,5 @@
 import { createInitialState, type PlayerState } from './state'
-import { randInt, type Rng } from './rng'
+import { randInt, createSeededRng, type Rng } from './rng'
 import {
   DANGER_DEEPEN_MAX,
   DANGER_DEEPEN_MIN,
@@ -22,6 +22,7 @@ import {
   type ExploreEvent,
 } from './events'
 import {
+  alchemyRecipes,
   canSynthesizeRecipe,
   getAlchemyPlayerDefaults,
   getAlchemyRates,
@@ -48,7 +49,7 @@ import {
   type DailyReward,
 } from './daily'
 import { relicRegistry, RELIC_IDS, type RelicId } from './relics'
-import { buildKungfaModifiers, getKungfu } from './kungfu'
+import { buildKungfaModifiers, getKungfu, getKungfuIdsByRarity } from './kungfu'
 import { getKungfuModifiers } from './kungfu_modifiers'
 import { getMindDangerIncMult, getMindAlchemySuccessBonus, cultivate, type CultivateMode, type InsightEvent } from './cultivation'
 import {
@@ -103,7 +104,20 @@ import {
   applySell,
   getFillMissingPlan,
   getItemCurrentPrice,
+  getShopCatalogDef,
 } from './shop'
+import {
+  generateTraderSchedule,
+  generateTraderOffer,
+  getTraderWindow,
+  isTraderExpired,
+  canTrade as canStrangerTrade,
+  applyTrade as applyStrangerTrade,
+  type TraderScheduleEntry,
+  type TraderOffer,
+  type PlayerGive,
+  type TraderPools,
+} from './stranger'
 import {
   buildAchievementStateSlice,
   claimAchievement,
@@ -251,6 +265,12 @@ export type GameState = {
     tribulationDmgReductionPercent?: number
     /** TICKET-21: 奇遇链终章大奖——本局获得称号（展示用） */
     earnedTitle?: string
+    /** 坊市奇人：出现时间表；NEW_GAME 时生成 */
+    traderSchedule?: TraderScheduleEntry[]
+    /** 坊市奇人：当前奇人及其提供物；appearedAt 为真实时间戳，存在满 2 小时后消失 */
+    mysteriousTrader?: { window: TraderScheduleEntry; offer: TraderOffer; appearedAt: number }
+    /** 坊市奇人刚出现时的公屏飘字文案（展示后由 CLEAR_MYSTERIOUS_TRADER_TOAST 清除） */
+    mysteriousTraderToast?: string
     /** TICKET-28: 本局成就统计（run_max_danger、run_alchemy_count、run_item_types 等） */
     stats?: Record<string, number>
     /** TICKET-28: 本局连胜（cashout_streak、alchemy_success_streak、breakthrough_success_streak、tribulation_success_streak） */
@@ -346,6 +366,8 @@ export type GameAction =
   | { type: 'SHOP_BUY'; itemId: MaterialId; qty: number }
   | { type: 'SHOP_SELL'; itemId: MaterialId; qty: number }
   | { type: 'SHOP_FILL_MISSING' }
+  | { type: 'SHOP_STRANGER_TRADE'; give: PlayerGive }
+  | { type: 'CLEAR_MYSTERIOUS_TRADER_TOAST' }
   | { type: 'CULTIVATE_TICK'; mode?: CultivateMode }
   | { type: 'CULTIVATE_INSIGHT_CHOOSE'; choice: 'A' | 'B' }
   | { type: 'CLEAR_CULTIVATE_TOAST' }
@@ -436,6 +458,11 @@ export function createInitialGameState(seed: number, persistent?: PersistentKung
     player = { ...player, relics: validIds }
     meta = { ...baseMeta, kungfaShards: typeof persistent.kungfaShards === 'number' && persistent.kungfaShards >= 0 ? persistent.kungfaShards : 0 }
   }
+  const timeMax0 = getTimeMaxForSegment(0)
+  const maxDays = Math.max(4, Math.ceil(timeMax0 / 12))
+  const rng0 = createSeededRng(seed)
+  const traderSchedule = generateTraderSchedule((a, b) => randInt(rng0, a, b), maxDays)
+
   return {
     screen: 'start',
     player,
@@ -453,9 +480,10 @@ export function createInitialGameState(seed: number, persistent?: PersistentKung
       chain: { completed: {} },
       cultivateCount: 0,
       tribulationLevel: 0,
-      timeLeft: getTimeMaxForSegment(0),
-      timeMax: getTimeMaxForSegment(0),
+      timeLeft: timeMax0,
+      timeMax: timeMax0,
       currentEvent: undefined,
+      traderSchedule,
       stats: {},
       streaks: {},
       flags: {},
@@ -511,13 +539,77 @@ function mergeAchievementProgress(
   return next
 }
 
-/** TICKET-14/15/29: 扣减时辰并判断是否进入天劫挑战（统一入口）；TICKET-29 使用回合制天劫 */
+/** 奇人交易池：稀有丹方 ID、稀有材料 ID、高级功法 ID（由内容数据汇总，避免 stranger 依赖 alchemy/shop/kungfu） */
+function getTraderPools(): TraderPools {
+  const rareRecipeIds = alchemyRecipes
+    .filter((r) => r.unlock.type === 'fragment' && isRareRecipe(r))
+    .map((r) => r.id)
+  const catalog = getShopCatalogDef()
+  const rareMaterialIds = catalog.filter((d) => d.rarity === 'epic').map((d) => d.id)
+  const highRarityKungfuIds = [
+    ...getKungfuIdsByRarity('rare'),
+    ...getKungfuIdsByRarity('epic'),
+    ...getKungfuIdsByRarity('legendary'),
+  ]
+  return { rareRecipeIds, rareMaterialIds, highRarityKungfuIds }
+}
+
+/** 根据奇人 offer 生成公屏飘字文案（游戏化、有氛围） */
+function buildMysteriousTraderToastMessage(offer: TraderOffer): string {
+  if (offer.kind === 'recipe_fragment') {
+    const recipe = getRecipe(offer.recipeId)
+    const name = recipe?.name ?? offer.recipeId
+    const part = offer.part === 'upper' ? '上篇' : offer.part === 'middle' ? '中篇' : '下篇'
+    return `坊市传闻：有奇人携《${name}》${part}残页现身，只换不卖，过时不候……`
+  }
+  if (offer.kind === 'rare_material') {
+    const name = getMaterialName(offer.materialId)
+    return `坊市传闻：有神秘行商现身，怀中似有稀世灵材「${name}」，只换不卖……`
+  }
+  const kungfu = getKungfu(offer.kungfuId as RelicId)
+  const name = kungfu?.name ?? offer.kungfuId
+  return `坊市传闻：有奇人携绝学《${name}》现身，欲寻有缘人以物易物……`
+}
+
+/** 根据当前时辰刷新坊市奇人：若在时间窗内则生成/保留 offer（存在真实 2 小时后过期），否则清空 */
+function refreshMysteriousTrader(state: GameState, rng: Rng): GameState {
+  const schedule = state.run.traderSchedule ?? []
+  const timeMax = state.run.timeMax ?? TIME_MAX
+  const timeLeft = state.run.timeLeft ?? timeMax
+  const current = state.run.mysteriousTrader
+
+  if (current && isTraderExpired(current.appearedAt)) {
+    return { ...state, run: { ...state.run, mysteriousTrader: undefined, mysteriousTraderToast: undefined } }
+  }
+
+  const window = getTraderWindow(schedule, timeMax, timeLeft)
+  if (!window) {
+    if (current) {
+      return { ...state, run: { ...state.run, mysteriousTrader: undefined } }
+    }
+    return state
+  }
+
+  if (current && current.window === window) {
+    return state
+  }
+
+  const pools = getTraderPools()
+  const offer = generateTraderOffer((a, b) => randInt(rng, a, b), pools)
+  if (!offer) return state
+  const appearedAt = Date.now()
+  const toast = buildMysteriousTraderToastMessage(offer)
+  return {
+    ...state,
+    run: { ...state.run, mysteriousTrader: { window, offer, appearedAt }, mysteriousTraderToast: toast },
+  }
+}
+
+/** TICKET-14/15/29: 扣减时辰并判断是否进入天劫挑战（统一入口）；TICKET-29 使用回合制天劫；并刷新坊市奇人 */
 function applyTimeAndMaybeFinale(state: GameState, cost: number, rng: Rng): GameState {
   const next = applyTimeCost(state, cost)
-  if (shouldTriggerTribulationFinale(next)) {
-    return enterFinalTrial(next, rng)
-  }
-  return next
+  const afterFinale = shouldTriggerTribulationFinale(next) ? enterFinalTrial(next, rng) : next
+  return refreshMysteriousTrader(afterFinale, rng)
 }
 
 /** TICKET-29: 时辰已耗尽时，进入天劫回合制挑战页（startTribulation）；TICKET-30: 境界不足则禁入 */
@@ -886,10 +978,14 @@ export function reduceGame(
     case 'GO': {
       const nextScreen = action.screen
       const shopMissing = action.shopMissing
-      if (nextScreen === 'shop' && shopMissing != null && shopMissing.length > 0) {
-        return { ...state, screen: nextScreen, run: { ...baseRun, shopMissing } }
+      let st: GameState =
+        nextScreen === 'shop' && shopMissing != null && shopMissing.length > 0
+          ? { ...state, screen: nextScreen, run: { ...baseRun, shopMissing } }
+          : { ...state, screen: nextScreen, run: { ...baseRun, shopMissing: undefined } }
+      if (nextScreen === 'shop') {
+        st = refreshMysteriousTrader(st, rngWithCount)
       }
-      return { ...state, screen: nextScreen, run: { ...baseRun, shopMissing: undefined } }
+      return { ...st, run: { ...st.run, rngCalls } }
     }
     case 'SHOP_BUY': {
       const result = applyBuy(state, action.itemId, action.qty)
@@ -920,6 +1016,22 @@ export function reduceGame(
       const nextState = addLog(
         { ...state, player: result.newPlayer },
         result.logMessage,
+      )
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
+    case 'CLEAR_MYSTERIOUS_TRADER_TOAST': {
+      if (baseRun.mysteriousTraderToast == null) return state
+      return { ...state, run: { ...baseRun, mysteriousTraderToast: undefined } }
+    }
+    case 'SHOP_STRANGER_TRADE': {
+      const trader = baseRun.mysteriousTrader
+      if (!trader || isTraderExpired(trader.appearedAt) || !canStrangerTrade(state.player, trader.offer, action.give)) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      const nextPlayer = applyStrangerTrade(state.player, trader.offer, action.give)
+      const nextState = addLog(
+        { ...state, player: nextPlayer, run: { ...baseRun, mysteriousTrader: undefined } },
+        '与坊市奇人以物易物，各取所需。',
       )
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }

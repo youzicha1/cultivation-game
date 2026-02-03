@@ -30,6 +30,26 @@ export {
   type RollPillResult,
 } from './alchemy/pill_pool'
 export * from './shop'
+export {
+  getCurrentDayAndOffset,
+  isTraderVisible,
+  isTraderExpired,
+  getTraderWindow,
+  getPlayerTradeOptions,
+  canTrade as canStrangerTrade,
+  applyTrade as applyStrangerTrade,
+  isSameKind,
+  generateTraderSchedule,
+  generateTraderOffer,
+  STRANGER_DAY_LENGTH,
+  STRANGER_WINDOW_DURATION,
+  STRANGER_DURATION_MS,
+  type TraderOffer,
+  type PlayerGive,
+  type TraderScheduleEntry,
+  type TraderPools,
+  type TraderOfferKind,
+} from './stranger'
 export * from './achievements'
 export {
   RISK_LEVELS,

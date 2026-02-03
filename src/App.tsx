@@ -33,6 +33,15 @@ function App() {
     }
   }, [state.log.length])
 
+  const strangerToast = state.run.mysteriousTraderToast
+  useEffect(() => {
+    if (!strangerToast) return
+    const t = setTimeout(() => {
+      dispatch({ type: 'CLEAR_MYSTERIOUS_TRADER_TOAST' })
+    }, 12000)
+    return () => clearTimeout(t)
+  }, [strangerToast, dispatch])
+
   const screen = (() => {
     switch (state.screen) {
       case 'start':
@@ -109,6 +118,11 @@ function App() {
   const timeWarning = timeLeft <= TIME_WARNING_THRESHOLD
   return (
     <div className={`app-root ${isBreakthrough ? 'app-root--breakthrough' : ''} ${isAlchemy ? 'app-root--alchemy' : ''} ${isShop ? 'app-root--shop' : ''}`}>
+      {strangerToast && (
+        <div className="app-stranger-marquee" role="status" aria-live="polite">
+          <span className="app-stranger-marquee-text">{strangerToast}</span>
+        </div>
+      )}
       <header className="app-header">
         <h1>仙途暴击</h1>
         {showTimer && (

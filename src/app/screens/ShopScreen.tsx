@@ -12,6 +12,16 @@ import {
   type ShopSection,
 } from '../../engine/shop'
 import type { MaterialId } from '../../engine/alchemy'
+import { getRecipe, getMaterialName } from '../../engine/alchemy'
+import { getKungfu } from '../../engine/kungfu'
+import {
+  getPlayerTradeOptions,
+  canTrade as canStrangerTrade,
+  isTraderExpired,
+  STRANGER_DURATION_MS,
+  type TraderOffer,
+  type PlayerGive,
+} from '../../engine/stranger'
 import { Button } from '../ui/Button'
 import { Panel } from '../ui/Panel'
 import { StickyFooter } from '../ui/StickyFooter'
@@ -32,6 +42,30 @@ const RARITY_ORDER: Record<string, number> = {
 type TabId = 'mat' | 'sell'
 
 const SECTIONS = getShopSectionsWithItems()
+
+function formatOfferLabel(offer: TraderOffer): string {
+  if (offer.kind === 'recipe_fragment') {
+    const name = getRecipe(offer.recipeId)?.name ?? offer.recipeId
+    const partLabel = offer.part === 'upper' ? '上篇' : offer.part === 'middle' ? '中篇' : '下篇'
+    return `丹方《${name}》·${partLabel}残页`
+  }
+  if (offer.kind === 'rare_material') {
+    return `稀有材料·${getMaterialName(offer.materialId)}`
+  }
+  return `功法·${getKungfu(offer.kungfuId as import('../../engine/relics').RelicId)?.name ?? offer.kungfuId}`
+}
+
+function formatGiveLabel(give: PlayerGive): string {
+  if (give.kind === 'recipe_fragment') {
+    const name = getRecipe(give.recipeId)?.name ?? give.recipeId
+    const partLabel = give.part === 'upper' ? '上篇' : give.part === 'middle' ? '中篇' : '下篇'
+    return `《${name}》·${partLabel}`
+  }
+  if (give.kind === 'rare_material') {
+    return getMaterialName(give.materialId)
+  }
+  return getKungfu(give.kungfuId as import('../../engine/relics').RelicId)?.name ?? give.kungfuId
+}
 
 export function ShopScreen({ state, dispatch }: ScreenProps) {
   const { items, dailyHint } = getShopCatalog(state)
@@ -77,6 +111,49 @@ export function ShopScreen({ state, dispatch }: ScreenProps) {
         <header className="shop-resource-bar">
           <span className="shop-gold">灵石 {gold}</span>
         </header>
+
+        {/* 奇人交易：仅在奇人存在且未过期（真实 2 小时内）时显示 */}
+        {state.run.mysteriousTrader && (() => {
+          const t = state.run.mysteriousTrader
+          const expired = isTraderExpired(t.appearedAt)
+          if (expired) {
+            return (
+              <div className="shop-stranger-block shop-stranger-block--gone">
+                <div className="shop-stranger-title">坊市奇人</div>
+                <p className="shop-stranger-desc">奇人已离去，下次有缘再见。</p>
+              </div>
+            )
+          }
+          const { offer } = t
+          const options = getPlayerTradeOptions(state.player, offer)
+          return (
+            <div className="shop-stranger-block">
+              <div className="shop-stranger-title">坊市奇人 · 以物易物</div>
+              <p className="shop-stranger-desc">奇人带来：{formatOfferLabel(offer)}。只能用同类型稀有物品交换，不可用灵石购买。（约剩 {Math.max(0, Math.ceil((STRANGER_DURATION_MS - (Date.now() - t.appearedAt)) / 60000))} 分钟）</p>
+              {options.length === 0 ? (
+                <p className="shop-stranger-empty">你当前没有可交换的同类型物品。</p>
+              ) : (
+                <div className="shop-stranger-options">
+                  {options.map((give) => {
+                    const canDo = canStrangerTrade(state.player, offer, give)
+                    return (
+                      <Button
+                        key={give.kind + (give.kind === 'recipe_fragment' ? `${give.recipeId}-${give.part}` : give.kind === 'rare_material' ? give.materialId : give.kungfuId)}
+                        variant="option-green"
+                        size="sm"
+                        className="shop-stranger-btn"
+                        onClick={() => dispatch({ type: 'SHOP_STRANGER_TRADE', give })}
+                        disabled={!canDo}
+                      >
+                        用「{formatGiveLabel(give)}」换取
+                      </Button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* 购买 / 出售 主 Tab */}
         <div className="shop-tabs">

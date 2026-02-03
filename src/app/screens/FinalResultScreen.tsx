@@ -43,7 +43,7 @@ export function FinalResultScreen({ state, dispatch, newGame }: ScreenProps) {
         </div>
         <div className="page-actions">
           <Button variant="primary" size="lg" onClick={newGame}>
-            开新一局
+            传承续局
           </Button>
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'legacy' })}>
             去传承升级

@@ -104,7 +104,7 @@
 - **状态**：`run.finalTrial` = { step: 1|2|3, threat, resolve, wounds?, choices[], rewardSeed? }；threat 由本局表现纯函数计算（境界、danger、丹品质、通关链），clamp [60,140]
 - **三选项**：稳（守心渡劫，伤害低、resolve+2）、搏（逆天一搏，rng 成功伤害低 resolve+6、失败伤害高）、献祭（消耗灵石/丹药/材料/传承点换伤害减免或回血或 resolve）
 - **结局**：ascend（飞升）、retire（归隐）、demon（入魔）、dead（战死）；每种结局均有传承点+碎片奖励（爽文补偿），入魔解锁魔道天赋
-- **UI**：FinalTrialScreen（天劫条 3 段、HP/resolve/threat、第 X 雷 + 三选项）；FinalResultScreen（结局标题、战报、传承点/碎片、开新一局/去传承升级）
+- **UI**：FinalTrialScreen（天劫条 3 段、HP/resolve/threat、第 X 雷 + 三选项）；FinalResultScreen（结局标题、战报、传承点/碎片、传承续局/去传承升级）
 - **工程**：finalTrial.ts（computeThreat、computeInitialResolve、伤害公式、computeEndingId、getFinalRewards）；finalTrial.test.ts；game.test.ts（FINAL_TRIAL_CHOOSE、step 推进、搏 rng）；persistence 保存/加载 finalTrial；docs 更新
 
 ## TICKET-17A 完成项（炼丹页一屏化 + 爽文 UI + 开奖弹层）

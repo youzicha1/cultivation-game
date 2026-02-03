@@ -134,7 +134,7 @@
 - **单一来源**：`getAchievementView(state)` 返回 UI 需要的全部（进度 current/target、completed、claimable、claimed、rewardText、分组、排序）；UI 不计算进度
 - **领取**：`claimAchievement(state, id)`、`claimAllAchievements(state)` 幂等，奖励（灵石/传承点）由引擎发放；领取后写入 claimed 并累加 achievement_claims_lifetime
 - **事件落点**：探索（EXPLORE_DEEPEN 更新 explore_actions、run_max_danger、explore_allin_no_cashout；EXPLORE_CASH_OUT 更新 explore_cashouts、cashout_streak、explore_low_hp_cashout/explore_greed_cashout）；炼丹（ALCHEMY_BREW_CONFIRM 更新 alchemy_success/boom/tian_lifetime、run_alchemy_count、alchemy_success_streak、alchemy_boom_high_success 等 flag）；突破（BREAKTHROUGH_CONFIRM 成功/失败更新 breakthrough_success/fail_lifetime、breakthrough_success_streak、低成功率/残血/保底 flag）；天劫（TRIBULATION_ACTION 终局或 FINAL_TRIAL_CHOOSE 终局更新 tribulation_success/fail_lifetime、tribulation_success_streak、build_mod_tribulation flag）；坊市（SHOP_BUY 更新 shop_trades/spend_lifetime、run_item_types、shop_spend_1500_once 等 flag）
-- **持久化**：`getPersistentAchievements()` / `savePersistentAchievements(state)` 独立 key 存储 claimed 与 statsLifetime；新开局时合并进新 state
+- **持久化**：`getPersistentAchievements()` / `savePersistentAchievements(state)` 独立 key 存储 claimed 与 statsLifetime；传承续局时从当前 state 合并进新 state（见「传承续局与清档」）
 
 ### 事件链系统（TICKET-11：content 驱动 + chain 状态 + pickEvent 优先级）
 - **内容**：`src/content/event_chains.v1.json`，多条链，每条 2～4 章（TICKET-37 定向材料链可为 2 段），终章 `guaranteedReward` 必发
@@ -251,11 +251,24 @@
 - **买入**：canBuy、applyBuy；SHOP_BUY；一键补齐 getFillMissingPlan、SHOP_FILL_MISSING。
 - **存档**：persistence 可选保存/加载 run.shopMissing
 
+### 坊市奇人交易（以物易物）
+- **位置**：`src/engine/stranger.ts`；game.run 含 `traderSchedule`（奇人出现时间表）、`mysteriousTrader`（当前奇人、offer、`appearedAt` 时间戳）、`mysteriousTraderToast`（刚出现时的公屏飘字文案）。
+- **出现规则**：一天 = 12 时辰；奇人每天出现 2～3 次（按游戏时辰窗触发）；**出现后持续真实时间 2 小时**即消失（`isTraderExpired(appearedAt)`）；时间表在 NEW_GAME 时由 `generateTraderSchedule(rng, maxDays)` 生成；耗时辰或进入坊市时 `refreshMysteriousTrader` 刷新。
+- **交易类型**：奇人带来**同类型**稀有物品之一——稀有丹方残页（地/天品上/中/下篇）、稀有材料（epic）、高级功法（rare/epic/legendary）；玩家只能用**同类型**物品交换，不可用灵石购买。
+- **逻辑**：`getTraderPools()`（game 内）从 alchemy/shop/kungfu 汇总可出池；`generateTraderOffer(rng, pools)` 随机种类与具体项；`canTrade` / `applyTrade` 校验并执行交换；`getPlayerTradeOptions` 供 UI 列出可交换项。
+- **Action**：`SHOP_STRANGER_TRADE` 传入 `give: PlayerGive`；校验通过（含未过期）后扣 give、加 offer，并清空奇人；`CLEAR_MYSTERIOUS_TRADER_TOAST` 清除飘字文案。
+- **UI**：ShopScreen 在 `run.mysteriousTrader` 存在且未过期时展示「坊市奇人·以物易物」与剩余分钟；过期则显示「奇人已离去」。奇人刚出现时公屏上方从左到右缓慢飘出 `mysteriousTraderToast`（如「坊市传闻：有奇人携……现身，只换不卖……」），约 12 秒后自动清除。
+
 ### 存档版本/迁移/诊断（TICKET-24）
 - **SaveEnvelope**：localStorage 写入格式为 `{ meta: { schemaVersion, savedAt }, state }`；key 为 `cultivation_save_v1`
 - **读档**：解析 raw → migrate(raw) → 返回 state；旧存档（纯 state 或旧 version/savedAt 格式）自动迁移为 envelope；schemaVersion 高于 CURRENT_SCHEMA 或解析失败时返回 null，不崩
 - **备份**：不兼容或解析失败时 `tryBackup(raw, reason)` 写入 `cultivation_save_v1_backup_<timestamp>`，调用方收到 null 后重置为 initState()
 - **诊断页**：`/diagnostics`（SettingsScreen 入口「诊断/自检」）；展示 APP_VERSION、CURRENT_SCHEMA、存档 meta、state 摘要；复制存档 JSON、粘贴导入（校验后写入）、清档
+
+### 传承续局与清档（设定：不断修炼失败积累、最终通关）
+- **传承续局**（渡劫失败/开局/死亡后按钮）：保留传承点、传承升级、已获得功法、功法碎片、成就等**跨局进度**，仅重置**本局**（新种子、新 run、凡人 1 级）。实现：`useGameStore.newGame()` 从当前 state 取 `player.relics`、`meta`、`achievements`，调用 `createInitialGameState(seed, persistent)` 后合并 meta/achievements，不调用 `clearStorage()`。
+- **清档**（设置/诊断页「清档（重置一切）」）：**重置到初始化状态**，清除主存档（SAVE_KEY）与跨局持久化（PERSISTENT_KUNGFU_KEY、PERSISTENT_ACHIEVEMENTS_KEY），并 setState 到全新开局（screen=start）。实现：`clearSave()` → `clearStorage()` + `setState(createInitialGameState(seed), screen: 'start')`。
+- **UI**：FinalResultScreen / DeathScreen / StartScreen 使用「传承续局」；SettingsScreen / DiagnosticsScreen 使用「清档（重置一切）」或「清档并回到开局」。
 
 ### 测试
 - engine 层必须 100% 可测试

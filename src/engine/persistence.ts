@@ -407,9 +407,12 @@ export function getInitialStateForNewGame(seed: number): GameState {
   return createInitialGameState(seed)
 }
 
+/** 清档：移除主存档与跨局持久化（传承续局用功法/成就键），重置到初始化状态时调用 */
 export function clearStorage(): void {
   try {
     localStorage.removeItem(SAVE_KEY)
+    localStorage.removeItem(PERSISTENT_KUNGFU_KEY)
+    localStorage.removeItem(PERSISTENT_ACHIEVEMENTS_KEY)
   } catch {
     // 忽略清理失败
   }

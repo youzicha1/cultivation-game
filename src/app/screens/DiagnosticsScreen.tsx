@@ -76,7 +76,6 @@ export function DiagnosticsScreen({ state: _state, dispatch, clearSave }: Screen
 
   const handleClear = () => {
     clearSave()
-    dispatch({ type: 'GO', screen: 'start' })
   }
 
   const savedAtStr = summary.savedAt != null ? new Date(summary.savedAt).toLocaleString() : '—'
@@ -113,8 +112,8 @@ export function DiagnosticsScreen({ state: _state, dispatch, clearSave }: Screen
           导入并刷新
         </Button>
 
-        <div className="page-label">清档</div>
-        <Button variant="danger" size="sm" onClick={handleClear}>
+        <div className="page-label">清档（重置一切）</div>
+        <Button variant="danger" size="sm" onClick={handleClear} title="清空存档与传承，回到初始状态">
           清档并回到开局
         </Button>
 

@@ -3,33 +3,33 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 
-describe('App flow: 清档与新开局', () => {
+describe('App flow: 清档与传承续局', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
-  it('从开局点击「新开局」会进入主界面', async () => {
+  it('从开局点击「传承续局」会进入主界面', async () => {
     const user = userEvent.setup()
     render(<App />)
 
     // 初始在开局界面
     expect(screen.getByText('修仙之路')).toBeInTheDocument()
-    expect(screen.getByText('新开局')).toBeInTheDocument()
+    expect(screen.getByText('传承续局')).toBeInTheDocument()
 
-    await user.click(screen.getByText('新开局'))
+    await user.click(screen.getByText('传承续局'))
 
-    // 新开局后应进入主界面（等待状态更新）
+    // 传承续局后应进入主界面（保留传承等，仅重置本局）
     await waitFor(() => {
       expect(screen.getByText('主界面')).toBeInTheDocument()
     })
   })
 
-  it('设置中清档后回到开局，再点新开局也能正常进入主界面', async () => {
+  it('设置中清档后回到开局，再点传承续局也能正常进入主界面', async () => {
     const user = userEvent.setup()
     render(<App />)
 
-    // 初始在开局界面，先新开局进入主界面（确保有存档数据）
-    await user.click(screen.getByText('新开局'))
+    // 初始在开局界面，先传承续局进入主界面（确保有存档数据）
+    await user.click(screen.getByText('传承续局'))
     await waitFor(() => {
       expect(screen.getByText('主界面')).toBeInTheDocument()
     })
@@ -40,14 +40,14 @@ describe('App flow: 清档与新开局', () => {
       expect(screen.getByText('设置')).toBeInTheDocument()
     })
 
-    // 清档应返回开局
-    await user.click(screen.getByText('清档'))
+    // 清档应返回开局（重置一切）
+    await user.click(screen.getByRole('button', { name: /清档/ }))
     await waitFor(() => {
       expect(screen.getByText('修仙之路')).toBeInTheDocument()
     })
 
-    // 再次新开局应进入主界面
-    await user.click(screen.getByText('新开局'))
+    // 再次传承续局应进入主界面
+    await user.click(screen.getByText('传承续局'))
     await waitFor(() => {
       expect(screen.getByText('主界面')).toBeInTheDocument()
     })

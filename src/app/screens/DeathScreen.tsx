@@ -24,7 +24,7 @@ export function DeathScreen({ state, dispatch, newGame }: ScreenProps) {
             本局总结
           </Button>
           <Button variant="primary" size="sm" onClick={newGame}>
-            新开局
+            传承续局
           </Button>
         </div>
       </div>
