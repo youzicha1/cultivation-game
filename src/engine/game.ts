@@ -22,13 +22,17 @@ import {
   type ExploreEvent,
 } from './events'
 import {
+  canSynthesizeRecipe,
   getAlchemyPlayerDefaults,
   getAlchemyRates,
   getElixirName,
   getMaterialName,
   getQualityLabel,
   getRecipe,
+  isGenericRecipe,
+  isRareRecipe,
   resolveBrew,
+  syncRecipesUnlockedFromFragments,
   type ElixirId,
   type ElixirQuality,
   type MaterialId,
@@ -399,6 +403,7 @@ export type GameAction =
   | { type: 'CLAIM_ALL_ACHIEVEMENTS' }
   | { type: 'CHOOSE_AWAKEN_SKILL'; skillId: string }
   | { type: 'USE_PILL'; pillId: string; quality: ElixirQuality; context: import('./pills/types').PillContext }
+  | { type: 'RECIPE_SYNTHESIZE'; recipeId: RecipeId }
 
 /** 功法/碎片跨局种子：新游戏时继承已获得功法与碎片 */
 export type PersistentKungfuSeed = { unlockedKungfu: string[]; kungfaShards: number }
@@ -412,6 +417,7 @@ export function createInitialGameState(seed: number, persistent?: PersistentKung
     elixirs: alchemyDefaults.elixirs,
     recipesUnlocked: alchemyDefaults.recipesUnlocked,
     fragments: alchemyDefaults.fragments,
+    fragmentParts: alchemyDefaults.fragmentParts,
     codex: { ...basePlayer.codex, ...alchemyDefaults.codex },
   }
   const baseMeta = {
@@ -663,7 +669,13 @@ function snapshotChainChapter(
   }
 }
 
-/** TICKET-7: 应用掉落到玩家状态；TICKET-10: kungfu 已有则传承点+1 */
+const FRAGMENT_PART_LABEL: Record<'upper' | 'middle' | 'lower', string> = {
+  upper: '上篇',
+  middle: '中篇',
+  lower: '下篇',
+}
+
+/** TICKET-7: 应用掉落到玩家状态；残页按上/中/下篇写入 fragmentParts；通用丹方整本仅传说掉落 */
 function applyLootItem(
   player: PlayerState,
   item: LootItem,
@@ -673,8 +685,21 @@ function applyLootItem(
     const cur = next.materials[item.id] ?? 0
     next.materials = { ...next.materials, [item.id]: cur + item.count }
   } else if (item.type === 'fragment') {
-    const cur = next.fragments[item.id] ?? 0
-    next.fragments = { ...next.fragments, [item.id]: cur + item.count }
+    const fp = next.fragmentParts ?? {}
+    const recipeParts = fp[item.id] ?? { upper: 0, middle: 0, lower: 0 }
+    next.fragmentParts = {
+      ...fp,
+      [item.id]: {
+        ...recipeParts,
+        [item.part]: recipeParts[item.part] + item.count,
+      },
+    }
+  } else if (item.type === 'recipe') {
+    const recipe = getRecipe(item.id)
+    const canUnlockWhole = recipe && (isGenericRecipe(recipe) || !isRareRecipe(recipe)) && !(next.recipesUnlocked[item.id])
+    if (canUnlockWhole) {
+      next.recipesUnlocked = { ...next.recipesUnlocked, [item.id]: true }
+    }
   } else if (item.type === 'pills') {
     next.pills = next.pills + item.count
   } else if (item.type === 'relic_fragment') {
@@ -755,6 +780,7 @@ function generateAndApplyLoot(
       if (hadBefore) meta = addKungfaShards(meta, 1)
     }
   }
+  nextPlayer = { ...nextPlayer, ...syncRecipesUnlockedFromFragments(nextPlayer) }
 
   let nextState: GameState = {
     ...state,
@@ -775,8 +801,10 @@ function generateAndApplyLoot(
         drop.item.type === 'material'
           ? `${drop.item.id}×${drop.item.count}`
           : drop.item.type === 'fragment'
-            ? `残页×${drop.item.count}`
-            : drop.item.type === 'pills'
+            ? `残页（${FRAGMENT_PART_LABEL[drop.item.part]}）×${drop.item.count}`
+            : drop.item.type === 'recipe'
+              ? `丹方《${getRecipe(drop.item.id)?.name ?? drop.item.id}》`
+              : drop.item.type === 'pills'
               ? `丹药×${drop.item.count}`
               : drop.item.type === 'kungfu'
                 ? `《${kungfuName}》`
@@ -1334,14 +1362,19 @@ export function reduceGame(
         if (nextState.screen === 'death' && chain.activeChainId) {
           const comp = DEFAULT_BREAK_COMPENSATION
           const p = nextState.player
+          const fp = p.fragmentParts ?? {}
+          const recipeParts = fp[comp.fragmentRecipeId] ?? { upper: 0, middle: 0, lower: 0 }
           nextState = {
             ...nextState,
             player: {
               ...p,
               pity: (p.pity ?? 0) + comp.pityPlus,
-              fragments: {
-                ...p.fragments,
-                [comp.fragmentRecipeId]: (p.fragments[comp.fragmentRecipeId] ?? 0) + comp.fragmentCount,
+              fragmentParts: {
+                ...fp,
+                [comp.fragmentRecipeId]: {
+                  ...recipeParts,
+                  upper: recipeParts.upper + comp.fragmentCount,
+                },
               },
               materials: {
                 ...p.materials,
@@ -1359,33 +1392,55 @@ export function reduceGame(
           const danger = nextState.run.danger
           const streak = nextState.run.streak ?? 0
           if (ch.final && ch.guaranteedReward) {
-            // 传说奇遇终章：强制一次传说掉落 + 结束本次探索
-            const chainCompleteMeta = { ...nextState.meta, pityLegendLoot: PITY_LEGEND_LOOT_HARD }
-            const chainCompleteState = { ...nextState, meta: chainCompleteMeta }
-            const lootDanger = Math.max(danger, 70)
-            const { nextState: stateWithLoot, drops: chainDrops } = generateAndApplyLoot(
-              chainCompleteState,
-              lootDanger,
-              streak,
-              rngWithCount,
-              1,
-            )
-            const completedChain = stateWithLoot.run.chain?.completed ?? {}
-            nextState = addLog(
-              stateWithLoot,
-              `🌟【传说奇遇】《${chainDef.name}》通关！终章大货与天降机缘已入手，本次探索结束。`,
-            )
-            nextState = {
-              ...nextState,
-              screen: 'home',
-              run: {
-                ...stateWithLoot.run,
-                danger: 0,
-                streak: 0,
-                currentEvent: undefined,
-                chain: { completed: completedChain },
-                pendingLoot: chainDrops.length > 0 ? chainDrops : undefined,
-              },
+            const reward = ch.guaranteedReward
+            const completedChain = nextState.run.chain?.completed ?? {}
+            // 材料链终章：只发描述中的特定材料，不再额外随机传说掉落，避免与描述不符
+            if (reward.type === 'epic_material_elixir') {
+              const materialDrop: LootDrop = {
+                rarity: 'epic',
+                item: { type: 'material', id: reward.materialId as MaterialId, count: reward.materialCount },
+              }
+              nextState = addLog(nextState, `【金】奇遇通关《${chainDef.name}》！终章大货：${getMaterialName(reward.materialId as MaterialId)}×${reward.materialCount}已入手。`)
+              nextState = {
+                ...nextState,
+                screen: 'home',
+                run: {
+                  ...nextState.run,
+                  danger: 0,
+                  streak: 0,
+                  currentEvent: undefined,
+                  chain: { completed: completedChain },
+                  pendingLoot: [materialDrop],
+                },
+              }
+            } else {
+              // 非材料链终章：保留一次传说掉落 + 结束本次探索
+              const chainCompleteMeta = { ...nextState.meta, pityLegendLoot: PITY_LEGEND_LOOT_HARD }
+              const chainCompleteState = { ...nextState, meta: chainCompleteMeta }
+              const lootDanger = Math.max(danger, 70)
+              const { nextState: stateWithLoot, drops: chainDrops } = generateAndApplyLoot(
+                chainCompleteState,
+                lootDanger,
+                streak,
+                rngWithCount,
+                1,
+              )
+              nextState = addLog(
+                stateWithLoot,
+                `🌟【传说奇遇】《${chainDef.name}》通关！终章大货与天降机缘已入手，本次探索结束。`,
+              )
+              nextState = {
+                ...nextState,
+                screen: 'home',
+                run: {
+                  ...stateWithLoot.run,
+                  danger: 0,
+                  streak: 0,
+                  currentEvent: undefined,
+                  chain: { completed: stateWithLoot.run.chain?.completed ?? completedChain },
+                  pendingLoot: chainDrops.length > 0 ? chainDrops : undefined,
+                },
+              }
             }
           } else {
             const { nextState: stateWithEventLoot, drops: eventDrops } = generateAndApplyLoot(
@@ -1706,6 +1761,33 @@ export function reduceGame(
       let nextState: GameState = { ...state, screen: 'alchemy_codex' }
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
+    case 'RECIPE_SYNTHESIZE': {
+      const { recipeId } = action
+      if (!canSynthesizeRecipe(state.player, recipeId)) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      const recipe = getRecipe(recipeId)
+      const fp = state.player.fragmentParts ?? {}
+      const parts = fp[recipeId] ?? { upper: 0, middle: 0, lower: 0 }
+      const nextParts = {
+        ...fp,
+        [recipeId]: {
+          upper: Math.max(0, parts.upper - 1),
+          middle: Math.max(0, parts.middle - 1),
+          lower: Math.max(0, parts.lower - 1),
+        },
+      }
+      let nextState: GameState = {
+        ...state,
+        player: {
+          ...state.player,
+          fragmentParts: nextParts,
+          recipesUnlocked: { ...state.player.recipesUnlocked, [recipeId]: true },
+        },
+      }
+      nextState = addLog(nextState, `【丹方合成】消耗上/中/下篇残页各一，获得丹方《${recipe?.name ?? recipeId}》`)
+      return { ...nextState, run: { ...nextState.run, rngCalls } }
+    }
     case 'BREAKTHROUGH_OPEN': {
       const plan = createBreakthroughPlan(state, 0, undefined)
       let nextState: GameState = {
@@ -1927,10 +2009,16 @@ export function reduceGame(
         nextPlayer.materials = { ...nextPlayer.materials, [reward.id]: cur + reward.count }
         rewardLabel = `${getMaterialName(reward.id as MaterialId)} x${reward.count}`
       } else if (reward.type === 'fragment') {
-        const cur = nextPlayer.fragments[reward.recipeId as keyof typeof nextPlayer.fragments] ?? 0
-        nextPlayer.fragments = { ...nextPlayer.fragments, [reward.recipeId]: cur + reward.count }
+        const part = next01() < 0.334 ? 'upper' : next01() < 0.667 ? 'middle' : 'lower'
+        const fp = nextPlayer.fragmentParts ?? {}
+        const recipeParts = fp[reward.recipeId] ?? { upper: 0, middle: 0, lower: 0 }
+        nextPlayer.fragmentParts = {
+          ...fp,
+          [reward.recipeId]: { ...recipeParts, [part]: recipeParts[part] + reward.count },
+        }
         const recipe = getRecipe(reward.recipeId)
-        rewardLabel = `${recipe?.name ?? reward.recipeId}残页 x${reward.count}`
+        const partLabel = part === 'upper' ? '上篇' : part === 'middle' ? '中篇' : '下篇'
+        rewardLabel = `${recipe?.name ?? reward.recipeId}残页（${partLabel}）x${reward.count}`
       } else if (reward.type === 'inheritance') {
         nextPlayer.inheritancePoints = nextPlayer.inheritancePoints + reward.count
         rewardLabel = `传承点 x${reward.count}`

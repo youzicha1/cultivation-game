@@ -1,5 +1,5 @@
 import type { GameAction, GameState } from '../../engine'
-import { alchemyRecipes } from '../../engine'
+import { alchemyRecipes, getRecipesSynthesizable } from '../../engine'
 import { Button } from '../ui/Button'
 import { Chip } from '../ui/Chip'
 import { Panel } from '../ui/Panel'
@@ -36,6 +36,9 @@ export function AlchemyCodexScreen({ state, dispatch }: ScreenProps) {
     return order.indexOf(q) > order.indexOf(best) ? q : best
   }, 'none' as const)
 
+  const synthesizable = getRecipesSynthesizable(state.player)
+  const fragmentParts = state.player.fragmentParts ?? {}
+
   return (
     <Panel title="炼丹图鉴">
       <Stack gap={10}>
@@ -58,6 +61,24 @@ export function AlchemyCodexScreen({ state, dispatch }: ScreenProps) {
           </div>
         )}
 
+        {/* 丹方合成：集齐上/中/下篇可合成，坊市不可出售残页 */}
+        {synthesizable.length > 0 && (
+          <>
+            <div className="page-label">丹方合成</div>
+            <div className="codex-list">
+              {synthesizable.map((r) => (
+                <div key={r.id} className="codex-item codex-item--synthesizable">
+                  <span className="codex-item__name">{r.name}</span>
+                  <span className="codex-item__meta">上/中/下篇已齐</span>
+                  <Button variant="option-blue" size="sm" onClick={() => dispatch({ type: 'RECIPE_SYNTHESIZE', recipeId: r.id })}>
+                    合成
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
         {/* TICKET-8: 每种丹药最高品质 */}
         <div className="page-label">丹药最高品质</div>
         <div className="codex-list">
@@ -65,16 +86,15 @@ export function AlchemyCodexScreen({ state, dispatch }: ScreenProps) {
             const unlocked = state.player.recipesUnlocked[r.id]
             const bestByRecipe = codex.bestQualityByRecipe[r.id]
             const bestByElixir = bestQualityByElixir[r.elixirId] ?? 'none'
-            const fragNeed = r.unlock.type === 'fragment' ? r.unlock.need : 0
-            const fragHave = state.player.fragments[r.id] ?? 0
+            const parts = r.unlock.type === 'fragment' ? (fragmentParts[r.id] ?? { upper: 0, middle: 0, lower: 0 }) : null
             return (
               <div key={r.id} className={`codex-item ${unlocked ? 'codex-item--unlocked' : ''}`}>
                 <span className="codex-item__name">{r.name}</span>
                 <span className="codex-item__meta">
                   {unlocked
                     ? `最高 ${qualityName[bestByElixir]}（配方：${qualityName[bestByRecipe]}）`
-                    : r.unlock.type === 'fragment'
-                    ? `残页 ${fragHave}/${fragNeed}`
+                    : parts !== null
+                    ? `残页 上${parts.upper} 中${parts.middle} 下${parts.lower}`
                     : '未解锁'}
                 </span>
               </div>

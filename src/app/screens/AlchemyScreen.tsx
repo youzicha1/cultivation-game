@@ -332,8 +332,7 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                       const poolSorted = [...pool].sort((a, b) => a.difficulty - b.difficulty)
                       const renderRecipe = (r: (typeof alchemyRecipes)[0]) => {
                         const isUnlocked = state.player.recipesUnlocked[r.id]
-                        const fragNeed = r.unlock.type === 'fragment' ? r.unlock.need : 0
-                        const fragHave = state.player.fragments[r.id] ?? 0
+                        const parts = r.unlock.type === 'fragment' ? (state.player.fragmentParts ?? {})[r.id] ?? { upper: 0, middle: 0, lower: 0 } : null
                         const selected = plan.recipeId === r.id
                         return (
                           <li key={r.id}>
@@ -347,7 +346,7 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                                 }
                               }}
                               disabled={!isUnlocked}
-                              title={!isUnlocked && r.unlock.type === 'fragment' ? `需残页 ${fragHave}/${fragNeed}` : getElixirDesc(r.elixirId)}
+                              title={!isUnlocked && parts !== null ? '需上篇、中篇、下篇各一，可于图鉴合成' : getElixirDesc(r.elixirId)}
                             >
                               <span className="alchemy-recipe-picker-item-tier" title={`丹方品质：${TIER_LABELS[r.tier]}方`}>
                                 {TIER_LABELS[r.tier]}方
@@ -365,8 +364,8 @@ export function AlchemyScreen({ state, dispatch }: ScreenProps) {
                               {r.recommendedHeat && (
                                 <span className="alchemy-recipe-picker-item-heat">推荐炉温：{HEAT_LABELS[r.recommendedHeat]}</span>
                               )}
-                              {!isUnlocked && r.unlock.type === 'fragment' && (
-                                <span className="alchemy-recipe-picker-item-frag">残页 {fragHave}/{fragNeed}</span>
+                              {!isUnlocked && parts !== null && (
+                                <span className="alchemy-recipe-picker-item-frag">上{parts.upper} 中{parts.middle} 下{parts.lower}</span>
                               )}
                             </button>
                           </li>

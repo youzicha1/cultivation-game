@@ -20,6 +20,7 @@ describe('state', () => {
     expect(state.elixirs).toEqual({})
     expect(state.recipesUnlocked).toEqual({})
     expect(state.fragments).toEqual({})
+    expect(state.fragmentParts).toEqual({})
     expect(state.codex.totalBrews).toBe(0)
     expect(state.codex.totalBooms).toBe(0)
     expect(state.codex.bestQualityByRecipe).toEqual({})

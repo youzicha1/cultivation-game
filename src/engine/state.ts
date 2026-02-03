@@ -44,8 +44,10 @@ export interface PlayerState {
   elixirs: Record<ElixirId, Record<ElixirQuality, number>>
   /** 配方解锁 */
   recipesUnlocked: Record<RecipeId, boolean>
-  /** 丹方残页 */
+  /** 丹方残页（旧：按数量，兼容存档；新逻辑用 fragmentParts） */
   fragments: Record<RecipeId, number>
+  /** 丹方残页上/中/下篇，集齐三篇可合成解锁 */
+  fragmentParts: Record<RecipeId, { upper: number; middle: number; lower: number }>
   /** 图鉴统计 */
   codex: {
     totalBrews: number
@@ -88,6 +90,7 @@ export function createInitialState(): PlayerState {
     elixirs: {},
     recipesUnlocked: {},
     fragments: {},
+    fragmentParts: {},
     codex: {
       totalBrews: 0,
       totalBooms: 0,

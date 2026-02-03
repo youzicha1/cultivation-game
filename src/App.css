@@ -3368,13 +3368,21 @@
   flex-shrink: 0;
   min-height: 52px;
 }
-/* TICKET-34: 坊市 Tab + 筛选 + 出售 */
+/* TICKET-34: 坊市 Tab + 品类 + 筛选 + 出售 */
 .shop-tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 10px;
   flex-shrink: 0;
 }
+.shop-section-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.shop-section-btn { font-size: 12px; }
 .shop-filters {
   display: flex;
   flex-wrap: wrap;

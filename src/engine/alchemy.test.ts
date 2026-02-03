@@ -247,6 +247,8 @@ describe('alchemy', () => {
           bodhi_seed: 5,
           earth_milk: 5,
           moon_dew: 10,
+          nine_turn_vine: 5,
+          meteor_iron: 5,
         },
         recipesUnlocked: { ...base.player.recipesUnlocked, realm_break_recipe: true },
       },

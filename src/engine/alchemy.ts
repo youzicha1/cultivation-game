@@ -18,6 +18,11 @@ export type RecipeUnlock =
   | { type: 'default' }
   | { type: 'fragment'; need: number }
 
+/** 丹方残页分上/中/下篇，集齐三篇可合成解锁；坊市不可出售 */
+export type FragmentPart = 'upper' | 'middle' | 'lower'
+
+export type FragmentPartsCount = { upper: number; middle: number; lower: number }
+
 /** TICKET-32: 丹方品质档位，决定可产出丹药品质上限 */
 export type RecipeTier = 'fan' | 'xuan' | 'di' | 'tian'
 
@@ -135,12 +140,45 @@ export const alchemyRecipes = alchemyData.recipes
 export const alchemyMaterials = alchemyData.materials
 const alchemyElixirs = alchemyData.elixirs
 
+/** 通用丹方：outputMode===pool 的机制丹炉，仅能通过传说事件整本掉落获取 */
+export function isGenericRecipe(recipe: RecipeDef): boolean {
+  return recipe.outputMode === 'pool'
+}
+
+/** 稀有丹方：地品/天品，只能通过残页（上/中/下篇）合成获取，探索不掉整本 */
+export function isRareRecipe(recipe: RecipeDef): boolean {
+  return recipe.tier === 'di' || recipe.tier === 'tian'
+}
+
+/** 可合成丹方：未解锁且拥有上/中/下篇各至少 1 */
+export function canSynthesizeRecipe(player: {
+  recipesUnlocked: Record<string, boolean>
+  fragmentParts: Record<string, FragmentPartsCount>
+}, recipeId: RecipeId): boolean {
+  if (player.recipesUnlocked[recipeId]) return false
+  const recipe = getRecipe(recipeId)
+  if (!recipe || recipe.unlock.type !== 'fragment') return false
+  const parts = player.fragmentParts[recipeId] ?? { upper: 0, middle: 0, lower: 0 }
+  return parts.upper >= 1 && parts.middle >= 1 && parts.lower >= 1
+}
+
+/** 当前可合成的丹方列表（未解锁且上中下篇齐全） */
+export function getRecipesSynthesizable(player: {
+  recipesUnlocked: Record<string, boolean>
+  fragmentParts: Record<string, FragmentPartsCount>
+}): RecipeDef[] {
+  return alchemyRecipes.filter(
+    (r) => r.unlock.type === 'fragment' && canSynthesizeRecipe(player, r.id),
+  )
+}
+
 /** 由丹方数据构建的玩家炼丹默认状态（材料/解锁/残页/图鉴），新游戏时合并进 player */
 export function getAlchemyPlayerDefaults(): {
   materials: Record<string, number>
   elixirs: Record<string, Record<ElixirQuality, number>>
   recipesUnlocked: Record<string, boolean>
   fragments: Record<string, number>
+  fragmentParts: Record<string, FragmentPartsCount>
   codex: {
     totalBrews: number
     totalBooms: number
@@ -155,9 +193,14 @@ export function getAlchemyPlayerDefaults(): {
     materials: Object.fromEntries(alchemyMaterials.map((m) => [m.id, 0])),
     elixirs: Object.fromEntries(alchemyElixirs.map((e) => [e.id, { ...qualityZero }])),
     recipesUnlocked: Object.fromEntries(
-      alchemyRecipes.map((r) => [r.id, r.unlock.type === 'default']),
+      alchemyRecipes.map((r) => [ r.id, r.unlock.type === 'default' ]),
     ),
     fragments: Object.fromEntries(alchemyRecipes.map((r) => [r.id, 0])),
+    fragmentParts: Object.fromEntries(
+      alchemyRecipes
+        .filter((r) => r.unlock.type === 'fragment')
+        .map((r) => [r.id, { upper: 0, middle: 0, lower: 0 }]),
+    ),
     codex: {
       totalBrews: 0,
       totalBooms: 0,
@@ -171,6 +214,14 @@ export function getAlchemyPlayerDefaults(): {
 
 export function getRecipe(recipeId: string): RecipeDef | undefined {
   return alchemyRecipes.find((r) => r.id === recipeId)
+}
+
+/** 旧逻辑：根据残页数量同步丹方解锁（已废弃：现仅通过上中下篇合成解锁，此处不再自动解锁） */
+export function syncRecipesUnlockedFromFragments(player: {
+  fragments: Record<string, number>
+  recipesUnlocked: Record<string, boolean>
+}): { recipesUnlocked: Record<string, boolean> } {
+  return { recipesUnlocked: player.recipesUnlocked }
 }
 
 export function getMaterialName(materialId: MaterialId): string {

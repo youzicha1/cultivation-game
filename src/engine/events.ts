@@ -3,7 +3,7 @@ import type { GameState } from './game'
 import { RARITY_BASE_WEIGHT } from './constants'
 import { EXPLORE_MULTIPLIER_FACTOR } from './constants'
 import { type Rng } from './rng'
-import { getRecipe, type RecipeId } from './alchemy'
+import type { RecipeId } from './alchemy'
 
 export type ExploreEventsFile = {
   version: number
@@ -82,12 +82,15 @@ export const exploreEvents = validateExploreEventsFile(
   exploreEventsFile as ExploreEventsFile,
 )
 
-/** 计算单事件权重：rarity 基础 + danger 加成 + tag 加成 */
+/** 计算单事件权重：rarity 基础 + danger 加成 + tag 加成；危险100时小幅提高传说/稀有概率 */
 function getEventWeight(event: ExploreEvent, danger: number): number {
   let w: number
   if (event.rarity && RARITY_BASE_WEIGHT[event.rarity] !== undefined) {
     w = RARITY_BASE_WEIGHT[event.rarity]
-    if (danger >= 75) {
+    if (danger >= 100) {
+      if (event.rarity === 'legendary') w *= 1.4
+      else if (event.rarity === 'rare') w *= 1.25
+    } else if (danger >= 75) {
       if (event.rarity === 'rare') w *= 1.8
       else if (event.rarity === 'legendary') w *= 1.5
     } else if (danger >= 50) {
@@ -159,20 +162,16 @@ function applyOutcomeEffects(
     } else if (effect.type === 'fragment') {
       let value = rand(effect.min, effect.max)
       if (value > 0) value = Math.round(value * mult)
-      const current = nextPlayer.fragments[effect.id as keyof typeof nextPlayer.fragments] ?? 0
-      const newTotal = current + value
-      nextPlayer.fragments = {
-        ...nextPlayer.fragments,
-        [effect.id]: newTotal,
-      }
-      const recipe = getRecipe(effect.id)
-      if (recipe && recipe.unlock.type === 'fragment') {
-        if (newTotal >= recipe.unlock.need && !nextPlayer.recipesUnlocked[effect.id as keyof typeof nextPlayer.recipesUnlocked]) {
-          nextPlayer.recipesUnlocked = {
-            ...nextPlayer.recipesUnlocked,
-            [effect.id]: true,
-          }
-        }
+      const partIdx = Math.floor(rand(1, 3.99)) as 1 | 2 | 3
+      const part = partIdx === 1 ? 'upper' : partIdx === 2 ? 'middle' : 'lower'
+      const fp = nextPlayer.fragmentParts ?? {}
+      const recipeParts = fp[effect.id] ?? { upper: 0, middle: 0, lower: 0 }
+      nextPlayer.fragmentParts = {
+        ...fp,
+        [effect.id]: {
+          ...recipeParts,
+          [part]: recipeParts[part] + value,
+        },
       }
     } else if (effect.type === 'spiritStones') {
       let value = rand((effect as { min: number; max: number }).min, (effect as { min: number; max: number }).max)

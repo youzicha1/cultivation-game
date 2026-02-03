@@ -12,16 +12,16 @@ import {
 } from './shop'
 import { createInitialGameState } from './game'
 describe('shop', () => {
-  it('TICKET-34: 目录返回全材料（16 种）且含 category/稀有度或 basePrice', () => {
+  it('TICKET-34: 目录返回全材料且含 section/category/稀有度或 basePrice', () => {
     const catalog = getShopCatalogDef()
-    expect(catalog.length).toBe(16)
-    expect(catalog.every((c) => c.id && c.name && c.category && (c.basePrice != null ? c.basePrice > 0 : true) && (c.rarity != null || c.basePrice != null))).toBe(true)
+    expect(catalog.length).toBe(22)
+    expect(catalog.every((c) => c.id && c.name && c.category && c.section && (c.basePrice != null ? c.basePrice > 0 : true) && (c.rarity != null || c.basePrice != null))).toBe(true)
   })
 
   it('价格受 daily 影响：有 daily 时 dailyHint 与 currentPrice 存在', () => {
     const base = createInitialGameState(1)
     const noDaily = getShopCatalog(base)
-    expect(noDaily.items.length).toBe(16)
+    expect(noDaily.items.length).toBe(22)
     const withAlchemyDay = {
       ...base,
       meta: { ...base.meta, daily: { dayKey: '2025-01-01', environmentId: 'alchemy_day', mission: { type: 'brew_success', target: 1, progress: 0, claimed: false } } },

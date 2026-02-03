@@ -1,3 +1,4 @@
+import { getAlchemyPlayerDefaults } from './alchemy'
 import { createSeededRng, type Rng } from './rng'
 import type { GameState } from './game'
 import { createInitialState } from './state'
@@ -187,6 +188,23 @@ function normalizeLoadedState(state: GameState): GameState {
   const loadedBest: any = loadedCodex.bestQualityByRecipe ?? {}
   const loadedRecipesUnlocked: any = loadedPlayer.recipesUnlocked ?? {}
   const loadedFragments: any = loadedPlayer.fragments ?? {}
+  const loadedFragmentParts: any = loadedPlayer.fragmentParts ?? {}
+
+  const defaultAlchemy = getAlchemyPlayerDefaults()
+  let fragmentParts = { ...defaultAlchemy.fragmentParts, ...loadedFragmentParts }
+  if (Object.keys(loadedFragmentParts).length === 0 && loadedFragments && typeof loadedFragments === 'object') {
+    for (const [recipeId, count] of Object.entries(loadedFragments) as [string, number][]) {
+      const c = Math.max(0, Math.floor(Number(count)))
+      if (c <= 0) continue
+      const upper = Math.min(1, c)
+      const middle = Math.min(1, Math.max(0, c - 1))
+      const lower = Math.min(1, Math.max(0, c - 2))
+      fragmentParts = {
+        ...fragmentParts,
+        [recipeId]: { upper, middle, lower },
+      }
+    }
+  }
 
   const player = {
     ...defaultPlayer,
@@ -216,6 +234,7 @@ function normalizeLoadedState(state: GameState): GameState {
       ...defaultPlayer.fragments,
       ...loadedFragments,
     },
+    fragmentParts,
     codex: {
       ...defaultPlayer.codex,
       ...loadedCodex,

@@ -1,19 +1,21 @@
 /**
  * TICKET-7: 探索掉落表系统
- * - 材料/残页/丹药/遗物碎片分四稀有度：common/rare/epic/legendary
- * - danger/streak 越高，稀有掉落权重提升
- * - 每次深入至少一次掉落，事件结算额外掉落
+ * - 非稀有丹方（凡/玄品）：探索可整本掉落
+ * - 稀有丹方（地/天品）：仅掉落残页（上/中/下篇）合成，天品残页概率低于地品
+ * - 通用丹方（机制丹炉）：仅传说整本掉落
  */
 
-import type { MaterialId, RecipeId } from './alchemy'
+import { alchemyRecipes, type MaterialId, type RecipeId, type FragmentPart } from './alchemy'
 import type { RelicId } from './relics'
 import type { Rng } from './rng'
 
 export type LootRarity = 'common' | 'rare' | 'epic' | 'legendary'
 
+/** 残页为上/中/下篇之一，探索掉落；坊市不可出售 */
 export type LootItem =
   | { type: 'material'; id: MaterialId; count: number }
-  | { type: 'fragment'; id: RecipeId; count: number }
+  | { type: 'fragment'; id: RecipeId; part: FragmentPart; count: number }
+  | { type: 'recipe'; id: RecipeId }
   | { type: 'pills'; count: number }
   | { type: 'relic_fragment'; id: RelicId; count: number }
   /** TICKET-10: 功法整本掉落（已有则转传承点+1） */
@@ -42,53 +44,111 @@ export type LootTableEntry = {
   }>
 }
 
-const LOOT_TABLE: LootTableEntry[] = [
-  {
-    rarity: 'common',
-    weight: LOOT_RARITY_WEIGHT.common,
-    drops: [
-      { item: { type: 'material', id: 'spirit_herb', count: 1 }, weight: 40 },
-      { item: { type: 'material', id: 'iron_sand', count: 1 }, weight: 30 },
-      { item: { type: 'pills', count: 1 }, weight: 30 },
-    ],
-  },
-  {
-    rarity: 'rare',
-    weight: LOOT_RARITY_WEIGHT.rare,
-    drops: [
-      { item: { type: 'material', id: 'beast_core', count: 1 }, weight: 30 },
-      { item: { type: 'material', id: 'moon_dew', count: 1 }, weight: 22 },
-      { item: { type: 'fragment', id: 'spirit_pill_recipe', count: 1 }, weight: 22 },
-      { item: { type: 'pills', count: 2 }, weight: 12 },
-      { item: { type: 'kungfu', id: 'steady_heart' }, weight: 7 },
-      { item: { type: 'kungfu', id: 'shallow_breath' }, weight: 7 },
-    ],
-  },
-  {
-    rarity: 'epic',
-    weight: LOOT_RARITY_WEIGHT.epic,
-    drops: [
-      { item: { type: 'material', id: 'moon_dew', count: 2 }, weight: 25 },
-      { item: { type: 'fragment', id: 'foundation_pill_recipe', count: 1 }, weight: 25 },
-      { item: { type: 'pills', count: 3 }, weight: 15 },
-      { item: { type: 'kungfu', id: 'lucky_cauldron' }, weight: 12 },
-      { item: { type: 'kungfu', id: 'retreat_charm' }, weight: 10 },
-      { item: { type: 'kungfu', id: 'fire_suppress' }, weight: 8 },
-    ],
-  },
-  {
-    rarity: 'legendary',
-    weight: LOOT_RARITY_WEIGHT.legendary,
-    drops: [
-      { item: { type: 'material', id: 'moon_dew', count: 3 }, weight: 20 },
-      { item: { type: 'fragment', id: 'foundation_pill_recipe', count: 2 }, weight: 20 },
-      { item: { type: 'pills', count: 5 }, weight: 15 },
-      { item: { type: 'kungfu', id: 'breakthrough_boost' }, weight: 15 },
-      { item: { type: 'kungfu', id: 'tian_blessing' }, weight: 15 },
-      { item: { type: 'kungfu', id: 'legendary_eye' }, weight: 15 },
-    ],
-  },
-]
+/** 非稀有丹方（凡/玄品、非通用、非默认）：探索可整本掉落 */
+const NON_RARE_WHOLE_RECIPES = alchemyRecipes.filter(
+  (r) =>
+    (r.tier === 'fan' || r.tier === 'xuan') &&
+    r.outputMode !== 'pool' &&
+    r.unlock.type !== 'default',
+)
+/** 稀有-地品：仅掉残页，权重较高 */
+const RARE_DI_RECIPES = alchemyRecipes.filter(
+  (r) => r.tier === 'di' && r.unlock.type === 'fragment',
+)
+/** 稀有-天品：仅掉残页，权重较低 */
+const RARE_TIAN_RECIPES = alchemyRecipes.filter(
+  (r) => r.tier === 'tian' && r.unlock.type === 'fragment',
+)
+/** 通用丹方（机制丹炉）：仅传说整本 */
+const GENERIC_POOL_RECIPES = alchemyRecipes.filter(
+  (r) => r.outputMode === 'pool',
+)
+
+const PARTS: FragmentPart[] = ['upper', 'middle', 'lower']
+
+function buildRareDrops(): LootTableEntry[] {
+  const rareDrops: Array<{ item: LootItem; weight: number }> = [
+    { item: { type: 'material', id: 'beast_core', count: 1 }, weight: 30 },
+    { item: { type: 'material', id: 'moon_dew', count: 1 }, weight: 22 },
+    { item: { type: 'pills', count: 2 }, weight: 12 },
+    { item: { type: 'kungfu', id: 'steady_heart' }, weight: 7 },
+    { item: { type: 'kungfu', id: 'shallow_breath' }, weight: 7 },
+  ]
+  for (const r of NON_RARE_WHOLE_RECIPES) {
+    rareDrops.push({ item: { type: 'recipe', id: r.id }, weight: 8 })
+  }
+  for (const r of RARE_DI_RECIPES) {
+    for (const part of PARTS) {
+      rareDrops.push({ item: { type: 'fragment', id: r.id, part, count: 1 }, weight: 5 })
+    }
+  }
+
+  const epicDrops: Array<{ item: LootItem; weight: number }> = [
+    { item: { type: 'material', id: 'moon_dew', count: 2 }, weight: 25 },
+    { item: { type: 'pills', count: 3 }, weight: 15 },
+    { item: { type: 'kungfu', id: 'lucky_cauldron' }, weight: 12 },
+    { item: { type: 'kungfu', id: 'retreat_charm' }, weight: 10 },
+    { item: { type: 'kungfu', id: 'fire_suppress' }, weight: 8 },
+  ]
+  for (const r of NON_RARE_WHOLE_RECIPES) {
+    epicDrops.push({ item: { type: 'recipe', id: r.id }, weight: 5 })
+  }
+  for (const r of RARE_DI_RECIPES) {
+    for (const part of PARTS) {
+      epicDrops.push({ item: { type: 'fragment', id: r.id, part, count: 1 }, weight: 4 })
+    }
+  }
+  for (const r of RARE_TIAN_RECIPES) {
+    for (const part of PARTS) {
+      epicDrops.push({ item: { type: 'fragment', id: r.id, part, count: 1 }, weight: 2 })
+    }
+  }
+
+  const legendaryDrops: Array<{ item: LootItem; weight: number }> = [
+    { item: { type: 'material', id: 'moon_dew', count: 3 }, weight: 12 },
+    { item: { type: 'pills', count: 5 }, weight: 15 },
+    { item: { type: 'kungfu', id: 'breakthrough_boost' }, weight: 15 },
+    { item: { type: 'kungfu', id: 'tian_blessing' }, weight: 15 },
+    { item: { type: 'kungfu', id: 'legendary_eye' }, weight: 15 },
+  ]
+  for (const r of GENERIC_POOL_RECIPES) {
+    legendaryDrops.push({ item: { type: 'recipe', id: r.id }, weight: 8 })
+  }
+  for (const r of RARE_TIAN_RECIPES) {
+    for (const part of PARTS) {
+      legendaryDrops.push({ item: { type: 'fragment', id: r.id, part, count: 1 }, weight: 3 })
+    }
+  }
+
+  return [
+    {
+      rarity: 'common',
+      weight: LOOT_RARITY_WEIGHT.common,
+      drops: [
+        { item: { type: 'material', id: 'spirit_herb', count: 1 }, weight: 40 },
+        { item: { type: 'material', id: 'iron_sand', count: 1 }, weight: 30 },
+        { item: { type: 'pills', count: 1 }, weight: 30 },
+      ],
+    },
+    {
+      rarity: 'rare',
+      weight: LOOT_RARITY_WEIGHT.rare,
+      drops: rareDrops,
+    },
+    {
+      rarity: 'epic',
+      weight: LOOT_RARITY_WEIGHT.epic,
+      drops: epicDrops,
+    },
+    {
+      rarity: 'legendary',
+      weight: LOOT_RARITY_WEIGHT.legendary,
+      drops: legendaryDrops,
+    },
+  ]
+}
+
+const LOOT_TABLE: LootTableEntry[] = buildRareDrops()
 
 /** TICKET-34: 探索掉落表中可掉落的材料 ID 集合（用于“可获得”校验） */
 export function getLootMaterialIds(): MaterialId[] {

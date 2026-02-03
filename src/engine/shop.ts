@@ -10,38 +10,66 @@ import { getBasePriceByRarity, type MarketRarity } from './market/pricing'
 
 export type ShopCategory = 'herb' | 'dew' | 'ore' | 'beast'
 
+/** 坊市一级品类：购买/出售界面按此切换列表，后续可扩展 */
+export type ShopSection = 'alchemy_materials' | 'consumables' | 'kungfu_fragments'
+
+export const SHOP_SECTION_LABELS: Record<ShopSection, string> = {
+  alchemy_materials: '炼丹材料',
+  consumables: '消耗品',
+  kungfu_fragments: '功法碎片',
+}
+
 export type ShopItemDef = {
   id: MaterialId
   name: string
   category: ShopCategory
+  /** 一级品类，用于购买/出售分栏 */
+  section: ShopSection
   /** TICKET-34: 稀有度，用于定价与筛选；未设则按 common */
   rarity?: MarketRarity
   /** 基础买价；未设则用 rarity 表 */
   basePrice?: number
 }
 
-/** TICKET-34: 全材料坊市目录（补齐获取途径），按稀有度定价 */
+/** TICKET-34: 全材料坊市目录（补齐获取途径），按稀有度定价。丹方残页（上/中/下篇）不可在此出售。 */
 const SHOP_CATALOG: ShopItemDef[] = [
-  { id: 'spirit_herb', name: '灵草', category: 'herb', rarity: 'common', basePrice: 8 },
-  { id: 'moon_dew', name: '月华露', category: 'dew', rarity: 'common', basePrice: 12 },
-  { id: 'iron_sand', name: '铁砂', category: 'ore', rarity: 'common', basePrice: 10 },
-  { id: 'beast_core', name: '妖核', category: 'beast', rarity: 'common', basePrice: 15 },
-  { id: 'purple_leaf', name: '紫灵叶', category: 'herb', rarity: 'uncommon' },
-  { id: 'blood_lotus', name: '血莲精', category: 'dew', rarity: 'uncommon' },
-  { id: 'green_vine', name: '青木藤', category: 'herb', rarity: 'uncommon' },
-  { id: 'ice_fruit', name: '冰灵果', category: 'dew', rarity: 'uncommon' },
-  { id: 'fire_grass', name: '火阳芝', category: 'herb', rarity: 'rare' },
-  { id: 'dragon_root', name: '龙须根', category: 'ore', rarity: 'rare' },
-  { id: 'yellow_essence', name: '千年黄精', category: 'herb', rarity: 'rare' },
-  { id: 'earth_milk', name: '地心乳', category: 'ore', rarity: 'rare' },
-  { id: 'snake_saliva', name: '蛇涎果', category: 'beast', rarity: 'epic' },
-  { id: 'demon_core', name: '魔核', category: 'beast', rarity: 'epic' },
-  { id: 'soul_infant', name: '魂婴果', category: 'dew', rarity: 'epic' },
-  { id: 'bodhi_seed', name: '菩提子', category: 'herb', rarity: 'epic' },
+  { id: 'spirit_herb', name: '灵草', category: 'herb', section: 'alchemy_materials', rarity: 'common', basePrice: 8 },
+  { id: 'moon_dew', name: '月华露', category: 'dew', section: 'alchemy_materials', rarity: 'common', basePrice: 12 },
+  { id: 'iron_sand', name: '铁砂', category: 'ore', section: 'alchemy_materials', rarity: 'common', basePrice: 10 },
+  { id: 'beast_core', name: '妖核', category: 'beast', section: 'alchemy_materials', rarity: 'common', basePrice: 15 },
+  { id: 'purple_leaf', name: '紫灵叶', category: 'herb', section: 'alchemy_materials', rarity: 'uncommon' },
+  { id: 'blood_lotus', name: '血莲精', category: 'dew', section: 'alchemy_materials', rarity: 'uncommon' },
+  { id: 'green_vine', name: '青木藤', category: 'herb', section: 'alchemy_materials', rarity: 'uncommon' },
+  { id: 'ice_fruit', name: '冰灵果', category: 'dew', section: 'alchemy_materials', rarity: 'uncommon' },
+  { id: 'fire_grass', name: '火阳芝', category: 'herb', section: 'alchemy_materials', rarity: 'rare' },
+  { id: 'dragon_root', name: '龙须根', category: 'ore', section: 'alchemy_materials', rarity: 'rare' },
+  { id: 'yellow_essence', name: '千年黄精', category: 'herb', section: 'alchemy_materials', rarity: 'rare' },
+  { id: 'earth_milk', name: '地心乳', category: 'ore', section: 'alchemy_materials', rarity: 'rare' },
+  { id: 'snake_saliva', name: '蛇涎果', category: 'beast', section: 'alchemy_materials', rarity: 'epic' },
+  { id: 'demon_core', name: '魔核', category: 'beast', section: 'alchemy_materials', rarity: 'epic' },
+  { id: 'soul_infant', name: '魂婴果', category: 'dew', section: 'alchemy_materials', rarity: 'epic' },
+  { id: 'bodhi_seed', name: '菩提子', category: 'herb', section: 'alchemy_materials', rarity: 'epic' },
+  // 奇遇链专属材料（epic，可买卖）
+  { id: 'leize_marrow', name: '雷泽灵髓', category: 'ore', section: 'alchemy_materials', rarity: 'epic' },
+  { id: 'meteor_iron', name: '天外陨铁', category: 'ore', section: 'alchemy_materials', rarity: 'epic' },
+  { id: 'nine_turn_vine', name: '九转玄藤', category: 'herb', section: 'alchemy_materials', rarity: 'epic' },
+  { id: 'furnace_jade', name: '炉心碎玉', category: 'ore', section: 'alchemy_materials', rarity: 'epic' },
+  { id: 'fate_stone', name: '命纹石', category: 'ore', section: 'alchemy_materials', rarity: 'epic' },
+  { id: 'purple_sand', name: '紫府灵砂', category: 'ore', section: 'alchemy_materials', rarity: 'epic' },
 ]
 
 export function getShopCatalogDef(): ShopItemDef[] {
   return [...SHOP_CATALOG]
+}
+
+/** 当前有商品的品类列表（用于购买/出售分栏，只显示有货的品类） */
+export function getShopSectionsWithItems(): ShopSection[] {
+  const set = new Set<ShopSection>()
+  for (const def of SHOP_CATALOG) {
+    set.add(def.section)
+  }
+  const order: ShopSection[] = ['alchemy_materials', 'consumables', 'kungfu_fragments']
+  return order.filter((s) => set.has(s))
 }
 
 /** 当前价 = ceil(basePrice * dailyMult * (1 - shopDiscount/100))，dailyMult 来自今日环境，TICKET-21 奇遇链终章可带坊市折扣 */
