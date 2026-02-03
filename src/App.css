@@ -1329,7 +1329,7 @@
 .awaken-skill-card-btn { margin-top: auto; }
 .awaken-skill-footer { flex-shrink: 0; }
 
-/* 坊市奇人公屏飘字：从左到右缓慢飘过 */
+/* 坊市奇人公屏飘字：从左往右缓慢飘过（由左侧进入，从右侧离开） */
 .app-stranger-marquee {
   position: relative;
   width: 100%;
@@ -1337,6 +1337,7 @@
   overflow: hidden;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   background: linear-gradient(90deg, rgba(0,0,0,0.4) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.4) 100%);
   color: var(--gold);
   font-size: 12px;
@@ -1344,12 +1345,14 @@
 }
 .app-stranger-marquee-text {
   white-space: nowrap;
-  animation: stranger-marquee 12s linear forwards;
+  flex-shrink: 0;
+  animation: stranger-marquee-ltr 12s linear forwards;
   will-change: transform;
 }
-@keyframes stranger-marquee {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100vw); }
+/* 从左往右：起点在视口左侧外，终点在视口右侧外 */
+@keyframes stranger-marquee-ltr {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(calc(100vw + 100%)); }
 }
 
 .app-header h1 {
@@ -2135,7 +2138,8 @@
 .explore-deepen-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  font-size: 13px;
 }
 .explore-deepen-icon {
   flex-shrink: 0;
@@ -3427,6 +3431,12 @@
   gap: 8px;
 }
 .shop-row-name { font-weight: 600; }
+/* 稀有度颜色（不显示 common/rare 等英文，仅用颜色区分） */
+.shop-rarity-common { color: var(--text); }
+.shop-rarity-uncommon { color: #22c55e; }
+.shop-rarity-rare { color: #3b82f6; }
+.shop-rarity-epic { color: #a855f7; }
+.shop-rarity-legendary { color: var(--gold); }
 .shop-row-price { color: var(--muted); font-size: 12px; }
 .shop-row-owned { color: var(--muted); font-size: 12px; }
 .shop-row-actions {
@@ -3491,12 +3501,6 @@
   color: var(--muted);
   padding: 16px;
   text-align: center;
-}
-.shop-row-rarity {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: var(--gold);
-  opacity: 0.9;
 }
 .shop-row-total { font-weight: 600; color: var(--gold); font-size: 13px; }
 

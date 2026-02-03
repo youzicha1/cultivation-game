@@ -5,11 +5,12 @@ import {
   getShopSectionsWithItems,
   SHOP_SECTION_LABELS,
   canBuy,
-  canSell,
-  getSellPrice,
+  canSellAny,
   getFillMissingPlan,
+  getSellableItems,
   type ShopCatalogItem,
   type ShopSection,
+  type SellableItem,
 } from '../../engine/shop'
 import type { MaterialId } from '../../engine/alchemy'
 import { getRecipe, getMaterialName } from '../../engine/alchemy'
@@ -74,7 +75,6 @@ export function ShopScreen({ state, dispatch }: ScreenProps) {
   const [tab, setTab] = useState<TabId>('mat')
   const [section, setSection] = useState<ShopSection>(SECTIONS[0] ?? 'alchemy_materials')
   const [qtys, setQtys] = useState<Record<string, number>>({})
-  const [sortBy, setSortBy] = useState<'price' | 'rarity'>('price')
   const [filterAfford, setFilterAfford] = useState(false)
 
   const gold = state.player.spiritStones ?? 0
@@ -88,22 +88,18 @@ export function ShopScreen({ state, dispatch }: ScreenProps) {
     })
   }
 
+  /** 购买列表：默认按稀有度排序（高→低），可选仅买得起 */
   const buyItems = useMemo(() => {
     let list = itemsInSection.filter(() => true)
     if (filterAfford) {
       list = list.filter((it) => canBuy(state, it.id as MaterialId, 1).ok)
     }
-    if (sortBy === 'price') {
-      list.sort((a, b) => a.currentPrice - b.currentPrice)
-    } else {
-      list.sort((a, b) => (RARITY_ORDER[a.rarity ?? 'common'] ?? 0) - (RARITY_ORDER[b.rarity ?? 'common'] ?? 0))
-    }
+    list.sort((a, b) => (RARITY_ORDER[b.rarity ?? 'common'] ?? 0) - (RARITY_ORDER[a.rarity ?? 'common'] ?? 0))
     return list
-  }, [itemsInSection, state, sortBy, filterAfford])
+  }, [itemsInSection, state, filterAfford])
 
-  const sellableItems = useMemo(() => {
-    return itemsInSection.filter((it) => (state.player.materials[it.id] ?? 0) > 0)
-  }, [itemsInSection, state.player.materials])
+  /** 出售列表：所有可出售物品，已按稀有度排序（getSellableItems 内部排序） */
+  const sellableItems = useMemo(() => getSellableItems(state), [state])
 
   return (
     <div className="shop-page">
@@ -173,41 +169,26 @@ export function ShopScreen({ state, dispatch }: ScreenProps) {
           </Button>
         </div>
 
-        {/* 品类：炼丹材料 / 消耗品 / 功法碎片（只显示有商品的品类） */}
-        <div className="shop-section-tabs">
-          {SECTIONS.map((s) => (
-            <Button
-              key={s}
-              variant={section === s ? 'primary' : 'ghost'}
-              size="sm"
-              className="shop-section-btn"
-              onClick={() => setSection(s)}
-            >
-              {SHOP_SECTION_LABELS[s]}
-            </Button>
-          ))}
-        </div>
+        {/* 品类：仅购买时显示（炼丹材料 / 消耗品 / 功法碎片） */}
+        {tab === 'mat' && (
+          <div className="shop-section-tabs">
+            {SECTIONS.map((s) => (
+              <Button
+                key={s}
+                variant={section === s ? 'primary' : 'ghost'}
+                size="sm"
+                className="shop-section-btn"
+                onClick={() => setSection(s)}
+              >
+                {SHOP_SECTION_LABELS[s]}
+              </Button>
+            ))}
+          </div>
+        )}
 
         {tab === 'mat' && (
           <>
             <div className="shop-filters">
-              <span className="shop-filter-label">排序：</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={sortBy === 'price' ? 'shop-filter-btn--on' : ''}
-                onClick={() => setSortBy('price')}
-              >
-                价格
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={sortBy === 'rarity' ? 'shop-filter-btn--on' : ''}
-                onClick={() => setSortBy('rarity')}
-              >
-                稀有度
-              </Button>
               <label className="shop-filter-check">
                 <input
                   type="checkbox"
@@ -225,11 +206,11 @@ export function ShopScreen({ state, dispatch }: ScreenProps) {
                 const qty = qtys[it.id] ?? 1
                 const res = canBuy(state, it.id as MaterialId, qty)
                 const canBuyThis = res.ok
+                const rarity = (it.rarity ?? 'common') as string
                 return (
                   <div key={it.id} className="shop-row">
                     <div className="shop-row-info">
-                      <span className="shop-row-name">{it.name}</span>
-                      {it.rarity && <span className="shop-row-rarity">{it.rarity}</span>}
+                      <span className={`shop-row-name shop-rarity-${rarity}`}>{it.name}</span>
                       <span className="shop-row-price">单价 {it.currentPrice}</span>
                       <span className="shop-row-owned">拥有 {it.owned}</span>
                     </div>
@@ -256,29 +237,28 @@ export function ShopScreen({ state, dispatch }: ScreenProps) {
 
         {tab === 'sell' && (
           <>
-            <p className="shop-sell-hint">回收价=买价×0.8。卖出后获得灵石，可换购更稀有材料。</p>
+            <p className="shop-sell-hint">回收价=买价×0.8。功法、丹方残页、丹药等均可出售换取灵石。</p>
             <div className="shop-list">
               {sellableItems.length === 0 ? (
-                <p className="shop-empty">当前品类下背包暂无可出售的物品。</p>
+                <p className="shop-empty">背包暂无可出售的物品。</p>
               ) : (
-                sellableItems.map((it: ShopCatalogItem) => {
-                  const owned = state.player.materials[it.id] ?? 0
-                  const unitSell = getSellPrice(state, it.id as MaterialId)
-                  const canSell1 = canSell(state, it.id as MaterialId, 1).ok
-                  const canSellAll = canSell(state, it.id as MaterialId, owned).ok
+                sellableItems.map((it: SellableItem) => {
+                  const canSell1 = canSellAny(state, it.kind, it.sellableId, 1).ok
+                  const canSellAll = canSellAny(state, it.kind, it.sellableId, it.owned).ok
+                  const rowKey = `${it.kind}_${it.sellableId}`
                   return (
-                    <div key={it.id} className="shop-row shop-row--sell">
+                    <div key={rowKey} className="shop-row shop-row--sell">
                       <div className="shop-row-info">
-                        <span className="shop-row-name">{it.name}</span>
-                        <span className="shop-row-owned">数量 {owned}</span>
-                        <span className="shop-row-price">回收单价 {unitSell}</span>
-                        <span className="shop-row-total">总价 {unitSell * owned}</span>
+                        <span className={`shop-row-name shop-rarity-${it.rarity}`}>{it.name}</span>
+                        <span className="shop-row-owned">数量 {it.owned}</span>
+                        <span className="shop-row-price">回收单价 {it.unitSellPrice}</span>
+                        <span className="shop-row-total">总价 {it.unitSellPrice * it.owned}</span>
                       </div>
                       <div className="shop-row-actions">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => dispatch({ type: 'SHOP_SELL', itemId: it.id, qty: 1 })}
+                          onClick={() => dispatch({ type: 'SHOP_SELL', kind: it.kind, sellableId: it.sellableId, qty: 1 })}
                           disabled={!canSell1}
                         >
                           卖1
@@ -286,7 +266,7 @@ export function ShopScreen({ state, dispatch }: ScreenProps) {
                         <Button
                           variant="option-green"
                           size="sm"
-                          onClick={() => dispatch({ type: 'SHOP_SELL', itemId: it.id, qty: owned })}
+                          onClick={() => dispatch({ type: 'SHOP_SELL', kind: it.kind, sellableId: it.sellableId, qty: it.owned })}
                           disabled={!canSellAll}
                         >
                           卖全部

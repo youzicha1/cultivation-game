@@ -102,9 +102,11 @@ import {
 import {
   applyBuy,
   applySell,
+  applySellAny,
   getFillMissingPlan,
   getItemCurrentPrice,
   getShopCatalogDef,
+  type SellableKind,
 } from './shop'
 import {
   generateTraderSchedule,
@@ -384,6 +386,7 @@ export type GameAction =
   | { type: 'GO'; screen: ScreenId; shopMissing?: { materialId: string; need: number }[] }
   | { type: 'SHOP_BUY'; itemId: MaterialId; qty: number }
   | { type: 'SHOP_SELL'; itemId: MaterialId; qty: number }
+  | { type: 'SHOP_SELL'; kind: SellableKind; sellableId: string; qty: number }
   | { type: 'SHOP_FILL_MISSING' }
   | { type: 'SHOP_STRANGER_TRADE'; give: PlayerGive }
   | { type: 'CLEAR_MYSTERIOUS_TRADER_TOAST' }
@@ -1034,7 +1037,10 @@ export function reduceGame(
       return { ...nextState, run: { ...nextState.run, rngCalls } }
     }
     case 'SHOP_SELL': {
-      const result = applySell(state, action.itemId, action.qty)
+      const result =
+        'kind' in action && action.kind != null && action.sellableId != null
+          ? applySellAny(state, action.kind, action.sellableId, action.qty)
+          : applySell(state, (action as { type: 'SHOP_SELL'; itemId: MaterialId; qty: number }).itemId, action.qty)
       if (!result) {
         return { ...state, run: { ...state.run, rngCalls } }
       }

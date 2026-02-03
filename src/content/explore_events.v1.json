@@ -4,18 +4,18 @@
     {
       "id": "ancient_ruins",
       "title": "古修遗迹",
-      "text": "风沙掩埋的石门前，灵纹依稀闪烁，似有机缘等待有缘人。",
+      "text": "风沙掩埋的石门前，灵纹依稀闪烁，似有机缘等待有缘人。破阵而入可得遗宝，绕阵而行则无所得但多半安然。",
       "weight": 10,
       "rarity": "common",
       "minDanger": 0,
       "maxDanger": 100,
       "choices": {
         "A": {
-          "text": "硬闯遗迹",
+          "text": "破阵而入",
           "successRateBase": 0.55,
           "successRateDangerFactor": -0.07,
           "onSuccess": {
-            "log": "你破阵而入，得古修遗宝。",
+            "log": "你凝神参悟石门灵纹，阵眼应声而破；灵气涌出，你得古修遗宝与灵草，收获颇丰。",
             "effects": [
               { "type": "exp", "op": "add", "min": 4, "max": 12 },
               { "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 3 },
@@ -23,7 +23,7 @@
             ]
           },
           "onFail": {
-            "log": "阵纹反噬，你气血翻涌。",
+            "log": "你强行破阵，阵纹反噬气血翻涌，一无所得，反受内伤。",
             "effects": [
               { "type": "hp", "op": "add", "min": -8, "max": -2 },
               { "type": "danger", "op": "add", "min": 0, "max": 2 }
@@ -31,20 +31,17 @@
           }
         },
         "B": {
-          "text": "谨慎搜寻",
+          "text": "绕阵而行",
           "successRateBase": 0.75,
-          "successRateDangerFactor": -0.04,
+          "successRateDangerFactor": -0.03,
           "onSuccess": {
-            "log": "你顺藤摸瓜，取回灵砂。",
-            "effects": [
-              { "type": "exp", "op": "add", "min": 3, "max": 7 },
-              { "type": "pendingReward", "op": "add", "min": 2, "max": 5 }
-            ]
+            "log": "你小心翼翼绕开石门灵纹，从侧翼离去，安然无恙，继续探索。",
+            "effects": []
           },
           "onFail": {
-            "log": "石门滑落，险些被困。",
+            "log": "你小心翼翼绕开石门灵纹，不想阵中突然一道灵光射出，被阵法余波波及，受到内伤。",
             "effects": [
-              { "type": "hp", "op": "add", "min": -4, "max": -1 }
+              { "type": "hp", "op": "add", "min": -5, "max": -2 }
             ]
           }
         }
@@ -53,7 +50,7 @@
     {
       "id": "beast_lair",
       "title": "妖兽巢穴",
-      "text": "山腹传来低吼，妖气翻涌，巢穴深处疑有灵材。",
+      "text": "山腹传来低吼，妖气翻涌，巢穴深处疑有灵材。正面厮杀可夺妖核，绕开巢穴则无所得但多半安然。",
       "weight": 12,
       "rarity": "common",
       "tags": ["combat"],
@@ -65,7 +62,7 @@
           "successRateBase": 0.5,
           "successRateDangerFactor": -0.08,
           "onSuccess": {
-            "log": "你斩妖取核，灵气激荡。",
+            "log": "你与妖兽搏杀，斩妖取核，灵气激荡；妖核与探索奖励入手。",
             "effects": [
               { "type": "exp", "op": "add", "min": 5, "max": 14 },
               { "type": "material", "op": "add", "id": "beast_core", "min": 1, "max": 2 },
@@ -73,7 +70,7 @@
             ]
           },
           "onFail": {
-            "log": "妖爪撕裂衣袍，你身受重伤。",
+            "log": "妖爪撕裂衣袍，你身受重伤，一无所获，只得狼狈退走。",
             "effects": [
               { "type": "hp", "op": "add", "min": -10, "max": -4 },
               { "type": "danger", "op": "add", "min": 1, "max": 2 }
@@ -81,18 +78,15 @@
           }
         },
         "B": {
-          "text": "引开守卫",
-          "successRateBase": 0.72,
-          "successRateDangerFactor": -0.04,
+          "text": "绕开巢穴",
+          "successRateBase": 0.75,
+          "successRateDangerFactor": -0.03,
           "onSuccess": {
-            "log": "你取走灵材，悄然退去。",
-            "effects": [
-              { "type": "exp", "op": "add", "min": 3, "max": 6 },
-              { "type": "pendingReward", "op": "add", "min": 2, "max": 6 }
-            ]
+            "log": "你屏息敛气绕开巢穴，未惊动妖兽，安然离去，继续探索。",
+            "effects": []
           },
           "onFail": {
-            "log": "妖兽追击，你狼狈逃脱。",
+            "log": "你小心翼翼绕开巢穴，不想一头妖兽突然窜出，你被妖气波及，受到伤害。",
             "effects": [
               { "type": "hp", "op": "add", "min": -6, "max": -2 }
             ]
@@ -103,7 +97,7 @@
     {
       "id": "mind_demon",
       "title": "心魔试炼",
-      "text": "心神一震，幻境自生，旧日执念化作刀锋。",
+      "text": "心神一震，幻境自生，旧日执念化作刀锋。直面可破执念得造化，绕开幻境则无所得但多半安然。",
       "weight": 9,
       "rarity": "rare",
       "minDanger": 2,
@@ -114,14 +108,14 @@
           "successRateBase": 0.48,
           "successRateDangerFactor": -0.06,
           "onSuccess": {
-            "log": "你斩断执念，道心更稳。",
+            "log": "你直面幻境，斩断执念，道心更稳；参悟所得化为修为与机缘。",
             "effects": [
               { "type": "exp", "op": "add", "min": 6, "max": 12 },
               { "type": "pendingReward", "op": "add", "min": 2, "max": 5 }
             ]
           },
           "onFail": {
-            "log": "心魔入体，气血紊乱。",
+            "log": "心魔入体，气血紊乱，你神识受损一无所得，反遭反噬。",
             "effects": [
               { "type": "hp", "op": "add", "min": -9, "max": -3 },
               { "type": "danger", "op": "add", "min": 1, "max": 2 }
@@ -129,17 +123,15 @@
           }
         },
         "B": {
-          "text": "运功稳神",
-          "successRateBase": 0.7,
+          "text": "绕开幻境",
+          "successRateBase": 0.75,
           "successRateDangerFactor": -0.03,
           "onSuccess": {
-            "log": "你守住心境，稳步前行。",
-            "effects": [
-              { "type": "exp", "op": "add", "min": 3, "max": 6 }
-            ]
+            "log": "你收束心神绕开幻境边缘，未陷执念，安然脱身，继续探索。",
+            "effects": []
           },
           "onFail": {
-            "log": "稍有疏忽，心神受损。",
+            "log": "你小心翼翼绕开幻境，不想幻境骤然扩张，你被心魔余波扫中，神识受损。",
             "effects": [
               { "type": "hp", "op": "add", "min": -5, "max": -2 }
             ]
@@ -150,7 +142,7 @@
     {
       "id": "secret_realm",
       "title": "秘境裂隙",
-      "text": "天空裂开一缝，灵气倾泻，隐约可见秘境影像。",
+      "text": "天空裂开一缝，灵气倾泻，隐约可见秘境影像。强行踏入或有所得，绕开裂隙则无所得但多半安然。",
       "weight": 8,
       "rarity": "rare",
       "minDanger": 0,
@@ -161,7 +153,7 @@
           "successRateBase": 0.52,
           "successRateDangerFactor": -0.06,
           "onSuccess": {
-            "log": "秘境馈赠，你收获灵泉。",
+            "log": "你强行踏入裂隙，秘境馈赠灵泉与丹药，收获不菲。",
             "effects": [
               { "type": "exp", "op": "add", "min": 4, "max": 10 },
               { "type": "pills", "op": "add", "min": 0, "max": 1 },
@@ -169,27 +161,24 @@
             ]
           },
           "onFail": {
-            "log": "裂隙反噬，你气息不稳。",
+            "log": "裂隙反噬，你气息不稳，一无所获，反受内伤。",
             "effects": [
               { "type": "hp", "op": "add", "min": -7, "max": -2 }
             ]
           }
         },
         "B": {
-          "text": "布下稳阵",
-          "successRateBase": 0.78,
+          "text": "绕开裂隙",
+          "successRateBase": 0.75,
           "successRateDangerFactor": -0.03,
           "onSuccess": {
-            "log": "稳稳进入，收取灵材。",
-            "effects": [
-              { "type": "exp", "op": "add", "min": 2, "max": 5 },
-              { "type": "pendingReward", "op": "add", "min": 1, "max": 4 }
-            ]
+            "log": "你绕开裂隙边缘而行，未涉险地，安然无恙，继续探索。",
+            "effects": []
           },
           "onFail": {
-            "log": "阵法失衡，微创退场。",
+            "log": "你小心翼翼绕开裂隙，不想裂隙突然震荡，灵气乱流将你扫中，受到内伤。",
             "effects": [
-              { "type": "hp", "op": "add", "min": -3, "max": -1 }
+              { "type": "hp", "op": "add", "min": -5, "max": -2 }
             ]
           }
         }
@@ -198,7 +187,7 @@
     {
       "id": "broken_furnace",
       "title": "残破丹炉",
-      "text": "遗弃丹炉半掩尘土，炉火残影尚存。",
+      "text": "遗弃丹炉半掩尘土，炉火残影尚存。点火或可得丹，绕开丹炉则无所得但多半安然。",
       "weight": 11,
       "rarity": "common",
       "minDanger": 1,
@@ -209,32 +198,29 @@
           "successRateBase": 0.6,
           "successRateDangerFactor": -0.05,
           "onSuccess": {
-            "log": "丹炉复燃，你得数颗灵丹。",
+            "log": "你以残火重燃丹炉，炉成数颗灵丹，并触发探索奖励。",
             "effects": [
               { "type": "pills", "op": "add", "min": 1, "max": 2 },
               { "type": "pendingReward", "op": "add", "min": 2, "max": 5 }
             ]
           },
           "onFail": {
-            "log": "炉火爆裂，你被灼伤。",
+            "log": "炉火爆裂，你被灼伤，丹炉尽毁一无所得。",
             "effects": [
               { "type": "hp", "op": "add", "min": -6, "max": -2 }
             ]
           }
         },
         "B": {
-          "text": "拆解取材",
-          "successRateBase": 0.8,
+          "text": "绕开丹炉",
+          "successRateBase": 0.75,
           "successRateDangerFactor": -0.03,
           "onSuccess": {
-            "log": "你拆得灵材，收获不小。",
-            "effects": [
-              { "type": "exp", "op": "add", "min": 2, "max": 5 },
-              { "type": "pendingReward", "op": "add", "min": 2, "max": 6 }
-            ]
+            "log": "你绕开残破丹炉，未动炉火，安然离去，继续探索。",
+            "effects": []
           },
           "onFail": {
-            "log": "碎片飞溅，擦伤手臂。",
+            "log": "你小心翼翼绕开丹炉，不想炉中残火突然窜出，你被灼伤。",
             "effects": [
               { "type": "hp", "op": "add", "min": -4, "max": -1 }
             ]
@@ -244,8 +230,8 @@
     },
     {
       "id": "formation_lock",
-      "title": "残阵封锁",
-      "text": "山谷被残阵封锁，阵中灵光流转。",
+      "title": "古阵封锁",
+      "text": "山谷被残阵封锁，阵中灵光流转。破阵硬开可夺阵眼灵气，绕阵而行则无所得但多半安然。",
       "weight": 7,
       "rarity": "rare",
       "tags": ["risk"],
@@ -253,18 +239,18 @@
       "maxDanger": 100,
       "choices": {
         "A": {
-          "text": "破阵硬开",
+          "text": "破阵",
           "successRateBase": 0.45,
           "successRateDangerFactor": -0.08,
           "onSuccess": {
-            "log": "阵眼破碎，灵气涌来。",
+            "log": "你参悟阵眼玄机，破阵硬开，阵眼破碎灵气涌来；修为与探索奖励大增。",
             "effects": [
               { "type": "exp", "op": "add", "min": 6, "max": 14 },
               { "type": "pendingReward", "op": "add", "min": 4, "max": 9 }
             ]
           },
           "onFail": {
-            "log": "阵光反噬，你经脉刺痛。",
+            "log": "你强行破阵，阵光反噬经脉刺痛，一无所得，并受内伤。",
             "effects": [
               { "type": "hp", "op": "add", "min": -9, "max": -4 },
               { "type": "danger", "op": "add", "min": 1, "max": 2 }
@@ -272,18 +258,15 @@
           }
         },
         "B": {
-          "text": "绕阵取路",
-          "successRateBase": 0.7,
-          "successRateDangerFactor": -0.04,
+          "text": "绕阵而行",
+          "successRateBase": 0.75,
+          "successRateDangerFactor": -0.03,
           "onSuccess": {
-            "log": "你避开锋芒，寻得阵外灵草。",
-            "effects": [
-              { "type": "exp", "op": "add", "min": 3, "max": 6 },
-              { "type": "pendingReward", "op": "add", "min": 2, "max": 5 }
-            ]
+            "log": "你小心翼翼绕开阵法，从阵外取路而过，安然无恙，继续探索。",
+            "effects": []
           },
           "onFail": {
-            "log": "阵纹触发，你被震退。",
+            "log": "你小心翼翼绕开阵法，不想阵中突然一道金光射出，你被阵法能量波及，受到内伤。",
             "effects": [
               { "type": "hp", "op": "add", "min": -6, "max": -2 }
             ]
@@ -294,7 +277,7 @@
     {
       "id": "remnant_soul",
       "title": "残魂低语",
-      "text": "幽光摇曳，一缕残魂向你招手。",
+      "text": "幽光摇曳，一缕残魂向你招手。强行吞噬可炼化识海，绕开残魂则无所得但多半安然。",
       "weight": 6,
       "rarity": "rare",
       "minDanger": 0,
@@ -305,33 +288,31 @@
           "successRateBase": 0.5,
           "successRateDangerFactor": -0.06,
           "onSuccess": {
-            "log": "残魂被炼化，识海清明。",
+            "log": "你炼化残魂，识海清明；参悟所得化为修为与机缘。",
             "effects": [
               { "type": "exp", "op": "add", "min": 5, "max": 11 },
               { "type": "pendingReward", "op": "add", "min": 3, "max": 6 }
             ]
           },
           "onFail": {
-            "log": "魂火反噬，你神识受损。",
+            "log": "魂火反噬，你神识受损，一无所得，反遭重创。",
             "effects": [
               { "type": "hp", "op": "add", "min": -8, "max": -3 }
             ]
           }
         },
         "B": {
-          "text": "以礼相待",
-          "successRateBase": 0.82,
+          "text": "绕开残魂",
+          "successRateBase": 0.75,
           "successRateDangerFactor": -0.03,
           "onSuccess": {
-            "log": "残魂指点，你获心得。",
-            "effects": [
-              { "type": "exp", "op": "add", "min": 2, "max": 5 }
-            ]
+            "log": "你敛息静心绕开残魂，未与之纠缠，安然退开，继续探索。",
+            "effects": []
           },
           "onFail": {
-            "log": "残魂消散，留下寒意。",
+            "log": "你小心翼翼绕开残魂，不想残魂骤然暴动，魂火余波扫中了你，神识受损。",
             "effects": [
-              { "type": "hp", "op": "add", "min": -3, "max": -1 }
+              { "type": "hp", "op": "add", "min": -5, "max": -2 }
             ]
           }
         }
@@ -340,7 +321,7 @@
     {
       "id": "sealed_scripture",
       "title": "封印经卷",
-      "text": "古经被封灵锁缠绕，似有大能传承。",
+      "text": "古经被封灵锁缠绕，似有大能传承。强破封印可悟玄法，绕开经卷则无所得但多半安然。",
       "weight": 8,
       "rarity": "legendary",
       "minDanger": 2,
@@ -351,14 +332,14 @@
           "successRateBase": 0.46,
           "successRateDangerFactor": -0.07,
           "onSuccess": {
-            "log": "经卷破封，你悟得玄法。",
+            "log": "你参悟封印玄机，经卷破封，悟得玄法；修为与探索奖励大增。",
             "effects": [
               { "type": "exp", "op": "add", "min": 7, "max": 15 },
               { "type": "pendingReward", "op": "add", "min": 4, "max": 9 }
             ]
           },
           "onFail": {
-            "log": "封印反噬，你气血震荡。",
+            "log": "封印反噬，你气血震荡，经卷未得，反受内伤。",
             "effects": [
               { "type": "hp", "op": "add", "min": -9, "max": -3 },
               { "type": "danger", "op": "add", "min": 1, "max": 2 }
@@ -366,21 +347,17 @@
           }
         },
         "B": {
-          "text": "缓解封锁",
-          "successRateBase": 0.76,
-          "successRateDangerFactor": -0.04,
+          "text": "绕开经卷",
+          "successRateBase": 0.75,
+          "successRateDangerFactor": -0.03,
           "onSuccess": {
-            "log": "你化解封印，得经卷残页。",
-            "effects": [
-              { "type": "exp", "op": "add", "min": 3, "max": 6 },
-              { "type": "fragment", "op": "add", "id": "spirit_pill_recipe", "min": 1, "max": 1 },
-              { "type": "pendingReward", "op": "add", "min": 2, "max": 4 }
-            ]
+            "log": "你绕开封印经卷，未触灵锁，安然离去，继续探索。",
+            "effects": []
           },
           "onFail": {
-            "log": "封锁未解，灵气反弹。",
+            "log": "你小心翼翼绕开经卷，不想封印灵锁突然反震，你被灵力波及，受到内伤。",
             "effects": [
-              { "type": "hp", "op": "add", "min": -5, "max": -2 }
+              { "type": "hp", "op": "add", "min": -6, "max": -2 }
             ]
           }
         }

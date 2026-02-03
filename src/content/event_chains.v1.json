@@ -9,64 +9,64 @@
         {
           "chapter": 1,
           "title": "残图",
-          "text": "你在废墟中拾到半张残图，墨迹指向深山某处。",
+          "text": "你在废墟中拾到半张残图，墨迹指向深山某处。按图索骥可寻秘窟，绕开则无所得但多半安然。",
           "choices": {
             "A": {
               "text": "按图索骥",
               "successRateBase": 0.65,
               "successRateDangerFactor": -0.05,
-              "onSuccess": { "log": "你辨明方位，向秘窟进发。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] },
-              "onFail": { "log": "路径难辨，你多绕了一段。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] }
+              "onSuccess": { "log": "你辨明方位，按图索骥向秘窟进发；修为与灵石小有收获。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] },
+              "onFail": { "log": "路径难辨，你多绕了一段，险地丛生。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] }
             },
             "B": {
-              "text": "先记下再探",
-              "successRateBase": 0.8,
+              "text": "绕开残图",
+              "successRateBase": 0.75,
               "successRateDangerFactor": -0.03,
-              "onSuccess": { "log": "你记下路线，稳步前行。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] },
-              "onFail": { "log": "记忆有误，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 1, "max": 3 }] }
+              "onSuccess": { "log": "你未按残图涉险，绕开深径，安然前行。", "effects": [] },
+              "onFail": { "log": "你小心翼翼绕开残图所指，不想途中塌方，你被乱石波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] }
             }
           }
         },
         {
           "chapter": 2,
           "title": "秘窟",
-          "text": "残图所指处，山腹中竟有一处秘窟入口，灵纹隐隐。",
+          "text": "残图所指处，山腹中竟有一处秘窟入口，灵纹隐隐。破阵而入可得洞府机缘，绕阵而行则无所得但多半安然。",
           "choices": {
             "A": {
               "text": "破阵而入",
               "successRateBase": 0.55,
               "successRateDangerFactor": -0.06,
-              "onSuccess": { "log": "阵破，洞府内景渐现。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }, { "type": "spiritStones", "op": "add", "min": 2, "max": 6 }] },
-              "onFail": { "log": "阵纹反噬，你气血翻涌。", "effects": [{ "type": "hp", "op": "add", "min": -10, "max": -4 }] }
+              "onSuccess": { "log": "你凝神破阵，阵破洞府内景渐现；修为与灵石入手。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }, { "type": "spiritStones", "op": "add", "min": 2, "max": 6 }] },
+              "onFail": { "log": "你强行破阵，阵纹反噬气血翻涌，一无所得，反受内伤。", "effects": [{ "type": "hp", "op": "add", "min": -10, "max": -4 }] }
             },
             "B": {
-              "text": "寻阵眼再破",
-              "successRateBase": 0.72,
-              "successRateDangerFactor": -0.04,
-              "onSuccess": { "log": "你找到阵眼，安然入内。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] },
-              "onFail": { "log": "阵眼难寻，只得强闯。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] }
+              "text": "绕阵而行",
+              "successRateBase": 0.75,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "你小心翼翼绕开秘窟灵纹，从侧径离去，安然无恙。", "effects": [] },
+              "onFail": { "log": "你小心翼翼绕开秘窟阵法，不想阵中突然一道灵光射出，你被阵法余波波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] }
             }
           }
         },
         {
           "chapter": 3,
           "title": "洞府传承",
-          "text": "洞府深处，一具坐化遗骸前摆着传承之物。",
+          "text": "洞府深处，一具坐化遗骸前摆着传承之物。取传承可获造化，绕开遗骸则仅得洞府保底馈赠。",
           "final": true,
           "choices": {
             "A": {
               "text": "取传承",
               "successRateBase": 0.7,
               "successRateDangerFactor": -0.02,
-              "onSuccess": { "log": "你获得洞府传承！", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] },
-              "onFail": { "log": "禁制反噬，你仍取到部分传承。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 8 }] }
+              "onSuccess": { "log": "你取洞府传承，造化加身，修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] },
+              "onFail": { "log": "禁制反噬，你仍取到部分传承，心有所得。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 8 }] }
             },
             "B": {
-              "text": "恭敬一拜再取",
-              "successRateBase": 0.85,
-              "successRateDangerFactor": -0.01,
-              "onSuccess": { "log": "前辈显灵，传承尽归。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 18 }] },
-              "onFail": { "log": "你取到传承，心有所得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }
+              "text": "绕开遗骸",
+              "successRateBase": 0.75,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "你绕开遗骸未敢擅取，仅受洞府馈赠，安然离去。", "effects": [] },
+              "onFail": { "log": "你小心翼翼绕开遗骸，不想禁制突然触发，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] }
             }
           },
           "guaranteedReward": { "type": "kungfu_or_recipe", "kungfuIds": ["retreat_charm", "depth_vision"], "recipeId": "spirit_pill_recipe", "inheritanceFallback": 1 }
@@ -81,64 +81,64 @@
         {
           "chapter": 1,
           "title": "异响",
-          "text": "林间传来异响，妖气隐隐，似有巢穴。",
+          "text": "林间传来异响，妖气隐隐，似有巢穴。循声探去可摸妖巢，绕开则无所得但多半安然。",
           "choices": {
             "A": {
               "text": "循声探去",
               "successRateBase": 0.6,
               "successRateDangerFactor": -0.06,
-              "onSuccess": { "log": "你摸到妖巢外围。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 7 }] },
-              "onFail": { "log": "妖物警觉，你险些暴露。", "effects": [{ "type": "danger", "op": "add", "min": 3, "max": 6 }] }
+              "onSuccess": { "log": "你循声探去，摸到妖巢外围；修为小有收获。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 7 }] },
+              "onFail": { "log": "妖物警觉，你险些暴露，险地丛生。", "effects": [{ "type": "danger", "op": "add", "min": 3, "max": 6 }] }
             },
             "B": {
-              "text": "隐匿接近",
-              "successRateBase": 0.78,
-              "successRateDangerFactor": -0.04,
-              "onSuccess": { "log": "你悄无声息接近巢穴。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] },
-              "onFail": { "log": "妖气扰动，你退后半步。", "effects": [{ "type": "danger", "op": "add", "min": 1, "max": 4 }] }
+              "text": "绕开异响",
+              "successRateBase": 0.75,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "你绕开异响所在，未涉妖巢，安然前行。", "effects": [] },
+              "onFail": { "log": "你小心翼翼绕开异响，不想林间妖兽突然窜出，你被妖气波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] }
             }
           }
         },
         {
           "chapter": 2,
           "title": "妖巢",
-          "text": "巢穴深处，妖王盘踞，内丹隐隐可见。",
+          "text": "巢穴深处，妖王盘踞，内丹隐隐可见。正面搏杀可夺妖核，绕开巢穴则无所得但多半安然。",
           "choices": {
             "A": {
               "text": "正面搏杀",
               "successRateBase": 0.5,
               "successRateDangerFactor": -0.08,
-              "onSuccess": { "log": "你斩妖取核，灵气激荡。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }, { "type": "material", "op": "add", "id": "beast_core", "min": 1, "max": 2 }] },
-              "onFail": { "log": "妖爪撕裂衣袍，你身受重伤。", "effects": [{ "type": "hp", "op": "add", "min": -12, "max": -6 }] }
+              "onSuccess": { "log": "你与妖王搏杀，斩妖取核，灵气激荡；妖核与修为入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }, { "type": "material", "op": "add", "id": "beast_core", "min": 1, "max": 2 }] },
+              "onFail": { "log": "妖爪撕裂衣袍，你身受重伤，一无所获，只得狼狈退走。", "effects": [{ "type": "hp", "op": "add", "min": -12, "max": -6 }] }
             },
             "B": {
-              "text": "伺机夺丹",
-              "successRateBase": 0.68,
-              "successRateDangerFactor": -0.05,
-              "onSuccess": { "log": "你趁其不备，取走内丹。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] },
-              "onFail": { "log": "妖王反扑，你带伤而退。", "effects": [{ "type": "hp", "op": "add", "min": -8, "max": -3 }] }
+              "text": "绕开巢穴",
+              "successRateBase": 0.75,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "你屏息敛气绕开妖巢，未惊动妖王，安然离去。", "effects": [] },
+              "onFail": { "log": "你小心翼翼绕开巢穴，不想妖王突然窜出，你被妖气波及，受到伤害。", "effects": [{ "type": "hp", "op": "add", "min": -8, "max": -3 }] }
             }
           }
         },
         {
           "chapter": 3,
           "title": "妖王内丹",
-          "text": "妖王伏诛，内丹与洞中藏丹尽归你手。",
+          "text": "妖王伏诛，内丹与洞中藏丹尽归你手。炼化可得造化，绕开则仅得洞府保底馈赠。",
           "final": true,
           "choices": {
             "A": {
               "text": "炼化内丹",
               "successRateBase": 0.65,
               "successRateDangerFactor": -0.03,
-              "onSuccess": { "log": "内丹化入丹田，修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 20 }] },
+              "onSuccess": { "log": "内丹化入丹田，修为大进；造化加身。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 20 }] },
               "onFail": { "log": "炼化有阻，你仍得部分造化。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }
             },
             "B": {
-              "text": "先取藏丹",
-              "successRateBase": 0.88,
-              "successRateDangerFactor": -0.01,
-              "onSuccess": { "log": "你取走洞中突破丹与材料。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] },
-              "onFail": { "log": "你取到部分藏丹。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }
+              "text": "绕开内丹",
+              "successRateBase": 0.75,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "你绕开妖王内丹未敢擅炼，仅受洞府馈赠，安然离去。", "effects": [] },
+              "onFail": { "log": "你小心翼翼绕开内丹，不想妖王残念骤然反噬，你被妖力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] }
             }
           },
           "guaranteedReward": { "type": "epic_material_elixir", "materialId": "moon_dew", "materialCount": 2, "inheritanceFallback": 1 }
@@ -153,64 +153,64 @@
         {
           "chapter": 1,
           "title": "破炉",
-          "text": "废墟中一尊破败丹炉，炉火竟仍微微跳动。",
+          "text": "废墟中一尊破败丹炉，炉火竟仍微微跳动。引火入体可悟炉纹，绕开丹炉则无所得但多半安然。",
           "choices": {
             "A": {
               "text": "引火入体",
               "successRateBase": 0.58,
               "successRateDangerFactor": -0.05,
-              "onSuccess": { "log": "一缕丹火入体，你与炉火共鸣。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] },
-              "onFail": { "log": "炉火灼人，你急退。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] }
+              "onSuccess": { "log": "一缕丹火入体，你与炉火共鸣；参悟炉纹，修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] },
+              "onFail": { "log": "炉火灼人，你急退，一无所得，反受灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] }
             },
             "B": {
-              "text": "先观炉纹",
+              "text": "绕开丹炉",
               "successRateBase": 0.75,
               "successRateDangerFactor": -0.03,
-              "onSuccess": { "log": "你参悟炉纹，丹火渐驯。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 7 }] },
-              "onFail": { "log": "炉纹晦涩，你略有所得。", "effects": [{ "type": "exp", "op": "add", "min": 1, "max": 4 }] }
+              "onSuccess": { "log": "你绕开破炉，未动炉火，安然离去。", "effects": [] },
+              "onFail": { "log": "你小心翼翼绕开丹炉，不想炉中残火突然窜出，你被灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] }
             }
           }
         },
         {
           "chapter": 2,
           "title": "丹火",
-          "text": "炉中丹火愈旺，似有灵性，欲择主而栖。",
+          "text": "炉中丹火愈旺，似有灵性，欲择主而栖。以神念沟通可醒炉灵，绕开炉火则无所得但多半安然。",
           "choices": {
             "A": {
               "text": "以神念沟通",
               "successRateBase": 0.62,
               "successRateDangerFactor": -0.05,
-              "onSuccess": { "log": "丹火回应，炉灵初醒。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] },
-              "onFail": { "log": "神念被灼，你定神再试。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] }
+              "onSuccess": { "log": "丹火回应，炉灵初醒；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] },
+              "onFail": { "log": "神念被灼，你定神再试，反受灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] }
             },
             "B": {
-              "text": "投料试炼",
-              "successRateBase": 0.8,
-              "successRateDangerFactor": -0.02,
-              "onSuccess": { "log": "炉火炼化灵材，炉灵悦然。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] },
-              "onFail": { "log": "火候不稳，你调整再炼。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] }
+              "text": "绕开炉火",
+              "successRateBase": 0.75,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "你绕开炉火，未与炉灵纠缠，安然退开。", "effects": [] },
+              "onFail": { "log": "你小心翼翼绕开炉火，不想丹火骤然暴涨，你被火气波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] }
             }
           }
         },
         {
           "chapter": 3,
           "title": "炉灵认主",
-          "text": "炉灵显化，愿认你为主，并授镇火之法。",
+          "text": "炉灵显化，愿认你为主，并授镇火之法。结契可得传承，绕开则仅得保底馈赠。",
           "final": true,
           "choices": {
             "A": {
               "text": "结契",
               "successRateBase": 0.7,
               "successRateDangerFactor": -0.02,
-              "onSuccess": { "log": "炉灵认主，镇火诀入心。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] },
+              "onSuccess": { "log": "炉灵认主，镇火诀入心；丹道大进。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] },
               "onFail": { "log": "契成有瑕，你仍得部分传承。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }
             },
             "B": {
-              "text": "恭敬受法",
-              "successRateBase": 0.9,
-              "successRateDangerFactor": -0.01,
-              "onSuccess": { "log": "炉灵授你镇火诀，丹道大进。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 18 }] },
-              "onFail": { "log": "你谨守心神，得传镇火诀。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }
+              "text": "绕开炉灵",
+              "successRateBase": 0.75,
+              "successRateDangerFactor": -0.03,
+              "onSuccess": { "log": "你绕开炉灵未敢结契，仅受保底馈赠，安然离去。", "effects": [] },
+              "onFail": { "log": "你小心翼翼绕开炉灵，不想炉灵骤然暴动，你被丹火波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] }
             }
           },
           "guaranteedReward": { "type": "kungfu", "id": "fire_suppress" }
@@ -222,10 +222,10 @@
       "name": "丹火失控",
       "desc": "丹炉异动，火势难控，终章可得天品配方碎页与造化。",
       "chapters": [
-        { "chapter": 1, "title": "炉火异动", "text": "炼丹时炉火陡然暴涨，似要反噬。", "choices": { "A": { "text": "强压炉火", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你稳住炉火，丹气渐平。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "炉火灼手，你急退。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "顺势疏导", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "火势顺导，你悟得控火心得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] }, "onFail": { "log": "疏导有阻，略损元气。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
-        { "chapter": 2, "title": "残页现", "text": "炉灰中露出一角残页，似为古丹方。", "choices": { "A": { "text": "冒险取页", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你取回残页，墨迹犹存。", "effects": [{ "type": "fragment", "op": "add", "id": "foundation_pill_recipe", "min": 1, "max": 1 }] }, "onFail": { "log": "炉灰烫手，残页半毁。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } }, "B": { "text": "以灵护手再取", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "残页完好入手。", "effects": [{ "type": "fragment", "op": "add", "id": "foundation_pill_recipe", "min": 1, "max": 1 }] }, "onFail": { "log": "略损一角，仍可参悟。", "effects": [] } } } },
-        { "chapter": 3, "title": "丹火归元", "text": "火势渐平，炉底凝出一缕丹意。", "choices": { "A": { "text": "收火取意", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "丹意入体，丹道精进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "意散大半，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "稳守再收", "successRateBase": 0.88, "successRateDangerFactor": -0.01, "onSuccess": { "log": "你稳守心神，尽收丹意。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] }, "onFail": { "log": "收效甚微，无碍道心。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] } } } },
-        { "chapter": 4, "title": "天品碎页", "text": "炉底竟还有一页金纹残方，似为天品丹方碎页。", "final": true, "choices": { "A": { "text": "取碎页", "successRateBase": 0.7, "successRateDangerFactor": -0.02, "onSuccess": { "log": "天品碎页入手，丹道可期。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "碎页半毁，仍得传承点。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] } }, "B": { "text": "参悟后取", "successRateBase": 0.85, "successRateDangerFactor": -0.01, "onSuccess": { "log": "你参悟金纹，碎页与心得同收。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 18 }] }, "onFail": { "log": "取到碎页，心有所得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] } } }, "guaranteedReward": { "type": "recipe", "recipeId": "foundation_pill_recipe" } }
+        { "chapter": 1, "title": "炉火异动", "text": "炼丹时炉火陡然暴涨，似要反噬。强压可得控火心得，绕开炉火则无所得但多半安然。", "choices": { "A": { "text": "强压炉火", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你稳住炉火，丹气渐平；悟得控火心得，修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "炉火灼手，你急退，一无所得，反受灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "绕开炉火", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开异动炉火，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开炉火，不想火势骤然暴涨，你被灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 2, "title": "残页现", "text": "炉灰中露出一角残页，似为古丹方。冒险取页可得残页，绕开则无所得但多半安然。", "choices": { "A": { "text": "冒险取页", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你冒险取回残页，墨迹犹存；丹方残页入手。", "effects": [{ "type": "fragment", "op": "add", "id": "foundation_pill_recipe", "min": 1, "max": 1 }] }, "onFail": { "log": "炉灰烫手，残页半毁，你反受灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } }, "B": { "text": "绕开残页", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开炉灰残页，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开残页，不想炉灰突然爆燃，你被灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 3, "title": "丹火归元", "text": "火势渐平，炉底凝出一缕丹意。收火取意可得造化，绕开则无所得但多半安然。", "choices": { "A": { "text": "收火取意", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "丹意入体，丹道精进；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "意散大半，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "绕开丹意", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开炉底丹意，未敢收取，安然退开。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开丹意，不想丹火骤然反卷，你被火气波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 4, "title": "天品碎页", "text": "炉底竟还有一页金纹残方，似为天品丹方碎页。取碎页可得传承，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取碎页", "successRateBase": 0.7, "successRateDangerFactor": -0.02, "onSuccess": { "log": "天品碎页入手，丹道可期；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "碎页半毁，仍得传承点。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] } }, "B": { "text": "绕开碎页", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开金纹碎页未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开碎页，不想金纹骤然反震，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "recipe", "recipeId": "foundation_pill_recipe" } }
       ]
     },
     {
@@ -233,10 +233,10 @@
       "name": "宗门委托",
       "desc": "宗门发布外勤任务，终章可得功法残页或称号。",
       "chapters": [
-        { "chapter": 1, "title": "任务榜", "text": "宗门任务榜上有一桩采药委托，报酬颇丰。", "choices": { "A": { "text": "接榜独行", "successRateBase": 0.62, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你接下任务，孤身入山。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 7 }] }, "onFail": { "log": "路遇妖兽，耽搁半日。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "组队前往", "successRateBase": 0.8, "successRateDangerFactor": -0.03, "onSuccess": { "log": "与同门结伴，稳妥前行。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 5 }] }, "onFail": { "log": "队中有人受伤，你略助之。", "effects": [{ "type": "hp", "op": "add", "min": -2, "max": 0 }] } } } },
-        { "chapter": 2, "title": "灵药地", "text": "采药地有妖兽守护，需闯过才能取药。", "choices": { "A": { "text": "硬闯取药", "successRateBase": 0.5, "successRateDangerFactor": -0.07, "onSuccess": { "log": "你击退妖兽，采得灵药。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 2, "max": 4 }] }, "onFail": { "log": "妖兽凶猛，你带伤而退。", "effects": [{ "type": "hp", "op": "add", "min": -10, "max": -4 }] } }, "B": { "text": "调虎离山", "successRateBase": 0.72, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你引开妖兽，取药而归。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 3 }] }, "onFail": { "log": "妖兽折返，你险取部分。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 1 }] } } } },
-        { "chapter": 3, "title": "交任务", "text": "你回宗交差，执事满意，允你入藏经阁选赏。", "choices": { "A": { "text": "选功法残页", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你选了一卷功法残页。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "残页不全，仍可参悟。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "求称号", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "执事赐你外勤能手之称。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "称号未批，得灵石补偿。", "effects": [{ "type": "spiritStones", "op": "add", "min": 3, "max": 8 }] } } } },
-        { "chapter": 4, "title": "终赏", "text": "藏经阁深处，你可择一终赏：功法残页或宗门称号。", "final": true, "choices": { "A": { "text": "取功法", "successRateBase": 0.7, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你取得功法残页，道途更宽。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "残页有缺，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] } }, "B": { "text": "取称号", "successRateBase": 0.85, "successRateDangerFactor": -0.01, "onSuccess": { "log": "你获宗门称号，名动一方。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "称号加身，心满意足。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 8 }] } } }, "guaranteedReward": { "type": "title", "id": "sect_agent", "name": "外勤能手" } }
+        { "chapter": 1, "title": "任务榜", "text": "宗门任务榜上有一桩采药委托，报酬颇丰。接榜独行可入山，绕开委托则无所得但多半安然。", "choices": { "A": { "text": "接榜独行", "successRateBase": 0.62, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你接下任务，孤身入山；修为小有收获。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 7 }] }, "onFail": { "log": "路遇妖兽，耽搁半日，险地丛生。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "绕开委托", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你未接榜，绕开委托，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开任务榜，不想执事突然叫住盘问，你略费周折，受到轻责。", "effects": [{ "type": "hp", "op": "add", "min": -2, "max": 0 }] } } } },
+        { "chapter": 2, "title": "灵药地", "text": "采药地有妖兽守护，需闯过才能取药。硬闯可取灵药，绕开灵药地则无所得但多半安然。", "choices": { "A": { "text": "硬闯取药", "successRateBase": 0.5, "successRateDangerFactor": -0.07, "onSuccess": { "log": "你击退妖兽，采得灵药；灵草入手。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 2, "max": 4 }] }, "onFail": { "log": "妖兽凶猛，你带伤而退，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -10, "max": -4 }] } }, "B": { "text": "绕开灵药地", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开妖兽守护的灵药地，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开灵药地，不想妖兽突然窜出，你被妖气波及，受到伤害。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } } } },
+        { "chapter": 3, "title": "交任务", "text": "你回宗交差，执事满意，允你入藏经阁选赏。选功法或求称号可得赏，绕开则无所得但多半安然。", "choices": { "A": { "text": "选功法残页", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你选了一卷功法残页；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "残页不全，仍可参悟。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "绕开藏经阁", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开藏经阁选赏，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开藏经阁，不想禁制突然触发，你被灵力波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 4, "title": "终赏", "text": "藏经阁深处，你可择一终赏：功法残页或宗门称号。取赏可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取功法", "successRateBase": 0.7, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你取得功法残页，道途更宽；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "残页有缺，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] } }, "B": { "text": "绕开终赏", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开终赏未敢擅取，仅受宗门保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开终赏，不想阁中禁制突然反震，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "title", "id": "sect_agent", "name": "外勤能手" } }
       ]
     },
     {
@@ -244,10 +244,10 @@
       "name": "黑市拍卖",
       "desc": "地下坊市拍卖稀有材料，终章可得材料包与本局坊市折扣。",
       "chapters": [
-        { "chapter": 1, "title": "暗巷", "text": "有人引你入暗巷，言有黑市拍卖。", "choices": { "A": { "text": "跟入", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你进入黑市，灵气驳杂。", "effects": [{ "type": "spiritStones", "op": "add", "min": 0, "max": 5 }] }, "onFail": { "log": "险些被盯上，你脱身而退。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] } }, "B": { "text": "观望再入", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你摸清门路后进入。", "effects": [] }, "onFail": { "log": "门路有变，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 1, "max": 3 }] } } } },
-        { "chapter": 2, "title": "拍卖场", "text": "台上正在拍一批稀有材料。", "choices": { "A": { "text": "竞价月华露", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你拍得月华露数瓶。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 1, "max": 2 }] }, "onFail": { "log": "竞价失败，灵石白费。", "effects": [{ "type": "spiritStones", "op": "add", "min": -8, "max": -3 }] } }, "B": { "text": "等压轴", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你留力等压轴。", "effects": [] }, "onFail": { "log": "压轴未上，略憾。", "effects": [] } } } },
-        { "chapter": 3, "title": "压轴", "text": "压轴是一张「本局坊市折扣券」，价高者得。", "choices": { "A": { "text": "全力竞拍", "successRateBase": 0.58, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你拍得折扣券，本局坊市九折。", "effects": [{ "type": "spiritStones", "op": "add", "min": -15, "max": -5 }] }, "onFail": { "log": "被人截胡，得小礼包安慰。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 2 }] } }, "B": { "text": "见好就收", "successRateBase": 0.88, "successRateDangerFactor": -0.01, "onSuccess": { "log": "你以合理价拍得折扣券。", "effects": [] }, "onFail": { "log": "未得券，得材料包。", "effects": [{ "type": "material", "op": "add", "id": "iron_sand", "min": 1, "max": 2 }] } } } },
-        { "chapter": 4, "title": "交割", "text": "黑市交割处，你取到稀有材料包与折扣凭证。", "final": true, "choices": { "A": { "text": "取材料与券", "successRateBase": 0.72, "successRateDangerFactor": -0.03, "onSuccess": { "log": "材料与折扣券尽数入手。", "effects": [{ "type": "material", "op": "add", "id": "beast_core", "min": 1, "max": 2 }] }, "onFail": { "log": "交割有惊无险，仍得大半。", "effects": [] } }, "B": { "text": "速离", "successRateBase": 0.9, "successRateDangerFactor": -0.01, "onSuccess": { "log": "你速离黑市，全身而退。", "effects": [] }, "onFail": { "log": "略遇盘查，无碍。", "effects": [] } } }, "guaranteedReward": { "type": "shop_discount", "percent": 10 } }
+        { "chapter": 1, "title": "暗巷", "text": "有人引你入暗巷，言有黑市拍卖。跟入可进黑市，绕开暗巷则无所得但多半安然。", "choices": { "A": { "text": "跟入", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你进入黑市，灵气驳杂；偶得灵石小利。", "effects": [{ "type": "spiritStones", "op": "add", "min": 0, "max": 5 }] }, "onFail": { "log": "险些被盯上，你脱身而退，险地丛生。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] } }, "B": { "text": "绕开暗巷", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开暗巷，未入黑市，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开暗巷，不想被人尾随盘问，你略费周折，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 2, "title": "拍卖场", "text": "台上正在拍一批稀有材料。竞价可得月华露，绕开拍卖则无所得但多半安然。", "choices": { "A": { "text": "竞价月华露", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你拍得月华露数瓶；灵材入手。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 1, "max": 2 }] }, "onFail": { "log": "竞价失败，灵石白费，一无所获。", "effects": [{ "type": "spiritStones", "op": "add", "min": -8, "max": -3 }] } }, "B": { "text": "绕开拍卖", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开拍卖场，未涉竞价，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开拍卖场，不想被人挤撞，你略损元气。", "effects": [{ "type": "hp", "op": "add", "min": -2, "max": 0 }] } } } },
+        { "chapter": 3, "title": "压轴", "text": "压轴是一张「本局坊市折扣券」，价高者得。全力竞拍可得券，绕开则无所得但多半安然。", "choices": { "A": { "text": "全力竞拍", "successRateBase": 0.58, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你拍得折扣券，本局坊市九折；灵石有耗。", "effects": [{ "type": "spiritStones", "op": "add", "min": -15, "max": -5 }] }, "onFail": { "log": "被人截胡，得小礼包安慰。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 2 }] } }, "B": { "text": "绕开压轴", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开压轴竞拍，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开压轴，不想黑市突然骚动，你被人流波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 4, "title": "交割", "text": "黑市交割处，你取到稀有材料包与折扣凭证。取材料可得造化，绕开交割则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取材料与券", "successRateBase": 0.72, "successRateDangerFactor": -0.03, "onSuccess": { "log": "材料与折扣券尽数入手；妖核入手。", "effects": [{ "type": "material", "op": "add", "id": "beast_core", "min": 1, "max": 2 }] }, "onFail": { "log": "交割有惊无险，仍得大半。", "effects": [] } }, "B": { "text": "绕开交割", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开交割处未敢久留，仅受保底馈赠，速离黑市。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开交割处，不想黑市突然盘查，你被波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } }, "guaranteedReward": { "type": "shop_discount", "percent": 10 } }
       ]
     },
     {
@@ -255,10 +255,10 @@
       "name": "秘境采药",
       "desc": "秘境深处灵药成片，终章可得月华露与灵草大包。",
       "chapters": [
-        { "chapter": 1, "title": "灵雾", "text": "秘境入口灵雾缭绕，内里似有灵药。", "choices": { "A": { "text": "闯雾而入", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你穿雾而入，见灵草遍地。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 3 }] }, "onFail": { "log": "雾中有毒，你屏息急退。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "辨向再入", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你辨明方向，稳步深入。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] }, "onFail": { "log": "略绕远路，无大碍。", "effects": [{ "type": "danger", "op": "add", "min": 1, "max": 2 }] } } } },
-        { "chapter": 2, "title": "药田", "text": "一片药田，月华露凝于叶上。", "choices": { "A": { "text": "大采月华露", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你采得月华露数瓶。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 2, "max": 4 }] }, "onFail": { "log": "惊动守药灵兽，略取少许。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 1, "max": 1 }] } }, "B": { "text": "灵草月露兼收", "successRateBase": 0.75, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你灵草与月华露各取一些。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 2 }, { "type": "material", "op": "add", "id": "moon_dew", "min": 1, "max": 2 }] }, "onFail": { "log": "收了一部分，心满意足。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 1 }] } } } },
-        { "chapter": 3, "title": "深处", "text": "秘境最深处，月华露成潭，灵草如茵。", "choices": { "A": { "text": "取露为主", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你取走大量月华露。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 3, "max": 5 }] }, "onFail": { "log": "潭有禁制，取之有限。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 1, "max": 2 }] } }, "B": { "text": "均衡收取", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你月华露与灵草均衡收取。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 2, "max": 3 }, { "type": "material", "op": "add", "id": "spirit_herb", "min": 2, "max": 4 }] }, "onFail": { "log": "略有所得。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 2 }] } } } },
-        { "chapter": 4, "title": "大包归", "text": "你满载月华露与灵草，可称大包归。", "final": true, "choices": { "A": { "text": "收整离开", "successRateBase": 0.8, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你收整行囊，安然离开秘境。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "略遇阻拦，仍带出大半。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] } }, "B": { "text": "再采一轮", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你多采一轮，收获更丰。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 1, "max": 2 }] }, "onFail": { "log": "秘境不稳，你急退。", "effects": [{ "type": "danger", "op": "add", "min": 3, "max": 6 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "moon_dew", "materialCount": 3, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "灵雾", "text": "秘境入口灵雾缭绕，内里似有灵药。闯雾而入可见灵草，绕开灵雾则无所得但多半安然。", "choices": { "A": { "text": "闯雾而入", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你穿雾而入，见灵草遍地；灵草入手。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 3 }] }, "onFail": { "log": "雾中有毒，你屏息急退，一无所获，反受毒伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "绕开灵雾", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开灵雾入口，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开灵雾，不想雾中突然毒气涌出，你被波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 2, "title": "药田", "text": "一片药田，月华露凝于叶上。大采可得月华露，绕开药田则无所得但多半安然。", "choices": { "A": { "text": "大采月华露", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你采得月华露数瓶；灵材入手。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 2, "max": 4 }] }, "onFail": { "log": "惊动守药灵兽，略取少许。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 1, "max": 1 }] } }, "B": { "text": "绕开药田", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开药田，未惊动守药灵兽，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开药田，不想守药灵兽突然窜出，你被灵兽波及，受到伤害。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } } },
+        { "chapter": 3, "title": "深处", "text": "秘境最深处，月华露成潭，灵草如茵。取露可得造化，绕开深处则无所得但多半安然。", "choices": { "A": { "text": "取露为主", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你取走大量月华露；灵材大进。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 3, "max": 5 }] }, "onFail": { "log": "潭有禁制，取之有限。", "effects": [{ "type": "material", "op": "add", "id": "moon_dew", "min": 1, "max": 2 }] } }, "B": { "text": "绕开深处", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开秘境深处，未涉潭边，安然退开。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开深处，不想潭中禁制突然触发，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 4, "title": "大包归", "text": "你满载月华露与灵草，可称大包归。收整离开可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "收整离开", "successRateBase": 0.8, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你收整行囊，安然离开秘境；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "略遇阻拦，仍带出大半。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] } }, "B": { "text": "绕开大包", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开满载之处未敢久留，仅受保底馈赠，安然离开秘境。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开满载处，不想秘境突然不稳，你被灵气乱流波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "moon_dew", "materialCount": 3, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -266,9 +266,9 @@
       "name": "斗法擂台",
       "desc": "擂台斗法，胜者可获护身符，终章可减天劫伤害。",
       "chapters": [
-        { "chapter": 1, "title": "擂台", "text": "坊间擂台有人设擂，胜者可获护身符。", "choices": { "A": { "text": "上台一战", "successRateBase": 0.52, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你胜了一局，得些许赏金。", "effects": [{ "type": "spiritStones", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "对手凶猛，你带伤下台。", "effects": [{ "type": "hp", "op": "add", "min": -10, "max": -4 }] } }, "B": { "text": "观战再上", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你摸清路数后上台，小胜。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "略逊一筹，无大碍。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
-        { "chapter": 2, "title": "连胜", "text": "你连胜两场，擂主坐不住了。", "choices": { "A": { "text": "再接擂主", "successRateBase": 0.5, "successRateDangerFactor": -0.07, "onSuccess": { "log": "你力克擂主，名动一时。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] }, "onFail": { "log": "擂主强悍，你重伤下台。", "effects": [{ "type": "hp", "op": "add", "min": -14, "max": -6 }] } }, "B": { "text": "见好就收", "successRateBase": 0.9, "successRateDangerFactor": -0.01, "onSuccess": { "log": "你领赏下台，全身而退。", "effects": [{ "type": "spiritStones", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "略有不甘，无碍。", "effects": [] } } } },
-        { "chapter": 3, "title": "护身符", "text": "擂主赠你护身符一枚，可减天劫反噬。", "final": true, "choices": { "A": { "text": "收符", "successRateBase": 0.85, "successRateDangerFactor": -0.01, "onSuccess": { "log": "护身符入手，天劫可期。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "符有瑕疵，仍可一用。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] } }, "B": { "text": "恭敬受符", "successRateBase": 0.95, "successRateDangerFactor": 0, "onSuccess": { "log": "你恭敬受符，擂主颔首。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 14 }] }, "onFail": { "log": "符归你手，心满意足。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] } } }, "guaranteedReward": { "type": "tribulation_bonus", "dmgReductionPercent": 15 } }
+        { "chapter": 1, "title": "擂台", "text": "坊间擂台有人设擂，胜者可获护身符。上台一战可得赏金，绕开擂台则无所得但多半安然。", "choices": { "A": { "text": "上台一战", "successRateBase": 0.52, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你胜了一局，得些许赏金；灵石入手。", "effects": [{ "type": "spiritStones", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "对手凶猛，你带伤下台，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -10, "max": -4 }] } }, "B": { "text": "绕开擂台", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开擂台，未上台一战，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开擂台，不想被人推搡上台，你仓促应战受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 2, "title": "连胜", "text": "你连胜两场，擂主坐不住了。再接擂主可名动一时，绕开擂主则无所得但多半安然。", "choices": { "A": { "text": "再接擂主", "successRateBase": 0.5, "successRateDangerFactor": -0.07, "onSuccess": { "log": "你力克擂主，名动一时；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] }, "onFail": { "log": "擂主强悍，你重伤下台，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -14, "max": -6 }] } }, "B": { "text": "绕开擂主", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开擂主未敢再战，领赏下台，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开擂主，不想擂主突然叫阵，你被气劲波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } } } },
+        { "chapter": 3, "title": "护身符", "text": "擂主赠你护身符一枚，可减天劫反噬。收符可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "收符", "successRateBase": 0.85, "successRateDangerFactor": -0.01, "onSuccess": { "log": "护身符入手，天劫可期；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "符有瑕疵，仍可一用。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] } }, "B": { "text": "绕开护身符", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开护身符未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开护身符，不想符力骤然反震，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "tribulation_bonus", "dmgReductionPercent": 15 } }
       ]
     },
     {
@@ -276,9 +276,9 @@
       "name": "古洞府传承",
       "desc": "古修洞府现世，终章可得传奇功法或指定兑换券。",
       "chapters": [
-        { "chapter": 1, "title": "洞府现", "text": "山崩现出一处古修洞府，灵光隐隐。", "choices": { "A": { "text": "抢先入府", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你抢先入府，得先机。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "禁制反噬，你急退。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "破阵再入", "successRateBase": 0.75, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你破阵而入，安然入内。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "阵纹难破，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } } } },
-        { "chapter": 2, "title": "传承殿", "text": "洞府深处有传承殿，经卷与功法并存。", "choices": { "A": { "text": "取功法", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你取到一册功法。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "禁制反噬，你带伤而退。", "effects": [{ "type": "hp", "op": "add", "min": -8, "max": -3 }] } }, "B": { "text": "参悟再取", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你参悟禁制，取到功法。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "略有所得，无大碍。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } } } },
-        { "chapter": 3, "title": "传奇功法", "text": "殿心有一卷传奇功法，似为你而留。", "final": true, "choices": { "A": { "text": "取传奇", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "传奇功法入手，道途大进。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 18 }] }, "onFail": { "log": "取到残卷，仍可参悟。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] } }, "B": { "text": "恭敬受传", "successRateBase": 0.88, "successRateDangerFactor": -0.01, "onSuccess": { "log": "前辈显灵，传奇尽归。", "effects": [{ "type": "exp", "op": "add", "min": 12, "max": 20 }] }, "onFail": { "log": "你谨守心神，得传功法。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] } } }, "guaranteedReward": { "type": "kungfu", "id": "legendary_eye" } }
+        { "chapter": 1, "title": "洞府现", "text": "山崩现出一处古修洞府，灵光隐隐。抢先入府可得先机，绕开洞府则无所得但多半安然。", "choices": { "A": { "text": "抢先入府", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你抢先入府，得先机；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "禁制反噬，你急退，一无所得，反受内伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "绕开洞府", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开洞府入口，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开洞府，不想山崩余波未散，你被乱石波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } } },
+        { "chapter": 2, "title": "传承殿", "text": "洞府深处有传承殿，经卷与功法并存。取功法可得造化，绕开传承殿则无所得但多半安然。", "choices": { "A": { "text": "取功法", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你取到一册功法；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "禁制反噬，你带伤而退，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -8, "max": -3 }] } }, "B": { "text": "绕开传承殿", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开传承殿，未触禁制，安然退开。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开传承殿，不想殿中禁制突然触发，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } } } },
+        { "chapter": 3, "title": "传奇功法", "text": "殿心有一卷传奇功法，似为你而留。取传奇可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取传奇", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "传奇功法入手，道途大进；造化加身。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 18 }] }, "onFail": { "log": "取到残卷，仍可参悟。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] } }, "B": { "text": "绕开传奇", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开传奇功法未敢擅取，仅受洞府保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开传奇经卷，不想经卷灵锁突然反震，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } } }, "guaranteedReward": { "type": "kungfu", "id": "legendary_eye" } }
       ]
     },
     {
@@ -286,9 +286,9 @@
       "name": "灵兽结缘",
       "desc": "与灵兽结缘，终章可得探索危险减免与收手加成。",
       "chapters": [
-        { "chapter": 1, "title": "灵兽", "text": "林间遇一灵兽，似有灵性，欲与你结缘。", "choices": { "A": { "text": "以灵沟通", "successRateBase": 0.62, "successRateDangerFactor": -0.05, "onSuccess": { "log": "灵兽回应，缘起。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "灵兽警惕，你退后半步。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "投食示好", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "灵兽食之，亲近几分。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 5 }] }, "onFail": { "log": "灵兽不食，略憾。", "effects": [] } } } },
-        { "chapter": 2, "title": "结缘", "text": "灵兽愿与你结缘，可助探索与收手。", "choices": { "A": { "text": "结契", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "契成，灵兽伴你左右。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "契成有瑕，仍可相助。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "暂缓结契", "successRateBase": 0.85, "successRateDangerFactor": -0.02, "onSuccess": { "log": "灵兽待你，他日再契。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 3, "title": "馈赠", "text": "灵兽赠你丹药与传承点，以助道途。", "final": true, "choices": { "A": { "text": "受赠", "successRateBase": 0.8, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你受赠丹药与传承点，道途更稳。", "effects": [{ "type": "pills", "op": "add", "min": 2, "max": 4 }] }, "onFail": { "log": "赠礼有缺，仍有所得。", "effects": [{ "type": "pills", "op": "add", "min": 1, "max": 2 }] } }, "B": { "text": "恭敬受赠", "successRateBase": 0.92, "successRateDangerFactor": 0, "onSuccess": { "log": "灵兽悦然，赠礼更丰。", "effects": [{ "type": "pills", "op": "add", "min": 3, "max": 5 }] }, "onFail": { "log": "你谨守心神，得赠礼。", "effects": [{ "type": "pills", "op": "add", "min": 2, "max": 3 }] } } }, "guaranteedReward": { "type": "legacy", "points": 1 } }
+        { "chapter": 1, "title": "灵兽", "text": "林间遇一灵兽，似有灵性，欲与你结缘。以灵沟通可缘起，绕开灵兽则无所得但多半安然。", "choices": { "A": { "text": "以灵沟通", "successRateBase": 0.62, "successRateDangerFactor": -0.05, "onSuccess": { "log": "灵兽回应，缘起；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "灵兽警惕，你退后半步，险地丛生。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "绕开灵兽", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开灵兽，未与之结缘，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开灵兽，不想灵兽突然躁动，你被灵压波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 2, "title": "结缘", "text": "灵兽愿与你结缘，可助探索与收手。结契可得造化，绕开结缘则无所得但多半安然。", "choices": { "A": { "text": "结契", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "契成，灵兽伴你左右；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "契成有瑕，仍可相助。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "绕开结缘", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开结缘未敢深交，安然退开。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开结缘，不想灵兽骤然不舍，你被灵压波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 3, "title": "馈赠", "text": "灵兽赠你丹药与传承点，以助道途。受赠可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "受赠", "successRateBase": 0.8, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你受赠丹药与传承点，道途更稳；丹药入手。", "effects": [{ "type": "pills", "op": "add", "min": 2, "max": 4 }] }, "onFail": { "log": "赠礼有缺，仍有所得。", "effects": [{ "type": "pills", "op": "add", "min": 1, "max": 2 }] } }, "B": { "text": "绕开馈赠", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开馈赠未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开馈赠，不想灵兽骤然不舍，你被灵压波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } }, "guaranteedReward": { "type": "legacy", "points": 1 } }
       ]
     },
     {
@@ -296,9 +296,9 @@
       "name": "魔修窥伺",
       "desc": "魔修暗中窥伺，险中求富贵，终章入魔分支爽点。",
       "chapters": [
-        { "chapter": 1, "title": "窥伺", "text": "你察觉有人暗中窥伺，似为魔修。", "choices": { "A": { "text": "反追踪", "successRateBase": 0.5, "successRateDangerFactor": -0.08, "onSuccess": { "log": "你摸到魔修老巢。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "魔修反扑，你带伤而退。", "effects": [{ "type": "hp", "op": "add", "min": -12, "max": -5 }] } }, "B": { "text": "佯装不知", "successRateBase": 0.72, "successRateDangerFactor": -0.04, "onSuccess": { "log": "魔修放松警惕，你伺机而动。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "魔修警觉，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 3, "max": 6 }] } } } },
-        { "chapter": 2, "title": "魔巢", "text": "魔修巢穴中藏有丹药与传承点。", "choices": { "A": { "text": "强夺", "successRateBase": 0.48, "successRateDangerFactor": -0.07, "onSuccess": { "log": "你强夺丹药与传承点。", "effects": [{ "type": "pills", "op": "add", "min": 2, "max": 4 }] }, "onFail": { "log": "魔修围攻，你重伤而退。", "effects": [{ "type": "hp", "op": "add", "min": -14, "max": -6 }] } }, "B": { "text": "智取", "successRateBase": 0.7, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你智取丹药与传承点。", "effects": [{ "type": "pills", "op": "add", "min": 1, "max": 3 }] }, "onFail": { "log": "略有所得，无大碍。", "effects": [{ "type": "pills", "op": "add", "min": 0, "max": 1 }] } } } },
-        { "chapter": 3, "title": "魔缘", "text": "魔修留有一丝魔缘，高收益但更危险。", "final": true, "choices": { "A": { "text": "取魔缘", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你取魔缘，传承点与丹药大增。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 20 }] }, "onFail": { "log": "魔缘反噬，你仍得部分造化。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] } }, "B": { "text": "毁魔缘", "successRateBase": 0.85, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你毁魔缘，道心更稳，得传承点。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "魔缘消散，无碍。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] } } }, "guaranteedReward": { "type": "pills", "count": 3 } }
+        { "chapter": 1, "title": "窥伺", "text": "你察觉有人暗中窥伺，似为魔修。反追踪可摸魔巢，绕开窥伺则无所得但多半安然。", "choices": { "A": { "text": "反追踪", "successRateBase": 0.5, "successRateDangerFactor": -0.08, "onSuccess": { "log": "你摸到魔修老巢；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "魔修反扑，你带伤而退，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -12, "max": -5 }] } }, "B": { "text": "绕开窥伺", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开窥伺之人，未涉魔修，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开窥伺，不想魔修突然出手，你被魔气波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } } } },
+        { "chapter": 2, "title": "魔巢", "text": "魔修巢穴中藏有丹药与传承点。强夺可得造化，绕开魔巢则无所得但多半安然。", "choices": { "A": { "text": "强夺", "successRateBase": 0.48, "successRateDangerFactor": -0.07, "onSuccess": { "log": "你强夺丹药与传承点；丹药入手。", "effects": [{ "type": "pills", "op": "add", "min": 2, "max": 4 }] }, "onFail": { "log": "魔修围攻，你重伤而退，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -14, "max": -6 }] } }, "B": { "text": "绕开魔巢", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开魔巢，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开魔巢，不想魔修突然现身，你被魔气波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -8, "max": -3 }] } } } },
+        { "chapter": 3, "title": "魔缘", "text": "魔修留有一丝魔缘，高收益但更危险。取魔缘可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取魔缘", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你取魔缘，传承点与丹药大增；造化加身。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 20 }] }, "onFail": { "log": "魔缘反噬，你仍得部分造化。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] } }, "B": { "text": "绕开魔缘", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开魔缘未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开魔缘，不想魔缘骤然暴动，你被魔气波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } } }, "guaranteedReward": { "type": "pills", "count": 3 } }
       ]
     },
     {
@@ -306,9 +306,9 @@
       "name": "药王遗方",
       "desc": "药王遗方现世，终章可得新配方与图鉴条目。",
       "chapters": [
-        { "chapter": 1, "title": "遗方", "text": "古洞中得一页药王遗方，墨迹犹存。", "choices": { "A": { "text": "参悟遗方", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你参悟遗方，丹道精进。", "effects": [{ "type": "fragment", "op": "add", "id": "spirit_pill_recipe", "min": 1, "max": 1 }] }, "onFail": { "log": "遗方晦涩，略有所得。", "effects": [] } }, "B": { "text": "拓印再悟", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你拓印遗方，稳步参悟。", "effects": [{ "type": "fragment", "op": "add", "id": "spirit_pill_recipe", "min": 1, "max": 1 }] }, "onFail": { "log": "拓印有缺，仍可参悟。", "effects": [] } } } },
-        { "chapter": 2, "title": "丹方", "text": "遗方指向一剂古丹方，需集齐残页。", "choices": { "A": { "text": "寻残页", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你寻得残页，丹方渐全。", "effects": [{ "type": "fragment", "op": "add", "id": "foundation_pill_recipe", "min": 1, "max": 1 }] }, "onFail": { "log": "残页难寻，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] } }, "B": { "text": "先炼已有", "successRateBase": 0.8, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你先炼已有丹方，心得渐增。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 3, "title": "药王丹方", "text": "药王丹方已全，可解锁新配方。", "final": true, "choices": { "A": { "text": "解锁配方", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "药王丹方入手，图鉴新添一笔。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "配方有缺，仍可炼制。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] } }, "B": { "text": "恭敬受方", "successRateBase": 0.9, "successRateDangerFactor": -0.01, "onSuccess": { "log": "你恭敬受方，丹道大进。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 18 }] }, "onFail": { "log": "配方归你，心满意足。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] } } }, "guaranteedReward": { "type": "recipe", "recipeId": "spirit_pill_recipe" } }
+        { "chapter": 1, "title": "遗方", "text": "古洞中得一页药王遗方，墨迹犹存。参悟遗方可得残页，绕开遗方则无所得但多半安然。", "choices": { "A": { "text": "参悟遗方", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你参悟遗方，丹道精进；丹方残页入手。", "effects": [{ "type": "fragment", "op": "add", "id": "spirit_pill_recipe", "min": 1, "max": 1 }] }, "onFail": { "log": "遗方晦涩，略有所得。", "effects": [] } }, "B": { "text": "绕开遗方", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开药王遗方，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开遗方，不想古洞突然塌方，你被乱石波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 2, "title": "丹方", "text": "遗方指向一剂古丹方，需集齐残页。寻残页可得造化，绕开丹方则无所得但多半安然。", "choices": { "A": { "text": "寻残页", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你寻得残页，丹方渐全；残页入手。", "effects": [{ "type": "fragment", "op": "add", "id": "foundation_pill_recipe", "min": 1, "max": 1 }] }, "onFail": { "log": "残页难寻，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] } }, "B": { "text": "绕开丹方", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开丹方线索，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开丹方所在，不想禁制突然触发，你被灵力波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 3, "title": "药王丹方", "text": "药王丹方已全，可解锁新配方。解锁可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "解锁配方", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "药王丹方入手，图鉴新添一笔；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "配方有缺，仍可炼制。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] } }, "B": { "text": "绕开配方", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开药王配方未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开配方，不想配方灵锁突然反震，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "recipe", "recipeId": "spirit_pill_recipe" } }
       ]
     },
     {
@@ -316,9 +316,9 @@
       "name": "天象异变",
       "desc": "天象异变，今日buff强化，终章可得坊市折扣或反buff免疫。",
       "chapters": [
-        { "chapter": 1, "title": "异象", "text": "今日天象异变，灵气波动异常。", "choices": { "A": { "text": "观天象", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你观得天象，心有感悟。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "天象晦涩，略有所得。", "effects": [] } }, "B": { "text": "顺天而行", "successRateBase": 0.8, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你顺天而行，气运加身。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] }, "onFail": { "log": "略费周折，无大碍。", "effects": [] } } } },
-        { "chapter": 2, "title": "天赐", "text": "天象赐福，坊市或将打折。", "choices": { "A": { "text": "求折扣", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "天赐折扣，本局坊市可享惠。", "effects": [] }, "onFail": { "log": "天赐未至，略憾。", "effects": [] } }, "B": { "text": "顺其自然", "successRateBase": 0.85, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你顺其自然，心有所得。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "无大碍。", "effects": [] } } } },
-        { "chapter": 3, "title": "终赐", "text": "天象终赐：本局坊市折扣一成。", "final": true, "choices": { "A": { "text": "受赐", "successRateBase": 0.88, "successRateDangerFactor": -0.01, "onSuccess": { "log": "你受天赐，本局坊市九折。", "effects": [] }, "onFail": { "log": "赐福有缺，仍可一用。", "effects": [] } }, "B": { "text": "恭敬受赐", "successRateBase": 0.95, "successRateDangerFactor": 0, "onSuccess": { "log": "天赐加身，坊市惠及本局。", "effects": [] }, "onFail": { "log": "赐福归你，心满意足。", "effects": [] } } }, "guaranteedReward": { "type": "shop_discount", "percent": 10 } }
+        { "chapter": 1, "title": "异象", "text": "今日天象异变，灵气波动异常。观天象可得感悟，绕开异象则无所得但多半安然。", "choices": { "A": { "text": "观天象", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你观得天象，心有感悟；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "天象晦涩，略有所得。", "effects": [] } }, "B": { "text": "绕开异象", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开天象异变，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开异象，不想天象骤然震荡，你被灵气波动波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 2, "title": "天赐", "text": "天象赐福，坊市或将打折。求折扣可得惠，绕开天赐则无所得但多半安然。", "choices": { "A": { "text": "求折扣", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "天赐折扣，本局坊市可享惠。", "effects": [] }, "onFail": { "log": "天赐未至，略憾。", "effects": [] } }, "B": { "text": "绕开天赐", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开天赐，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开天赐，不想天象骤然反噬，你被灵气波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 3, "title": "终赐", "text": "天象终赐：本局坊市折扣一成。受赐可得惠，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "受赐", "successRateBase": 0.88, "successRateDangerFactor": -0.01, "onSuccess": { "log": "你受天赐，本局坊市九折。", "effects": [] }, "onFail": { "log": "赐福有缺，仍可一用。", "effects": [] } }, "B": { "text": "绕开终赐", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开终赐未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开终赐，不想天赐骤然反震，你被灵力波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } }, "guaranteedReward": { "type": "shop_discount", "percent": 10 } }
       ]
     },
     {
@@ -326,11 +326,11 @@
       "name": "断崖奇果",
       "desc": "断崖奇果，两条不同大奖，玩家build分流。",
       "chapters": [
-        { "chapter": 1, "title": "断崖", "text": "断崖边生一株奇果，灵气逼人。", "choices": { "A": { "text": "攀崖取果", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你攀崖取果，险中得宝。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 3 }] }, "onFail": { "log": "崖险失手，你带伤而退。", "effects": [{ "type": "hp", "op": "add", "min": -8, "max": -3 }] } }, "B": { "text": "绕路取果", "successRateBase": 0.75, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你绕路取果，稳妥得宝。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 2 }] }, "onFail": { "log": "略费周折，仍得少许。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 1 }] } } } },
-        { "chapter": 2, "title": "奇果", "text": "奇果有两枚，一增修为一增传承。", "choices": { "A": { "text": "取修为果", "successRateBase": 0.62, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你取修为果，经验大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "果有瑕疵，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "取传承果", "successRateBase": 0.7, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你取传承果，传承点加身。", "effects": [] }, "onFail": { "log": "果有缺，略有所得。", "effects": [] } } } },
-        { "chapter": 3, "title": "分流", "text": "你择一而食：修为路或传承路。", "choices": { "A": { "text": "修为路", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你食修为果，修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] }, "onFail": { "log": "炼化有阻，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] } }, "B": { "text": "传承路", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你食传承果，传承点大增。", "effects": [] }, "onFail": { "log": "果效有缺，仍得传承点。", "effects": [] } } } },
-        { "chapter": 4, "title": "第二果", "text": "崖上还有第二枚奇果，你可再择。", "choices": { "A": { "text": "取第二枚修为果", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你再取修为果，修为更进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "崖险难取，略有所得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "取第二枚传承果", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你再取传承果，传承点更丰。", "effects": [] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 5, "title": "终果", "text": "两路终果：修为路得经验，传承路得称号。", "final": true, "choices": { "A": { "text": "修为终果", "successRateBase": 0.72, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你食修为终果，经验大涨。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 20 }] }, "onFail": { "log": "炼化有阻，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] } }, "B": { "text": "传承终果", "successRateBase": 0.8, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你食传承终果，得称号「断崖客」。", "effects": [] }, "onFail": { "log": "称号加身，心满意足。", "effects": [] } } }, "guaranteedReward": { "type": "title", "id": "cliff_guest", "name": "断崖客" } }
+        { "chapter": 1, "title": "断崖", "text": "断崖边生一株奇果，灵气逼人。攀崖取果可得灵草，绕开断崖则无所得但多半安然。", "choices": { "A": { "text": "攀崖取果", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你攀崖取果，险中得宝；灵草入手。", "effects": [{ "type": "material", "op": "add", "id": "spirit_herb", "min": 1, "max": 3 }] }, "onFail": { "log": "崖险失手，你带伤而退，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -8, "max": -3 }] } }, "B": { "text": "绕开断崖", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开断崖，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开断崖，不想崖边突然崩塌，你被乱石波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } } },
+        { "chapter": 2, "title": "奇果", "text": "奇果有两枚，一增修为一增传承。取修为果可得造化，绕开奇果则无所得但多半安然。", "choices": { "A": { "text": "取修为果", "successRateBase": 0.62, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你取修为果，经验大进；修为入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "果有瑕疵，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "绕开奇果", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开奇果，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开奇果，不想奇果骤然灵爆，你被灵气波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 3, "title": "分流", "text": "你择一而食：修为路或传承路。择路可得造化，绕开分流则无所得但多半安然。", "choices": { "A": { "text": "修为路", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你食修为果，修为大进；造化加身。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] }, "onFail": { "log": "炼化有阻，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] } }, "B": { "text": "绕开分流", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开分流未敢擅择，安然退开。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开分流，不想果力骤然反噬，你被灵气波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 4, "title": "第二果", "text": "崖上还有第二枚奇果，你可再择。取第二果可得造化，绕开则无所得但多半安然。", "choices": { "A": { "text": "取第二枚修为果", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你再取修为果，修为更进；造化加身。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "崖险难取，略有所得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "绕开第二果", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开第二枚奇果，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开第二果，不想崖边突然松动，你被波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 5, "title": "终果", "text": "两路终果：修为路得经验，传承路得称号。取终果可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "修为终果", "successRateBase": 0.72, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你食修为终果，经验大涨；造化加身。", "effects": [{ "type": "exp", "op": "add", "min": 10, "max": 20 }] }, "onFail": { "log": "炼化有阻，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] } }, "B": { "text": "绕开终果", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开终果未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开终果，不想终果骤然灵爆，你被灵气波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "title", "id": "cliff_guest", "name": "断崖客" } }
       ]
     },
     {
@@ -338,9 +338,9 @@
       "name": "渡劫前夜",
       "desc": "天劫前夜得奇缘，终章可获天劫伤害减免或献祭选项强化。",
       "chapters": [
-        { "chapter": 1, "title": "前夜", "text": "天劫将至，你于前夜得一缕奇缘。", "choices": { "A": { "text": "纳缘", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你纳奇缘，心神更稳。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "奇缘难纳，略有所得。", "effects": [] } }, "B": { "text": "稳守再纳", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你稳守心神，纳奇缘入体。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "护盾", "text": "奇缘化为一层护盾，可减天劫伤害。", "choices": { "A": { "text": "凝盾", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你凝成护盾，天劫可期。", "effects": [] }, "onFail": { "log": "护盾有瑕，仍可一用。", "effects": [] } }, "B": { "text": "稳凝护盾", "successRateBase": 0.85, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你稳凝护盾，天劫伤害可减。", "effects": [] }, "onFail": { "log": "护盾归你，心满意足。", "effects": [] } } } },
-        { "chapter": 3, "title": "终缘", "text": "天劫前夜终缘：本局天劫伤害减免一成五。", "final": true, "choices": { "A": { "text": "受终缘", "successRateBase": 0.78, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你受终缘，天劫伤害减一成五。", "effects": [] }, "onFail": { "log": "终缘有缺，仍可一用。", "effects": [] } }, "B": { "text": "恭敬受终缘", "successRateBase": 0.92, "successRateDangerFactor": 0, "onSuccess": { "log": "终缘加身，天劫可渡。", "effects": [] }, "onFail": { "log": "终缘归你，心满意足。", "effects": [] } } }, "guaranteedReward": { "type": "tribulation_bonus", "dmgReductionPercent": 15 } }
+        { "chapter": 1, "title": "前夜", "text": "天劫将至，你于前夜得一缕奇缘。纳缘可得造化，绕开奇缘则无所得但多半安然。", "choices": { "A": { "text": "纳缘", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你纳奇缘，心神更稳；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "奇缘难纳，略有所得。", "effects": [] } }, "B": { "text": "绕开奇缘", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开奇缘，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开奇缘，不想奇缘骤然反噬，你被灵力波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 2, "title": "护盾", "text": "奇缘化为一层护盾，可减天劫伤害。凝盾可得护身，绕开护盾则无所得但多半安然。", "choices": { "A": { "text": "凝盾", "successRateBase": 0.65, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你凝成护盾，天劫可期。", "effects": [] }, "onFail": { "log": "护盾有瑕，仍可一用。", "effects": [] } }, "B": { "text": "绕开护盾", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开护盾，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开护盾，不想护盾骤然反震，你被灵力波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -3, "max": -1 }] } } } },
+        { "chapter": 3, "title": "终缘", "text": "天劫前夜终缘：本局天劫伤害减免一成五。受终缘可得护身，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "受终缘", "successRateBase": 0.78, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你受终缘，天劫伤害减一成五。", "effects": [] }, "onFail": { "log": "终缘有缺，仍可一用。", "effects": [] } }, "B": { "text": "绕开终缘", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开终缘未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开终缘，不想终缘骤然反震，你被灵力波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } }, "guaranteedReward": { "type": "tribulation_bonus", "dmgReductionPercent": 15 } }
       ]
     },
     {
@@ -349,8 +349,8 @@
       "desc": "雷泽深处有灵髓，终章可得雷泽灵髓。",
       "unlock": { "minDanger": 25, "minTribulationPassed": 0 },
       "chapters": [
-        { "chapter": 1, "title": "雷泽入口", "text": "雷泽边缘雷光隐隐，传闻深处有灵髓凝成。", "choices": { "A": { "text": "深入雷泽", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你深入雷泽，寻得灵髓线索。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "雷光灼人，略退。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "沿泽边探", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你沿泽边探查，得见灵髓所在。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] }, "onFail": { "log": "略费周折。", "effects": [] } } } },
-        { "chapter": 2, "title": "灵髓潭", "text": "雷泽深处一潭灵髓，雷光淬炼，正是雷泽灵髓。", "final": true, "choices": { "A": { "text": "取灵髓", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "雷泽灵髓入手，天品可期。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "取到少许，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "稳取灵髓", "successRateBase": 0.85, "successRateDangerFactor": -0.02, "onSuccess": { "log": "你稳取雷泽灵髓，全身而退。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "灵髓归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "leize_marrow", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "雷泽入口", "text": "雷泽边缘雷光隐隐，传闻深处有灵髓凝成。深入雷泽可寻灵髓，绕开雷泽则无所得但多半安然。", "choices": { "A": { "text": "深入雷泽", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你深入雷泽，寻得灵髓线索；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "雷光灼人，略退，险地丛生。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "绕开雷泽", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开雷泽入口，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开雷泽，不想雷光突然窜出，你被雷气波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 2, "title": "灵髓潭", "text": "雷泽深处一潭灵髓，雷光淬炼，正是雷泽灵髓。取灵髓可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取灵髓", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "雷泽灵髓入手，天品可期；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 12 }] }, "onFail": { "log": "取到少许，仍有所得。", "effects": [{ "type": "exp", "op": "add", "min": 2, "max": 6 }] } }, "B": { "text": "绕开灵髓潭", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开灵髓潭未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开灵髓潭，不想雷光骤然暴涨，你被雷气波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "leize_marrow", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -359,8 +359,8 @@
       "desc": "天外陨星坠地，终章可得天外陨铁。",
       "unlock": { "minDanger": 28, "minTribulationPassed": 0 },
       "chapters": [
-        { "chapter": 1, "title": "陨坑", "text": "远处陨坑灵光未散，似有异铁。", "choices": { "A": { "text": "直入陨坑", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你入陨坑，见天外陨铁。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "辐射灼人，略退。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "等散再入", "successRateBase": 0.8, "successRateDangerFactor": -0.02, "onSuccess": { "log": "灵光散后你入坑取铁。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 7 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "天外陨铁", "text": "陨铁凝于坑心，正是炼器天材。", "final": true, "choices": { "A": { "text": "取陨铁", "successRateBase": 0.7, "successRateDangerFactor": -0.03, "onSuccess": { "log": "天外陨铁入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到部分。", "effects": [] } }, "B": { "text": "恭敬取铁", "successRateBase": 0.88, "successRateDangerFactor": -0.01, "onSuccess": { "log": "天外陨铁尽归你手。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "陨铁归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "meteor_iron", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "陨坑", "text": "远处陨坑灵光未散，似有异铁。直入陨坑可见陨铁，绕开陨坑则无所得但多半安然。", "choices": { "A": { "text": "直入陨坑", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你入陨坑，见天外陨铁；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "辐射灼人，略退，一无所获，反受灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "绕开陨坑", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开陨坑，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开陨坑，不想灵光突然窜出，你被辐射波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 2, "title": "天外陨铁", "text": "陨铁凝于坑心，正是炼器天材。取陨铁可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取陨铁", "successRateBase": 0.7, "successRateDangerFactor": -0.03, "onSuccess": { "log": "天外陨铁入手；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到部分。", "effects": [] } }, "B": { "text": "绕开陨铁", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开陨铁未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开陨铁，不想坑心灵光骤然反震，你被辐射波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "meteor_iron", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -369,8 +369,8 @@
       "desc": "古藤九转可化龙，终章可得九转玄藤。",
       "unlock": { "minDanger": 30, "minTribulationPassed": 0 },
       "chapters": [
-        { "chapter": 1, "title": "古藤", "text": "绝壁之上一株古藤，九节隐隐，似有化龙之象。", "choices": { "A": { "text": "攀藤取节", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你攀藤而上，得见九转玄藤。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "藤滑失手，略伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } }, "B": { "text": "以灵感藤", "successRateBase": 0.75, "successRateDangerFactor": -0.04, "onSuccess": { "log": "玄藤应灵，一节可摘。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "九转玄藤", "text": "九转玄藤入手，天品丹方可期。", "final": true, "choices": { "A": { "text": "摘玄藤", "successRateBase": 0.65, "successRateDangerFactor": -0.05, "onSuccess": { "log": "九转玄藤入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到一段。", "effects": [] } }, "B": { "text": "诚心摘藤", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "九转玄藤尽归。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] }, "onFail": { "log": "玄藤归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "nine_turn_vine", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "古藤", "text": "绝壁之上一株古藤，九节隐隐，似有化龙之象。攀藤取节可得造化，绕开古藤则无所得但多半安然。", "choices": { "A": { "text": "攀藤取节", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你攀藤而上，得见九转玄藤；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "藤滑失手，略伤，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } }, "B": { "text": "绕开古藤", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开绝壁古藤，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开古藤，不想藤枝突然抽动，你被藤劲波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 2, "title": "九转玄藤", "text": "九转玄藤入手，天品丹方可期。摘玄藤可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "摘玄藤", "successRateBase": 0.65, "successRateDangerFactor": -0.05, "onSuccess": { "log": "九转玄藤入手；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到一段。", "effects": [] } }, "B": { "text": "绕开玄藤", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开九转玄藤未敢擅摘，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开玄藤，不想玄藤骤然灵爆，你被藤劲波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "nine_turn_vine", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -379,8 +379,8 @@
       "desc": "古炉残卷指炉心，终章可得炉心碎玉。",
       "unlock": { "minDanger": 32, "minTribulationPassed": 0 },
       "chapters": [
-        { "chapter": 1, "title": "残卷", "text": "丹房废墟中得一页残卷，载炉心碎玉所在。", "choices": { "A": { "text": "按卷寻炉", "successRateBase": 0.62, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你寻到古炉遗址。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "遗址难寻，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "先参残卷", "successRateBase": 0.8, "successRateDangerFactor": -0.03, "onSuccess": { "log": "参透残卷，炉心位置了然。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "炉心", "text": "古炉炉心处凝有一枚碎玉，正是炉心碎玉。", "final": true, "choices": { "A": { "text": "取碎玉", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "炉心碎玉入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到碎玉。", "effects": [] } }, "B": { "text": "恭敬取玉", "successRateBase": 0.86, "successRateDangerFactor": -0.02, "onSuccess": { "log": "炉心碎玉尽归。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "碎玉归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "furnace_jade", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "残卷", "text": "丹房废墟中得一页残卷，载炉心碎玉所在。按卷寻炉可得线索，绕开残卷则无所得但多半安然。", "choices": { "A": { "text": "按卷寻炉", "successRateBase": 0.62, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你寻到古炉遗址；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "遗址难寻，略费周折。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 4 }] } }, "B": { "text": "绕开残卷", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开残卷，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开残卷，不想废墟突然塌方，你被乱石波及，受到轻伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 2, "title": "炉心", "text": "古炉炉心处凝有一枚碎玉，正是炉心碎玉。取碎玉可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取碎玉", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "炉心碎玉入手；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到碎玉。", "effects": [] } }, "B": { "text": "绕开炉心", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开炉心未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开炉心，不想炉心余火突然窜出，你被灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "furnace_jade", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -389,8 +389,8 @@
       "desc": "天命碑下藏命纹，终章可得命纹石。",
       "unlock": { "minDanger": 35, "minTribulationPassed": 0 },
       "chapters": [
-        { "chapter": 1, "title": "碑林", "text": "荒原碑林中有天命碑，碑影下似有命纹石。", "choices": { "A": { "text": "闯碑林", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你至天命碑下。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "碑阵反噬，略伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "辨阵再入", "successRateBase": 0.76, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你辨阵而入，得见命纹石。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "命纹石", "text": "天命碑影中凝成命纹石，天品丹材。", "final": true, "choices": { "A": { "text": "取命纹石", "successRateBase": 0.66, "successRateDangerFactor": -0.05, "onSuccess": { "log": "命纹石入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到一枚。", "effects": [] } }, "B": { "text": "诚心取石", "successRateBase": 0.84, "successRateDangerFactor": -0.02, "onSuccess": { "log": "命纹石尽归。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 15 }] }, "onFail": { "log": "命纹石归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "fate_stone", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "碑林", "text": "荒原碑林中有天命碑，碑影下似有命纹石。闯碑林可至碑下，绕开碑林则无所得但多半安然。", "choices": { "A": { "text": "闯碑林", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你至天命碑下；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "碑阵反噬，略伤，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "绕开碑林", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开碑林，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开碑林，不想碑阵突然触发，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } } },
+        { "chapter": 2, "title": "命纹石", "text": "天命碑影中凝成命纹石，天品丹材。取命纹石可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取命纹石", "successRateBase": 0.66, "successRateDangerFactor": -0.05, "onSuccess": { "log": "命纹石入手；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到一枚。", "effects": [] } }, "B": { "text": "绕开命纹石", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开命纹石未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开命纹石，不想碑影骤然反震，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "fate_stone", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -399,8 +399,8 @@
       "desc": "紫府遗藏现世，终章可得紫府灵砂。",
       "unlock": { "minDanger": 38, "minTribulationPassed": 0 },
       "chapters": [
-        { "chapter": 1, "title": "遗藏入口", "text": "紫气东来处现遗藏入口，内蕴紫府灵砂。", "choices": { "A": { "text": "入遗藏", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你入紫府遗藏。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "禁制所阻，略退。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] } }, "B": { "text": "破禁而入", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你破禁入内，得见紫府灵砂。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "紫府灵砂", "text": "遗藏深处紫府灵砂成堆，天品丹材。", "final": true, "choices": { "A": { "text": "取灵砂", "successRateBase": 0.7, "successRateDangerFactor": -0.04, "onSuccess": { "log": "紫府灵砂入手。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "取到一份。", "effects": [] } }, "B": { "text": "尽收灵砂", "successRateBase": 0.85, "successRateDangerFactor": -0.02, "onSuccess": { "log": "紫府灵砂尽归。", "effects": [{ "type": "exp", "op": "add", "min": 8, "max": 16 }] }, "onFail": { "log": "灵砂归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "purple_sand", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "遗藏入口", "text": "紫气东来处现遗藏入口，内蕴紫府灵砂。入遗藏可得造化，绕开遗藏则无所得但多半安然。", "choices": { "A": { "text": "入遗藏", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你入紫府遗藏；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "禁制所阻，略退，险地丛生。", "effects": [{ "type": "danger", "op": "add", "min": 2, "max": 5 }] } }, "B": { "text": "绕开遗藏", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开遗藏入口，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开遗藏，不想紫气突然反噬，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } } },
+        { "chapter": 2, "title": "紫府灵砂", "text": "遗藏深处紫府灵砂成堆，天品丹材。取灵砂可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取灵砂", "successRateBase": 0.7, "successRateDangerFactor": -0.04, "onSuccess": { "log": "紫府灵砂入手；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 14 }] }, "onFail": { "log": "取到一份。", "effects": [] } }, "B": { "text": "绕开灵砂", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开紫府灵砂未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开灵砂，不想灵砂骤然灵爆，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "purple_sand", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -409,8 +409,8 @@
       "desc": "雷泽异闻再寻髓，终章可得雷泽灵髓。",
       "unlock": { "minDanger": 45, "minTribulationPassed": 1 },
       "chapters": [
-        { "chapter": 1, "title": "异闻", "text": "听闻雷泽深处另有灵髓凝处。", "choices": { "A": { "text": "再探雷泽", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你再入雷泽，寻得第二处灵髓。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "雷泽凶险，略退。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "稳扎稳打", "successRateBase": 0.75, "successRateDangerFactor": -0.04, "onSuccess": { "log": "你稳入雷泽，得灵髓。", "effects": [{ "type": "exp", "op": "add", "min": 3, "max": 8 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "第二髓", "text": "雷泽灵髓再入手。", "final": true, "choices": { "A": { "text": "取灵髓", "successRateBase": 0.65, "successRateDangerFactor": -0.05, "onSuccess": { "log": "雷泽灵髓再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "稳取", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "灵髓归你。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "leize_marrow", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "异闻", "text": "听闻雷泽深处另有灵髓凝处。再探雷泽可得灵髓，绕开雷泽则无所得但多半安然。", "choices": { "A": { "text": "再探雷泽", "successRateBase": 0.55, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你再入雷泽，寻得第二处灵髓；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "雷泽凶险，略退，一无所获，反受灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "绕开雷泽", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开雷泽异闻，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开雷泽，不想雷光突然窜出，你被雷气波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 2, "title": "第二髓", "text": "雷泽灵髓再入手。取灵髓可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取灵髓", "successRateBase": 0.65, "successRateDangerFactor": -0.05, "onSuccess": { "log": "雷泽灵髓再得；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "绕开灵髓", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开灵髓未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开灵髓，不想雷光骤然暴涨，你被雷气波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "leize_marrow", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -419,8 +419,8 @@
       "desc": "陨星余烬中再寻铁，终章可得天外陨铁。",
       "unlock": { "minDanger": 48, "minTribulationPassed": 1 },
       "chapters": [
-        { "chapter": 1, "title": "余烬", "text": "另一处陨坑余烬未冷，或还有陨铁。", "choices": { "A": { "text": "入余烬", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你于余烬中得陨铁。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "灼伤略退。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } }, "B": { "text": "待冷再取", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "冷后取到天外陨铁。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "再得陨铁", "text": "天外陨铁再入手。", "final": true, "choices": { "A": { "text": "取铁", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "天外陨铁再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "稳取", "successRateBase": 0.86, "successRateDangerFactor": -0.02, "onSuccess": { "log": "陨铁归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "meteor_iron", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "余烬", "text": "另一处陨坑余烬未冷，或还有陨铁。入余烬可得陨铁，绕开余烬则无所得但多半安然。", "choices": { "A": { "text": "入余烬", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你于余烬中得陨铁；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "灼伤略退，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } }, "B": { "text": "绕开余烬", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开余烬，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开余烬，不想余烬突然复燃，你被灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 2, "title": "再得陨铁", "text": "天外陨铁再入手。取铁可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取铁", "successRateBase": 0.68, "successRateDangerFactor": -0.04, "onSuccess": { "log": "天外陨铁再得；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "绕开陨铁", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开陨铁未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开陨铁，不想余烬骤然反震，你被辐射波及，受到灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "meteor_iron", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -429,8 +429,8 @@
       "desc": "绝壁另有玄藤一株，终章可得九转玄藤。",
       "unlock": { "minDanger": 50, "minTribulationPassed": 2 },
       "chapters": [
-        { "chapter": 1, "title": "第二株", "text": "另一绝壁上有九转玄藤第二株。", "choices": { "A": { "text": "攀取", "successRateBase": 0.52, "successRateDangerFactor": -0.07, "onSuccess": { "log": "你攀至玄藤处。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "险坠，略伤。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "稳攀", "successRateBase": 0.74, "successRateDangerFactor": -0.04, "onSuccess": { "log": "九转玄藤再得。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "再得玄藤", "text": "九转玄藤再入手。", "final": true, "choices": { "A": { "text": "摘藤", "successRateBase": 0.64, "successRateDangerFactor": -0.05, "onSuccess": { "log": "九转玄藤再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "诚摘", "successRateBase": 0.83, "successRateDangerFactor": -0.02, "onSuccess": { "log": "玄藤归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "nine_turn_vine", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "第二株", "text": "另一绝壁上有九转玄藤第二株。攀取可得造化，绕开绝壁则无所得但多半安然。", "choices": { "A": { "text": "攀取", "successRateBase": 0.52, "successRateDangerFactor": -0.07, "onSuccess": { "log": "你攀至玄藤处；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 10 }] }, "onFail": { "log": "险坠，略伤，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -6, "max": -2 }] } }, "B": { "text": "绕开绝壁", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开第二株玄藤，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开绝壁，不想藤枝突然抽动，你被藤劲波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } } },
+        { "chapter": 2, "title": "再得玄藤", "text": "九转玄藤再入手。摘藤可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "摘藤", "successRateBase": 0.64, "successRateDangerFactor": -0.05, "onSuccess": { "log": "九转玄藤再得；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "绕开玄藤", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开玄藤未敢擅摘，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开玄藤，不想玄藤骤然灵爆，你被藤劲波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "nine_turn_vine", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -439,8 +439,8 @@
       "desc": "另一古炉残迹中亦有炉心碎玉。",
       "unlock": { "minDanger": 52, "minTribulationPassed": 2 },
       "chapters": [
-        { "chapter": 1, "title": "残迹", "text": "丹脉残迹中再现炉心碎玉线索。", "choices": { "A": { "text": "探残迹", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你于残迹中得炉心碎玉。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "略退。", "effects": [] } }, "B": { "text": "稳探", "successRateBase": 0.78, "successRateDangerFactor": -0.03, "onSuccess": { "log": "炉心碎玉再得。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "再得碎玉", "text": "炉心碎玉再入手。", "final": true, "choices": { "A": { "text": "取玉", "successRateBase": 0.66, "successRateDangerFactor": -0.04, "onSuccess": { "log": "炉心碎玉再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "稳取", "successRateBase": 0.84, "successRateDangerFactor": -0.02, "onSuccess": { "log": "碎玉归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "furnace_jade", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "残迹", "text": "丹脉残迹中再现炉心碎玉线索。探残迹可得造化，绕开残迹则无所得但多半安然。", "choices": { "A": { "text": "探残迹", "successRateBase": 0.6, "successRateDangerFactor": -0.05, "onSuccess": { "log": "你于残迹中得炉心碎玉线索；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 4, "max": 9 }] }, "onFail": { "log": "略退，一无所获。", "effects": [] } }, "B": { "text": "绕开残迹", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开残迹，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开残迹，不想残迹余火突然窜出，你被灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -4, "max": -1 }] } } } },
+        { "chapter": 2, "title": "再得碎玉", "text": "炉心碎玉再入手。取玉可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取玉", "successRateBase": 0.66, "successRateDangerFactor": -0.04, "onSuccess": { "log": "炉心碎玉再得；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 13 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "绕开碎玉", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开碎玉未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开碎玉，不想炉心余火骤然反震，你被灼伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "furnace_jade", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -449,8 +449,8 @@
       "desc": "碑林深处另有命纹石。",
       "unlock": { "minDanger": 55, "minTribulationPassed": 2 },
       "chapters": [
-        { "chapter": 1, "title": "深碑", "text": "碑林深处天命碑下还有命纹石。", "choices": { "A": { "text": "入深处", "successRateBase": 0.56, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你至深碑，得命纹石。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "碑阵伤，略退。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "破阵再入", "successRateBase": 0.76, "successRateDangerFactor": -0.04, "onSuccess": { "log": "命纹石再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "再得命纹石", "text": "命纹石再入手。", "final": true, "choices": { "A": { "text": "取石", "successRateBase": 0.65, "successRateDangerFactor": -0.05, "onSuccess": { "log": "命纹石再得。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "稳取", "successRateBase": 0.82, "successRateDangerFactor": -0.02, "onSuccess": { "log": "命纹石归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "fate_stone", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "深碑", "text": "碑林深处天命碑下还有命纹石。入深处可得命纹石，绕开深碑则无所得但多半安然。", "choices": { "A": { "text": "入深处", "successRateBase": 0.56, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你至深碑，得命纹石线索；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "碑阵伤，略退，一无所获。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } }, "B": { "text": "绕开深碑", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开碑林深处，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开深碑，不想碑阵突然触发，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } } },
+        { "chapter": 2, "title": "再得命纹石", "text": "命纹石再入手。取石可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取石", "successRateBase": 0.65, "successRateDangerFactor": -0.05, "onSuccess": { "log": "命纹石再得；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "绕开命纹石", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开命纹石未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开命纹石，不想碑影骤然反震，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "fate_stone", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     },
     {
@@ -459,8 +459,8 @@
       "desc": "紫府第二处遗藏，终章可得紫府灵砂。",
       "unlock": { "minDanger": 58, "minTribulationPassed": 3 },
       "chapters": [
-        { "chapter": 1, "title": "第二藏", "text": "紫气再现，第二处紫府遗藏。", "choices": { "A": { "text": "入藏", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你入第二遗藏。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "禁制阻，略退。", "effects": [] } }, "B": { "text": "破禁入", "successRateBase": 0.76, "successRateDangerFactor": -0.04, "onSuccess": { "log": "紫府灵砂再得。", "effects": [{ "type": "exp", "op": "add", "min": 6, "max": 12 }] }, "onFail": { "log": "略有所得。", "effects": [] } } } },
-        { "chapter": 2, "title": "再得灵砂", "text": "紫府灵砂再入手。", "final": true, "choices": { "A": { "text": "取砂", "successRateBase": 0.66, "successRateDangerFactor": -0.05, "onSuccess": { "log": "紫府灵砂再得。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "尽收", "successRateBase": 0.84, "successRateDangerFactor": -0.02, "onSuccess": { "log": "灵砂归你。", "effects": [] }, "onFail": { "log": "归你。", "effects": [] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "purple_sand", "materialCount": 1, "inheritanceFallback": 1 } }
+        { "chapter": 1, "title": "第二藏", "text": "紫气再现，第二处紫府遗藏。入藏可得造化，绕开遗藏则无所得但多半安然。", "choices": { "A": { "text": "入藏", "successRateBase": 0.58, "successRateDangerFactor": -0.06, "onSuccess": { "log": "你入第二遗藏；修为小进。", "effects": [{ "type": "exp", "op": "add", "min": 5, "max": 11 }] }, "onFail": { "log": "禁制阻，略退，一无所获。", "effects": [] } }, "B": { "text": "绕开遗藏", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开第二处遗藏，未涉险地，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开遗藏，不想紫气突然反噬，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } } },
+        { "chapter": 2, "title": "再得灵砂", "text": "紫府灵砂再入手。取砂可得造化，绕开则仅得保底馈赠。", "final": true, "choices": { "A": { "text": "取砂", "successRateBase": 0.66, "successRateDangerFactor": -0.05, "onSuccess": { "log": "紫府灵砂再得；修为大进。", "effects": [{ "type": "exp", "op": "add", "min": 7, "max": 14 }] }, "onFail": { "log": "取到。", "effects": [] } }, "B": { "text": "绕开灵砂", "successRateBase": 0.75, "successRateDangerFactor": -0.03, "onSuccess": { "log": "你绕开灵砂未敢擅取，仅受保底馈赠，安然离去。", "effects": [] }, "onFail": { "log": "你小心翼翼绕开灵砂，不想灵砂骤然灵爆，你被灵力波及，受到内伤。", "effects": [{ "type": "hp", "op": "add", "min": -5, "max": -2 }] } } }, "guaranteedReward": { "type": "epic_material_elixir", "materialId": "purple_sand", "materialCount": 1, "inheritanceFallback": 1 } }
       ]
     }
   ]

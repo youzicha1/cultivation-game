@@ -240,11 +240,11 @@ export function ExploreScreen({ state, dispatch }: ScreenProps) {
               <div className="explore-deepen-row">
                 <Button
                   variant="option-green"
-                  size="md"
+                  size="sm"
                   className="explore-deepen-btn"
                   onClick={() => dispatch({ type: 'EXPLORE_DEEPEN' })}
                 >
-                  <AtmosIcon name="explore" size={22} tone="jade" className="explore-deepen-icon" />
+                  <AtmosIcon name="explore" size={18} tone="jade" className="explore-deepen-icon" />
                   继续深入
                 </Button>
                 <span className="explore-time-hint">不消耗时辰，仅推进危险与事件</span>
