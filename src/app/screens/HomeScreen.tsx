@@ -3,7 +3,6 @@ import type { GameAction, GameState } from '../../engine'
 import type { ScreenId } from '../../engine'
 import { getDailyEnvironmentDef } from '../../engine'
 import { Button } from '../ui/Button'
-import { Chip } from '../ui/Chip'
 import { IconButtonCard } from '../ui/IconButtonCard'
 import type { AtmosIconName } from '../ui/IconArt'
 import { LootToast } from '../ui/LootToast'
@@ -37,6 +36,12 @@ export const HOME_ENTRIES: Array<{
 
 function getTodayDayKey(): string {
   return new Date().toISOString().slice(0, 10)
+}
+
+const STAGE_CN = ['一', '二', '三', '四', '五', '六', '七'] as const
+function formatRealmStage(realm: string, stageIndex?: number): string {
+  const i = Math.max(1, Math.min(7, stageIndex ?? 1)) - 1
+  return `${realm}${STAGE_CN[i] ?? '一'}阶`
 }
 
 export function HomeScreen({ state, dispatch }: ScreenProps) {
@@ -107,51 +112,47 @@ export function HomeScreen({ state, dispatch }: ScreenProps) {
               <span className="daily-sub-buff">+ {dailyDef.subBuff}</span>
               <span className="daily-debuff">− {dailyDef.debuff}</span>
             </div>
-            <div className="daily-mission">
-              <span className="daily-mission-label">{dailyDef.missionLabel}</span>
-              <div className="daily-mission-bar">
-                <div
-                  className="daily-mission-fill"
-                  style={{ width: `${mission ? Math.min(100, (mission.progress / mission.target) * 100) : 0}%` }}
-                />
+            {mission?.claimed ? (
+              <div className="daily-mission daily-mission--done">
+                <span className="daily-mission-label">每日任务已完成</span>
               </div>
-              <span className="daily-mission-progress">
-                {`${mission?.progress ?? 0}/${mission?.target ?? 0}`}
-              </span>
-            </div>
-            <div className="daily-actions">
-              {canClaim && (
-                <Button variant="primary" size="sm" onClick={() => dispatch({ type: 'DAILY_CLAIM' })}>
-                  领取今日赠礼
-                </Button>
-              )}
-              <Button
-                variant="option-purple"
-                size="sm"
-                onClick={() => dispatch({ type: 'GO', screen: dailyDef.suggestScreen })}
-              >
-                立即前往
-              </Button>
-            </div>
+            ) : (
+              <>
+                <div className="daily-mission">
+                  <span className="daily-mission-label">每日任务：{dailyDef.missionLabel}</span>
+                  <div className="daily-mission-bar">
+                    <div
+                      className="daily-mission-fill"
+                      style={{ width: `${mission ? Math.min(100, (mission.progress / mission.target) * 100) : 0}%` }}
+                    />
+                  </div>
+                  <span className="daily-mission-progress">
+                    {`${mission?.progress ?? 0}/${mission?.target ?? 0}`}
+                  </span>
+                </div>
+                <div className="daily-actions">
+                  {canClaim && (
+                    <Button variant="primary" size="sm" onClick={() => dispatch({ type: 'DAILY_CLAIM' })}>
+                      领取今日赠礼
+                    </Button>
+                  )}
+                  <Button
+                    variant="option-purple"
+                    size="sm"
+                    onClick={() => dispatch({ type: 'GO', screen: dailyDef.suggestScreen })}
+                  >
+                    立即前往
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        <div className="page-chips">
-          <Chip className="app-chip--gold">{state.player.realm}</Chip>
-          <Chip className="app-chip--hp">{`${state.player.hp}/${state.player.maxHp}`}</Chip>
-          <Chip className="app-chip--inherit">丹 {state.player.pills}</Chip>
-          <Chip className="app-chip--pity">周目 {state.run.turn}</Chip>
-          <Chip className="app-chip--gold">灵石 {state.player.spiritStones}</Chip>
-          <Chip className="app-chip--danger">危险值 {state.run.danger ?? 0}</Chip>
+        <div className="home-realm-run">
+          <span className="home-realm-run__item">境界：{formatRealmStage(state.player.realm, state.player.stageIndex)}</span>
+          <span className="home-realm-run__item">周目：当周目{state.meta?.runCount ?? 1}</span>
         </div>
-        {(state.run.danger ?? 0) > 0 && (
-          <div className="stat-bar explore-danger-bar">
-            <div
-              className="stat-bar-fill stat-bar-fill-danger"
-              style={{ width: `${Math.min(100, ((state.run.danger ?? 0) / 100) * 100)}%` }}
-            />
-          </div>
-        )}
 
         <div className="stat-group">
           <div className="stat-row">

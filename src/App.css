@@ -1654,6 +1654,19 @@
   max-width: 160px;
 }
 
+/* 主界面：只显示境界与周目（无小字 chips） */
+.home-realm-run {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  font-size: 13px;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+.home-realm-run__item {
+  white-space: nowrap;
+}
+
 /* 通用：页面 Chip 行 + 小按钮行（与突破页风格一致） */
 .page-chips {
   display: flex;

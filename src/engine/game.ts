@@ -356,6 +356,8 @@ export type GameState = {
     demonPathUnlocked?: boolean
     /** TICKET-28: 跨局成就累计（explore_actions、alchemy_success_lifetime 等） */
     statsLifetime?: Record<string, number>
+    /** 当前周目（第几次游戏）：传承续局 +1，清档重置；当周目 5 = 已失败 4 次、第 5 局 */
+    runCount?: number
   }
 }
 
@@ -451,6 +453,8 @@ export function createInitialGameState(seed: number, persistent?: PersistentKung
     pityLegendKungfa: 0,
     kungfaShards: 0,
     statsLifetime: {} as Record<string, number>,
+    /** 当前周目（第几次游戏）：传承续局 +1，清档 = 1 */
+    runCount: 1,
   }
   let meta = baseMeta
   if (persistent && (persistent.unlockedKungfu?.length > 0 || (typeof persistent.kungfaShards === 'number' && persistent.kungfaShards > 0))) {

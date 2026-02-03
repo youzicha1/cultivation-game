@@ -266,7 +266,7 @@
 - **诊断页**：`/diagnostics`（SettingsScreen 入口「诊断/自检」）；展示 APP_VERSION、CURRENT_SCHEMA、存档 meta、state 摘要；复制存档 JSON、粘贴导入（校验后写入）、清档
 
 ### 传承续局与清档（设定：不断修炼失败积累、最终通关）
-- **传承续局**（渡劫失败/开局/死亡后按钮）：保留传承点、传承升级、已获得功法、功法碎片、成就等**跨局进度**，仅重置**本局**（新种子、新 run、凡人 1 级）。实现：`useGameStore.newGame()` 从当前 state 取 `player.relics`、`meta`、`achievements`，调用 `createInitialGameState(seed, persistent)` 后合并 meta/achievements，不调用 `clearStorage()`。
+- **传承续局**（渡劫失败/开局/死亡后按钮）：保留传承点、传承升级、已获得功法、功法碎片、成就等**跨局进度**，仅重置**本局**（新种子、新 run、凡人 1 级）；**天劫从第 1 劫重新开始**（不继承上一局的劫数）。实现：`useGameStore.newGame()` 从当前 state 取 `player.relics`、`meta`、`achievements`，调用 `createInitialGameState(seed, persistent)` 得到新 run（含 `tribulationLevel: 0`），合并 meta/achievements 时显式清除 `meta.tribulationFinaleTriggered` 与 `meta.daily`，不调用 `clearStorage()`。
 - **清档**（设置/诊断页「清档（重置一切）」）：**重置到初始化状态**，清除主存档（SAVE_KEY）与跨局持久化（PERSISTENT_KUNGFU_KEY、PERSISTENT_ACHIEVEMENTS_KEY），并 setState 到全新开局（screen=start）。实现：`clearSave()` → `clearStorage()` + `setState(createInitialGameState(seed), screen: 'start')`。
 - **UI**：FinalResultScreen / DeathScreen / StartScreen 使用「传承续局」；SettingsScreen / DiagnosticsScreen 使用「清档（重置一切）」或「清档并回到开局」。
 

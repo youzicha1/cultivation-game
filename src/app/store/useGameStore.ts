@@ -37,7 +37,7 @@ export function useGameStore() {
     setState((prev) => reduceGame(prev, action, rngRef.current))
   }, [])
 
-  /** 传承续局：保留传承点/传承升级/功法/成就等，仅重置本局（新种子、新 run、凡人 1 级） */
+  /** 传承续局：保留传承点/传承升级/功法/成就等，仅重置本局（新种子、新 run、凡人 1 级）；天劫从第 1 劫重新开始 */
   const newGame = useCallback(() => {
     const seed = createSeed()
     rngRef.current = createSeededRng(seed)
@@ -47,9 +47,16 @@ export function useGameStore() {
         kungfaShards: prev.meta?.kungfaShards ?? 0,
       }
       let newState = createInitialGameState(seed, persistent)
+      const prevRunCount = typeof prev.meta?.runCount === 'number' && prev.meta.runCount >= 1 ? prev.meta.runCount : 1
       newState = {
         ...newState,
-        meta: { ...newState.meta, ...prev.meta },
+        meta: {
+          ...newState.meta,
+          ...prev.meta,
+          tribulationFinaleTriggered: undefined,
+          daily: undefined,
+          runCount: prevRunCount + 1,
+        },
         achievements: prev.achievements ?? newState.achievements,
       }
       return { ...newState, screen: 'home' }
@@ -61,7 +68,12 @@ export function useGameStore() {
     clearStorage()
     const seed = createSeed()
     rngRef.current = createSeededRng(seed)
-    setState({ ...createInitialGameState(seed), screen: 'start' })
+    const fresh = createInitialGameState(seed)
+    setState({
+      ...fresh,
+      meta: { ...fresh.meta, runCount: 1 },
+      screen: 'start',
+    })
   }, [])
 
   useEffect(() => {

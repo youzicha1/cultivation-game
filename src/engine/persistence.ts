@@ -360,6 +360,7 @@ function normalizeLoadedState(state: GameState): GameState {
     ...(loadedMeta.tribulationFinaleTriggered === true ? { tribulationFinaleTriggered: true } : {}),
     ...(loadedMeta.demonPathUnlocked === true ? { demonPathUnlocked: true } : {}),
     ...(loadedMeta.statsLifetime && typeof loadedMeta.statsLifetime === 'object' ? { statsLifetime: loadedMeta.statsLifetime } : {}),
+    runCount: typeof loadedMeta.runCount === 'number' && loadedMeta.runCount >= 1 ? loadedMeta.runCount : 1,
   }
 
   const loadedAchievements = (state as { achievements?: { claimed?: Record<string, true> } }).achievements
