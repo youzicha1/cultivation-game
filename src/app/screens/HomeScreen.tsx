@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { GameAction, GameState } from '../../engine'
 import type { ScreenId } from '../../engine'
-import { getDailyEnvironmentDef } from '../../engine'
+import { getDailyEnvironmentDef, getCurrentTribulationConfig, TRIBULATION_COUNT } from '../../engine'
 import { Button } from '../ui/Button'
 import { IconButtonCard } from '../ui/IconButtonCard'
 import type { AtmosIconName } from '../ui/IconArt'
@@ -104,6 +104,23 @@ export function HomeScreen({ state, dispatch }: ScreenProps) {
       )}
       <Panel title="主界面">
       <Stack gap={10}>
+        <div className="home-trib-progress">
+          <span className="home-trib-progress__label">天劫进度：</span>
+          <span className="home-trib-progress__value">
+            {(state.run.tribulationsCleared ?? state.run.tribulationLevel ?? 0)}/{TRIBULATION_COUNT}
+          </span>
+          {(() => {
+            const cfg = getCurrentTribulationConfig(state)
+            if (cfg) {
+              return (
+                <span className="home-trib-progress__name">
+                  · 当前劫：{cfg.name}
+                </span>
+              )
+            }
+            return null
+          })()}
+        </div>
         {dailyDef && daily && (
           <div className={`daily-card ${canClaim ? 'atm-card atm-card--glow' : ''}`}>
             <div className="daily-card-title">今日：{dailyDef.name}</div>

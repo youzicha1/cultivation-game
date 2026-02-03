@@ -158,6 +158,7 @@ export function startTribulation(state: GameState, rng: Rng): GameState {
   const run = {
     ...state.run,
     tribulation: trib,
+    tribulationIdx: currentLevel,
     finalTrial: undefined,
   }
   const log = [...(state.log ?? []), logEntry]

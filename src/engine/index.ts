@@ -92,6 +92,26 @@ export * from './chains'
 export * from './daily'
 export * from './loot'
 export * from './legacy'
+export * from './run_summary'
+export { calcLegacyPointsOnEnd } from './legacy/legacy_points'
+export type { EndingType } from './legacy/legacy_points'
+export {
+  getLegacyUnlocks,
+  getLegacyUnlock,
+  getLegacyState,
+  canBuyUnlock,
+  buyUnlock,
+  applyLegacyUnlocksToNewRun,
+} from './legacy/legacy_unlocks'
+export type { LegacyUnlockDef, UnlockEffect, MetaWithLegacy } from './legacy/legacy_unlocks'
+export {
+  getCurrentTribulationIdx,
+  getCurrentTribulationConfig,
+  getTribulationConfigByIdx,
+  getAllTribulationConfigs,
+  TRIBULATION_COUNT,
+} from './tribulation/progression'
+export type { TribulationConfig, TribulationTier, TribulationMods } from './tribulation/progression'
 export * from './pity'
 export * from './time'
 export {

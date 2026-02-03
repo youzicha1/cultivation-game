@@ -138,6 +138,9 @@ import {
 import { calcBreakthroughRateWithBreakdown, realmIndex } from './breakthrough/rates'
 import { applyExpGain, canEquipKungfu, canTakePill, recordPillUse, getTribulationGate } from './realm/gates'
 import { canUsePill, applyPillEffect, getPillDef } from './pills/pill_effects'
+import { calcLegacyPointsOnEnd } from './legacy/legacy_points'
+import { buildRunSummary } from './run_summary'
+import { buyUnlock, canBuyUnlock } from './legacy/legacy_unlocks'
 
 export type ScreenId =
   | 'start'
@@ -215,6 +218,14 @@ export type GameState = {
     pendingInsightEvent?: InsightEvent
     /** TICKET-27: 当前已渡过的天劫重数 0..12，渡劫成功后 +1，12 即通关 */
     tribulationLevel?: number
+    /** TICKET-40: 当前处于第几劫（1..12 战斗中，0 未进入） */
+    tribulationIdx?: number
+    /** TICKET-40: 本局已成功渡过次数 0..12 */
+    tribulationsCleared?: number
+    /** TICKET-40: 结局类型 victory / death / abandon */
+    ending?: 'victory' | 'death' | 'abandon'
+    /** TICKET-40: 本局总结（结局时写入） */
+    runSummary?: import('./run_summary').RunSummary
     /** TICKET-14: 天劫倒计时（剩余时辰） */
     timeLeft?: number
     /** TICKET-14: 本局总时辰 */
@@ -277,12 +288,16 @@ export type GameState = {
     streaks?: Record<string, number>
     /** TICKET-28: 本局成就 flag（技巧/挑战触发） */
     flags?: Record<string, true>
+    /** TICKET-40: 传承解锁购买后 Toast（展示后清除） */
+    legacyUnlockToast?: string
     /** TICKET-39: 通用丹方池保底计数 tag -> 连续未出 rare/legendary 次数 */
     pillPoolPityByTag?: Record<string, number>
     /** TICKET-38: 机制丹效果临时字段（由 applyPillEffect 写入，各系统消费） */
     temp?: {
       tribulationExtraLife?: number
       tribulationExtraAction?: number
+      /** TICKET-40: 传承解锁 — 进入天劫时初始护盾 */
+      tribulationStartShield?: number
       exploreFreeRetreat?: number
       exploreNoDamageCount?: number
       breakthroughNoCostOnFail?: boolean
@@ -358,6 +373,8 @@ export type GameState = {
     statsLifetime?: Record<string, number>
     /** 当前周目（第几次游戏）：传承续局 +1，清档重置；当周目 5 = 已失败 4 次、第 5 局 */
     runCount?: number
+    /** TICKET-40: 传承解锁集合（永久解锁 id -> true） */
+    legacyUnlocks?: Record<string, true>
   }
 }
 
@@ -412,6 +429,8 @@ export type GameAction =
   | { type: 'CLEAR_PILL_TOAST' }
   | { type: 'CLEAR_SHARD_EXCHANGE_TOAST' }
   | { type: 'KUNGFU_SHARD_EXCHANGE'; kungfuId: string; rarity: 'rare' | 'epic' | 'legendary' }
+  | { type: 'LEGACY_UNLOCK'; unlockId: string }
+  | { type: 'CLEAR_LEGACY_UNLOCK_TOAST' }
   | { type: 'DEBUG_SET_TIME_LEFT'; value: number }
   | {
       type: 'FINAL_TRIAL_CHOOSE'
@@ -484,6 +503,8 @@ export function createInitialGameState(seed: number, persistent?: PersistentKung
       chain: { completed: {} },
       cultivateCount: 0,
       tribulationLevel: 0,
+      tribulationIdx: 0,
+      tribulationsCleared: 0,
       timeLeft: timeMax0,
       timeMax: timeMax0,
       currentEvent: undefined,
@@ -2210,6 +2231,23 @@ export function reduceGame(
       const { shardExchangeJustClaimed: _, ...restRun } = baseRun
       return { ...state, run: { ...restRun, rngCalls } }
     }
+    case 'LEGACY_UNLOCK': {
+      const { unlockId } = action
+      if (!canBuyUnlock(state.meta, unlockId).can) {
+        return { ...state, run: { ...state.run, rngCalls } }
+      }
+      const nextMeta = buyUnlock(state.meta, unlockId)
+      if (!nextMeta) return { ...state, run: { ...state.run, rngCalls } }
+      return {
+        ...state,
+        meta: nextMeta,
+        run: { ...baseRun, rngCalls, legacyUnlockToast: '传承已刻入命魂！' },
+      }
+    }
+    case 'CLEAR_LEGACY_UNLOCK_TOAST': {
+      const { legacyUnlockToast: _, ...restRun } = baseRun
+      return { ...state, run: { ...restRun, rngCalls } }
+    }
     case 'TRIBULATION_ACTION': {
       const trib = baseRun.tribulation
       if (!trib) {
@@ -2239,14 +2277,28 @@ export function reduceGame(
 
       if (outcome === 'lose') {
         const currentLevel = trib.level
-        const failLegacy = 1 + Math.floor(currentLevel / 4)
+        const failStateForCalc = { ...nextState, run: { ...nextState.run, tribulation: trib, tribulationsCleared: (nextState.run.tribulationLevel ?? 0) } }
+        const failLegacy = calcLegacyPointsOnEnd(failStateForCalc, 'death')
         const rewards = getFinalRewards('dead')
+        const runSummary = buildRunSummary(failStateForCalc, 'death', {
+          failedAtTribulationIdx: currentLevel,
+          cause: ENDING_TITLES.dead,
+          endingId: 'dead',
+          legacyPointsEarned: failLegacy,
+        })
         const mod = getKungfuModifiers(state)
         const hasTribMod = (mod.tribulationDamageMult != null && mod.tribulationDamageMult !== 1) || (mod.tribulationSurgeRateAdd != null && mod.tribulationSurgeRateAdd !== 0)
         let st: GameState = addLog(
           {
             ...nextState,
             screen: 'final_result',
+            run: {
+              ...nextState.run,
+              tribulation: undefined,
+              tribulationIdx: 0,
+              ending: 'death',
+              runSummary,
+            },
             summary: {
               cause: ENDING_TITLES.dead,
               turns: state.run.turn,
@@ -2279,12 +2331,26 @@ export function reduceGame(
         const flagsWin: Record<string, true> = { ...flagsTrib, ...(hasTribMod ? { build_mod_tribulation: true } : {}) }
 
         if (isVictory) {
-          const victoryLegacy = 8
+          const victoryStateForCalc = { ...nextState, run: { ...nextState.run, tribulationsCleared: 12, tribulationLevel: 12 } }
+          const victoryLegacy = calcLegacyPointsOnEnd(victoryStateForCalc, 'victory')
+          const runSummary = buildRunSummary(victoryStateForCalc, 'victory', {
+            cause: ENDING_TITLES.ascend,
+            endingId: 'ascend',
+            legacyPointsEarned: victoryLegacy,
+          })
           let st: GameState = addLog(
             {
               ...nextState,
               screen: 'victory',
-              run: { ...nextState.run, tribulationLevel: 12 },
+              run: {
+                ...nextState.run,
+                tribulationLevel: 12,
+                tribulationIdx: 0,
+                tribulationsCleared: 12,
+                tribulation: undefined,
+                ending: 'victory',
+                runSummary,
+              },
               summary: {
                 cause: ENDING_TITLES.ascend,
                 turns: state.run.turn,
@@ -2317,6 +2383,9 @@ export function reduceGame(
             run: {
               ...nextState.run,
               tribulationLevel: newLevel,
+              tribulationIdx: 0,
+              tribulationsCleared: newLevel,
+              tribulation: undefined,
               timeLeft: nextSegmentTime,
               timeMax: nextSegmentTime,
             },
@@ -2416,7 +2485,17 @@ export function reduceGame(
         const isVictory = !isDead && newLevel >= 12
 
         if (isVictory) {
-          const victoryLegacy = 8
+          const victoryStateForCalc = {
+            ...state,
+            player: nextPlayer,
+            run: { ...baseRun, tribulationsCleared: 12, tribulationLevel: 12 },
+          }
+          const victoryLegacy = calcLegacyPointsOnEnd(victoryStateForCalc, 'victory')
+          const runSummary = buildRunSummary(victoryStateForCalc, 'victory', {
+            cause: ENDING_TITLES[endingId],
+            endingId: 'ascend',
+            legacyPointsEarned: victoryLegacy,
+          })
           let nextState: GameState = addLog(
             {
               ...state,
@@ -2425,7 +2504,11 @@ export function reduceGame(
               run: {
                 ...baseRun,
                 tribulationLevel: 12,
+                tribulationIdx: 0,
+                tribulationsCleared: 12,
                 finalTrial: { ...ft, step: 3, resolve: newResolve, choices: newChoices },
+                ending: 'victory',
+                runSummary,
               },
               summary: {
                 cause: ENDING_TITLES[endingId],
@@ -2453,8 +2536,33 @@ export function reduceGame(
         }
 
         if (isDead) {
-          const failLegacy = 1 + Math.floor(currentLevel / 4)
-          const totalLegacy = failLegacy
+          const failedAtIdx = currentLevel + 1
+          const failStateForCalc: GameState = {
+            ...state,
+            player: nextPlayer,
+            run: {
+              ...baseRun,
+              tribulationLevel: currentLevel,
+              tribulationsCleared: currentLevel,
+              tribulation: {
+                level: failedAtIdx,
+                totalTurns: 3,
+                turn: 0,
+                shield: 0,
+                debuffs: { mindChaos: 0, burn: 0, weak: 0 },
+                wrath: 0,
+                currentIntent: { id: '_', name: '_', rarity: 'common', baseDamageMin: 0, baseDamageMax: 0, telegraphText: '', counterHint: '', minTier: 0, baseWeight: 1 },
+                log: [],
+              } as TribulationState,
+            },
+          }
+          const failLegacy = calcLegacyPointsOnEnd(failStateForCalc, 'death')
+          const runSummary = buildRunSummary(failStateForCalc, 'death', {
+            failedAtTribulationIdx: failedAtIdx,
+            cause: ENDING_TITLES[endingId],
+            endingId,
+            legacyPointsEarned: failLegacy,
+          })
           let nextState: GameState = addLog(
             {
               ...state,
@@ -2462,6 +2570,9 @@ export function reduceGame(
               screen: 'final_result',
               run: {
                 ...baseRun,
+                tribulationIdx: 0,
+                ending: 'death',
+                runSummary,
                 finalTrial: { ...ft, step: 3, resolve: newResolve, choices: newChoices },
               },
               summary: {
@@ -2471,13 +2582,13 @@ export function reduceGame(
               },
               meta: {
                 ...state.meta,
-                legacyPoints: (state.meta?.legacyPoints ?? 0) + totalLegacy,
+                legacyPoints: (state.meta?.legacyPoints ?? 0) + failLegacy,
                 kungfaShards: (state.meta?.kungfaShards ?? 0) + rewards.shardsBonus,
                 tribulationFinaleTriggered: true,
                 ...(rewards.demonUnlock ? { demonPathUnlocked: true } : {}),
               },
             },
-            logMsg + ` 天劫结束：${ENDING_TITLES[endingId]} 传承点 +${totalLegacy}，碎片 +${rewards.shardsBonus}。`,
+            logMsg + ` 天劫结束：${ENDING_TITLES[endingId]} 传承点 +${failLegacy}，碎片 +${rewards.shardsBonus}。`,
           )
           nextState = mergeAchievementProgress(nextState, {
             statsLifetimeAdd: { tribulation_fail_lifetime: 1, games_completed: 1 },
@@ -2496,6 +2607,8 @@ export function reduceGame(
             run: {
               ...baseRun,
               tribulationLevel: newLevel,
+              tribulationIdx: 0,
+              tribulationsCleared: newLevel,
               finalTrial: undefined,
               timeLeft: nextSegmentTime,
               timeMax: nextSegmentTime,

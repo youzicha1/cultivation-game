@@ -163,6 +163,18 @@
 - **Victory 屏**：十二劫尽渡传承点 +8，摘要 + 再开一局；time 排除 screen=victory 触发收官
 - **工程**：tribulation/names.ts、rates.ts + 对应 test；game.run.tribulationLevel、ScreenId victory、FINAL_TRIAL_CHOOSE 三分支（victory / final_result / home）；persistence tribulationLevel；VictoryScreen、FinalTrialScreen 文案；ARCHITECTURE + ROADMAP
 
+## TICKET-40 完成项（主线通关：12 劫序列 + 胜利结局页 + 传承解锁 + 失败也成长）
+
+- **12 劫配置**：`src/content/tribulations.v1.json`（idx/name/tier/mods/rewardOnWin/rewardOnLose）；爽文名：霹雳初临劫 … 天游飞升劫；难度递增 damageMult 1.0→2.2、intentRarityBoost 递增
+- **引擎**：`tribulation/progression.ts`（getCurrentTribulationConfig、getTribulationConfigByIdx、getAllTribulationConfigs）；`legacy/legacy_points.ts`（calcLegacyPointsOnEnd：基础+里程碑+失败补偿+通关大奖）；`legacy/legacy_unlocks.ts`（getLegacyUnlocks、canBuyUnlock、buyUnlock、applyLegacyUnlocksToNewRun）；`run_summary.ts`（buildRunSummary）
+- **状态**：run.tribulationIdx、tribulationsCleared、ending、runSummary；meta.legacyUnlocks
+- **VictoryScreen**：【通关！】+ 最终劫名、称号/战绩/12 劫完成/天丹次数、传承点+解锁提示、【开新局（继承传承解锁）】/去传承
+- **FinalResultScreen**：你倒在第 X 劫、传承点结算、「下局更强」、传承续局/去传承
+- **HomeScreen**：天劫进度 X/12、当前劫名
+- **FinalTrialScreen**：第 X 劫：爽文名、难度徽章（普通/凶/绝/天）
+- **LegacyScreen**：传承解锁区块（可购买/已解锁、按 tier）、购买 toast「传承已刻入命魂！」
+- **测试**：tribulation/progression.test.ts、legacy/legacy_points.test.ts、legacy/legacy_unlocks.test.ts、run_summary.test.ts；game.test 更新 victory/失败传承点期望；npm test 全绿
+
 ## TICKET-28 完成项（成就系统 v2：72 条、8 组、进度/领取/校验）
 
 - **成就数量与分组**：72 条成就、8 组（探索/炼丹/突破/天劫/坊市/功法流派/收集/传承），每组 ≥6 条、含至少 1 条隐藏技巧；tier I~VI 递进

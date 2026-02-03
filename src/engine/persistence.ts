@@ -269,6 +269,10 @@ function normalizeLoadedState(state: GameState): GameState {
 
   const runState = state.run as {
     tribulationLevel?: number
+    tribulationIdx?: number
+    tribulationsCleared?: number
+    ending?: 'victory' | 'death' | 'abandon'
+    runSummary?: import('./run_summary').RunSummary
     timeLeft?: number
     timeMax?: number
     cultivateCount?: number
@@ -345,6 +349,10 @@ function normalizeLoadedState(state: GameState): GameState {
     ...(typeof runState.tribulationDmgReductionPercent === 'number' && runState.tribulationDmgReductionPercent >= 0 ? { tribulationDmgReductionPercent: runState.tribulationDmgReductionPercent } : {}),
     ...(typeof runState.earnedTitle === 'string' && runState.earnedTitle ? { earnedTitle: runState.earnedTitle } : {}),
     ...(runState.pendingInsightEvent && typeof runState.pendingInsightEvent === 'object' && 'title' in runState.pendingInsightEvent && 'choiceA' in runState.pendingInsightEvent ? { pendingInsightEvent: runState.pendingInsightEvent as InsightEvent } : {}),
+    ...(typeof runState.tribulationIdx === 'number' && runState.tribulationIdx >= 0 && runState.tribulationIdx <= 12 ? { tribulationIdx: runState.tribulationIdx } : {}),
+    ...(typeof runState.tribulationsCleared === 'number' && runState.tribulationsCleared >= 0 && runState.tribulationsCleared <= 12 ? { tribulationsCleared: runState.tribulationsCleared } : {}),
+    ...(runState.ending === 'victory' || runState.ending === 'death' || runState.ending === 'abandon' ? { ending: runState.ending } : {}),
+    ...(runState.runSummary && typeof runState.runSummary === 'object' && typeof runState.runSummary.ending === 'string' && typeof runState.runSummary.tribulationsCleared === 'number' ? { runSummary: runState.runSummary as import('./run_summary').RunSummary } : {}),
   }
 
   const loadedMeta: any = state.meta ?? {}
@@ -361,6 +369,7 @@ function normalizeLoadedState(state: GameState): GameState {
     ...(loadedMeta.demonPathUnlocked === true ? { demonPathUnlocked: true } : {}),
     ...(loadedMeta.statsLifetime && typeof loadedMeta.statsLifetime === 'object' ? { statsLifetime: loadedMeta.statsLifetime } : {}),
     runCount: typeof loadedMeta.runCount === 'number' && loadedMeta.runCount >= 1 ? loadedMeta.runCount : 1,
+    ...(loadedMeta.legacyUnlocks && typeof loadedMeta.legacyUnlocks === 'object' ? { legacyUnlocks: loadedMeta.legacyUnlocks } : {}),
   }
 
   const loadedAchievements = (state as { achievements?: { claimed?: Record<string, true> } }).achievements

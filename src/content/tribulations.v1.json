@@ -1,0 +1,16 @@
+{
+  "tribulations": [
+    { "idx": 1, "name": "霹雳初临劫", "tier": "普通", "mods": { "damageMult": 1.0, "intentRarityBoost": 0 }, "rewardOnWin": { "legacyPoints": 1 }, "rewardOnLose": { "legacyPoints": 1 } },
+    { "idx": 2, "name": "雷云锁心劫", "tier": "普通", "mods": { "damageMult": 1.05, "intentRarityBoost": 0 }, "rewardOnWin": { "legacyPoints": 1 }, "rewardOnLose": { "legacyPoints": 1 } },
+    { "idx": 3, "name": "三叠天雷劫", "tier": "普通", "mods": { "damageMult": 1.1, "intentRarityBoost": 0.05 }, "rewardOnWin": { "legacyPoints": 2 }, "rewardOnLose": { "legacyPoints": 2 } },
+    { "idx": 4, "name": "风火炼魂劫", "tier": "凶", "mods": { "damageMult": 1.18, "intentRarityBoost": 0.08 }, "rewardOnWin": { "legacyPoints": 2 }, "rewardOnLose": { "legacyPoints": 2 } },
+    { "idx": 5, "name": "玄冰噬脉劫", "tier": "凶", "mods": { "damageMult": 1.26, "intentRarityBoost": 0.1 }, "rewardOnWin": { "legacyPoints": 2 }, "rewardOnLose": { "legacyPoints": 2 } },
+    { "idx": 6, "name": "万钧裂岳劫", "tier": "凶", "mods": { "damageMult": 1.35, "intentRarityBoost": 0.12 }, "rewardOnWin": { "legacyPoints": 3 }, "rewardOnLose": { "legacyPoints": 3 } },
+    { "idx": 7, "name": "心魔问道劫", "tier": "绝", "mods": { "damageMult": 1.45, "intentRarityBoost": 0.15 }, "rewardOnWin": { "legacyPoints": 3 }, "rewardOnLose": { "legacyPoints": 3 } },
+    { "idx": 8, "name": "紫电穿霄劫", "tier": "绝", "mods": { "damageMult": 1.56, "intentRarityBoost": 0.18 }, "rewardOnWin": { "legacyPoints": 3 }, "rewardOnLose": { "legacyPoints": 3 } },
+    { "idx": 9, "name": "九霄神罚劫", "tier": "绝", "mods": { "damageMult": 1.68, "intentRarityBoost": 0.2 }, "rewardOnWin": { "legacyPoints": 4 }, "rewardOnLose": { "legacyPoints": 4 } },
+    { "idx": 10, "name": "乾坤逆命劫", "tier": "天", "mods": { "damageMult": 1.82, "intentRarityBoost": 0.24 }, "rewardOnWin": { "legacyPoints": 4 }, "rewardOnLose": { "legacyPoints": 4 } },
+    { "idx": 11, "name": "太虚灭界劫", "tier": "天", "mods": { "damageMult": 2.0, "intentRarityBoost": 0.28 }, "rewardOnWin": { "legacyPoints": 4 }, "rewardOnLose": { "legacyPoints": 4 } },
+    { "idx": 12, "name": "天游飞升劫", "tier": "天", "mods": { "damageMult": 2.2, "intentRarityBoost": 0.32 }, "rewardOnWin": { "legacyPoints": 20 }, "rewardOnLose": { "legacyPoints": 6 } }
+  ]
+}

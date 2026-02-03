@@ -20,23 +20,29 @@ export function FinalResultScreen({ state, dispatch, newGame }: ScreenProps) {
   const shardsTotal = meta.kungfaShards ?? 0
   const title = ENDING_TITLES[endingId]
   const subtitle = ENDING_SUBTITLES[endingId]
-  const baseLegacy = 1
-  const addedLegacy = baseLegacy + rewards.legacyBonus
+  const runSummary = state.run.runSummary
+  const failedAt = runSummary?.failedAtTribulationIdx
+  const legacyEarned = runSummary?.legacyPointsEarned ?? (1 + rewards.legacyBonus)
 
   return (
     <Panel title={title} subtitle={subtitle}>
       <Stack gap={14}>
         <div className="final-result-hero">
           <p className="final-result-cause">{state.summary?.cause ?? title}</p>
+          {failedAt != null && failedAt >= 1 && (
+            <p className="final-result-trib-progress">你倒在第 {failedAt} 劫</p>
+          )}
         </div>
         <div className="final-result-stats page-chips">
           <Chip className="app-chip--gold">{state.player.realm}</Chip>
           <Chip className="app-chip--pity">回合 {state.summary?.turns ?? state.run.turn}</Chip>
-          <Chip className="app-chip--inherit">危险曾达 {state.run.danger ?? 0}</Chip>
+          {failedAt != null && <Chip className="app-chip--inherit">止步第 {failedAt} 劫</Chip>}
+          <Chip className="app-chip--muted">危险曾达 {state.run.danger ?? 0}</Chip>
         </div>
         <div className="final-result-rewards">
           <p className="final-result-rewards-title">本局奖励（永久）</p>
-          <p>传承点 +{addedLegacy}（累计：{legacyTotal}） · 功法碎片 +{rewards.shardsBonus}（累计：{shardsTotal}）</p>
+          <p>传承点 +{legacyEarned}（累计：{legacyTotal}） · 功法碎片 +{rewards.shardsBonus}（累计：{shardsTotal}）</p>
+          <p className="final-result-rewards-hint">下局更强！可去传承页购买永久解锁。</p>
           {rewards.demonUnlock && (
             <p className="final-result-demon">魔道天赋已解锁，下局可走魔修分支。</p>
           )}
@@ -46,7 +52,7 @@ export function FinalResultScreen({ state, dispatch, newGame }: ScreenProps) {
             传承续局
           </Button>
           <Button variant="ghost" size="sm" onClick={() => dispatch({ type: 'GO', screen: 'legacy' })}>
-            去传承升级
+            去传承
           </Button>
         </div>
       </Stack>

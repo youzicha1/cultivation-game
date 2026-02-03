@@ -1667,6 +1667,50 @@
   white-space: nowrap;
 }
 
+/* TICKET-40: 主界面天劫进度 X/12 + 当前劫名 */
+.home-trib-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 13px;
+  opacity: 0.95;
+  margin-bottom: 2px;
+}
+.home-trib-progress__label { font-weight: 600; }
+.home-trib-progress__value { color: var(--gold); }
+.home-trib-progress__name { opacity: 0.9; }
+
+/* TICKET-40: 传承页 — 传承解锁区块 */
+.legacy-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  opacity: 0.9;
+}
+.legacy-unlocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.legacy-unlock-toast {
+  padding: 8px 12px;
+  background: var(--jade);
+  color: var(--bg);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.final-result-trib-progress,
+.final-result-rewards-hint {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
 /* 通用：页面 Chip 行 + 小按钮行（与突破页风格一致） */
 .page-chips {
   display: flex;

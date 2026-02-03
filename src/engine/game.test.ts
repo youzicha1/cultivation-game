@@ -951,10 +951,10 @@ describe('game reducer', () => {
       expect(next.screen).toBe('victory')
       expect(next.run.tribulationLevel).toBe(12)
       expect(next.meta?.tribulationFinaleTriggered).toBe(true)
-      expect(next.meta?.legacyPoints).toBe(8)
+      expect(next.meta?.legacyPoints).toBe(49)
     })
 
-    it('TICKET-27: 渡劫失败（dead）进入 final_result，传承点 1+floor(level/4)', () => {
+    it('TICKET-40: 渡劫失败（dead）进入 final_result，传承点按 calcLegacyPointsOnEnd（第1劫失败=0）', () => {
       const rng = createSequenceRng([])
       const base = createInitialGameState(1)
       const state: GameState = {
@@ -973,7 +973,7 @@ describe('game reducer', () => {
       const after3 = reduceGame(after2, { type: 'FINAL_TRIAL_CHOOSE', choice: 'steady' }, rng)
       expect(after3.screen).toBe('final_result')
       expect(after3.summary?.endingId).toBe('dead')
-      expect(after3.meta?.legacyPoints).toBe(1)
+      expect(after3.meta?.legacyPoints).toBe(0)
     })
 
     it('搏：rng 成功时伤害低、resolve 大加', () => {

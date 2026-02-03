@@ -7,6 +7,7 @@ import { useState } from 'react'
 import type { GameAction, GameState } from '../../engine'
 import { getTribulationTurnView } from '../../engine/tribulation/tribulation'
 import { getTribulationName } from '../../engine/tribulation/names'
+import { getTribulationConfigByIdx, TRIBULATION_COUNT } from '../../engine'
 import {
   getDmgBase,
   applySteadyDamage,
@@ -38,14 +39,19 @@ export function FinalTrialScreen({ state, dispatch }: ScreenProps) {
   const ft = state.run.finalTrial
   const player = state.player
 
-  // TICKET-29: 新回合制天劫
+  // TICKET-29 / TICKET-40: 新回合制天劫，显示第 X 劫：爽文名 + 难度徽章
   if (trib && view) {
+    const tribConfig = getTribulationConfigByIdx(trib.level)
+    const levelName = tribConfig?.name ?? getTribulationName(trib.level)
+    const tier = tribConfig?.tier ?? '普通'
     return (
       <TribulationTurnUI
         state={state}
         view={view}
         level={trib.level}
-        levelName={getTribulationName(trib.level)}
+        levelName={levelName}
+        tier={tier}
+        totalTribulations={TRIBULATION_COUNT}
         dispatch={dispatch}
       />
     )
@@ -62,7 +68,9 @@ export function FinalTrialScreen({ state, dispatch }: ScreenProps) {
 
   const step = ft.step
   const level = (state.run.tribulationLevel ?? 0) + 1
-  const levelName = getTribulationName(level)
+  const tribConfig = getTribulationConfigByIdx(level)
+  const levelName = tribConfig?.name ?? getTribulationName(level)
+  const tier = tribConfig?.tier ?? '普通'
   const tribulationSuccessRate = getTribulationSuccessRate(level)
   const dmgBase = getDmgBase(ft.threat, step)
   const steady = applySteadyDamage(dmgBase, ft.resolve)
@@ -70,8 +78,8 @@ export function FinalTrialScreen({ state, dispatch }: ScreenProps) {
 
   return (
     <Panel
-      title="天劫挑战"
-      subtitle={`第 ${level} 重：${levelName} / 12 · 第 ${step} 道天雷 · 渡劫成功率 ${Math.round(tribulationSuccessRate * 100)}%`}
+      title={`第 ${level} 劫：${levelName}`}
+      subtitle={`${tier} · ${level}/${TRIBULATION_COUNT} · 第 ${step} 道天雷 · 渡劫成功率 ${Math.round(tribulationSuccessRate * 100)}%`}
     >
       <Stack gap={12}>
         <div className="final-trial-stats">
@@ -131,12 +139,16 @@ function TribulationTurnUI({
   view,
   level,
   levelName,
+  tier = '普通',
+  totalTribulations = 12,
   dispatch,
 }: {
   state: GameState
   view: NonNullable<ReturnType<typeof getTribulationTurnView>>
   level: number
   levelName: string
+  tier?: string
+  totalTribulations?: number
   dispatch: (action: GameAction) => void
 }) {
   const [pillOpen, setPillOpen] = useState(false)
@@ -145,8 +157,8 @@ function TribulationTurnUI({
 
   return (
     <Panel
-      title="天劫挑战"
-      subtitle={`第 ${level} 重：${levelName} / 12 · 回合 ${turn + 1}/${totalTurns}`}
+      title={`第 ${level} 劫：${levelName}`}
+      subtitle={`${tier} · ${level}/${totalTribulations} · 回合 ${turn + 1}/${totalTurns}`}
     >
       <Stack gap={12}>
         {/* 状态条 */}

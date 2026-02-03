@@ -7,6 +7,7 @@ import {
   loadFromStorage,
   reduceGame,
   saveToStorage,
+  applyLegacyUnlocksToNewRun,
   type GameAction,
   type GameState,
   type Rng,
@@ -59,6 +60,7 @@ export function useGameStore() {
         },
         achievements: prev.achievements ?? newState.achievements,
       }
+      newState = applyLegacyUnlocksToNewRun(newState, prev.meta?.legacyUnlocks)
       return { ...newState, screen: 'home' }
     })
   }, [])

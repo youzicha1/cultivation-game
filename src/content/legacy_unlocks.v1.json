@@ -1,0 +1,18 @@
+{
+  "unlocks": [
+    { "id": "LU_START_GOLD", "name": "灵石余荫", "desc": "开局灵石 +50", "cost": 2, "tier": "便宜", "tags": ["开局"], "unlockEffects": { "startSpiritStones": 50 } },
+    { "id": "LU_START_PILLS", "name": "丹香留魂", "desc": "开局回气丹 +2", "cost": 2, "tier": "便宜", "tags": ["开局"], "unlockEffects": { "startPills": 2 } },
+    { "id": "LU_START_HP", "name": "气血根基", "desc": "开局最大生命 +20", "cost": 3, "tier": "便宜", "tags": ["开局"], "unlockEffects": { "startMaxHpBonus": 20 } },
+    { "id": "LU_START_MATERIALS", "name": "药篓传承", "desc": "开局灵草 ×3、灵矿 ×2", "cost": 3, "tier": "便宜", "tags": ["开局"], "unlockEffects": { "startMaterials": { "spirit_herb": 3, "spirit_ore": 2 } } },
+    { "id": "LU_MARKET_DISCOUNT", "name": "坊市熟脸", "desc": "坊市基础折扣 5%", "cost": 4, "tier": "中等", "tags": ["坊市"], "unlockEffects": { "shopDiscountPercent": 5 } },
+    { "id": "LU_TRIB_EXTRA_LIFE", "name": "天劫一线", "desc": "天劫中可多承受 1 次致命（保底 1 血）", "cost": 6, "tier": "中等", "tags": ["天劫"], "unlockEffects": { "tribulationExtraLife": 1 } },
+    { "id": "LU_AWAKEN_WEIGHT", "name": "觉醒缘法", "desc": "突破觉醒稀有选项权重 +10%", "cost": 5, "tier": "中等", "tags": ["突破"], "unlockEffects": { "awakenRareWeightMul": 1.1 } },
+    { "id": "LU_CULTIVATE_BONUS", "name": "吐纳精要", "desc": "修炼基础修为 +5%", "cost": 4, "tier": "中等", "tags": ["修炼"], "unlockEffects": { "cultivateExpMul": 1.05 } },
+    { "id": "LU_EXPLORE_SAFER", "name": "趋吉避凶", "desc": "探索受伤概率 -5%", "cost": 5, "tier": "中等", "tags": ["探索"], "unlockEffects": { "exploreInjuryChanceReduction": 0.05 } },
+    { "id": "LU_ALCHEMY_MASTER", "name": "丹道入门", "desc": "炼丹成功率 +2%", "cost": 5, "tier": "中等", "tags": ["炼丹"], "unlockEffects": { "alchemySuccessAdd": 0.02 } },
+    { "id": "LU_TRIB_SHIELD", "name": "天劫护持", "desc": "进入天劫时获得护盾 15", "cost": 8, "tier": "昂贵", "tags": ["天劫"], "unlockEffects": { "tribulationStartShield": 15 } },
+    { "id": "LU_LEGACY_VISION", "name": "传承洞见", "desc": "传承点获取 +10%", "cost": 10, "tier": "昂贵", "tags": ["传承"], "unlockEffects": { "legacyPointsMul": 1.1 } },
+    { "id": "LU_START_INHERIT", "name": "传承启程", "desc": "开局传承点（本局可用）+2", "cost": 8, "tier": "昂贵", "tags": ["开局"], "unlockEffects": { "startInheritancePoints": 2 } },
+    { "id": "LU_TRIB_RESOLVE", "name": "道心不灭", "desc": "天劫初始道心 +8", "cost": 9, "tier": "昂贵", "tags": ["天劫"], "unlockEffects": { "tribulationStartResolveBonus": 8 } }
+  ]
+}

@@ -232,15 +232,24 @@
 - **胜负**：hp≤0 → outcome 'lose'，走既有渡劫失败流程（final_result、传承点、成就）；turn≥totalTurns → outcome 'win'，走既有成功流程（victory 或 home 续局）。
 - **存档**：persistence 校验并恢复 run.tribulation（level/turn/shield/debuffs/wrath/currentIntent/log）。
 
-### 天劫 12 重通关（TICKET-27）
-- **状态**：`GameState.run.tribulationLevel` 0..12，表示本局已渡过的天劫重数；NEW_GAME 为 0，渡劫成功 +1，达 12 即通关
-- **命名**：`src/engine/tribulation/names.ts` 固定 12 重名称（青霄雷劫 → 大道归一劫）；`getTribulationName(level)` 取第 level 重名称
-- **成功率**：`src/engine/tribulation/rates.ts` 的 `getTribulationSuccessRate(level, bonus)`，base 0.78、每重降 0.045、下限 0.12、上限 0.95；供 UI 展示与后续难度缩放
-- **通关条件**：连续渡过 12 次天劫（每次时辰耗尽 → final_trial 3 回合 → 成功则 tribulationLevel += 1）；tribulationLevel === 12 时进入 screen=**victory**，传承点 +8，显示「十二劫尽渡，登临大道！」
-- **失败**：任意一重 hp≤0（endingId=dead）→ screen=final_result，传承点 1+floor(level/4)，本局结束
-- **续局**：渡劫成功且 level < 12 → screen=home，timeLeft/timeMax 重置，tribulationFinaleTriggered=false，可继续玩至下次时辰耗尽进入下一重
-- **UI**：FinalTrialScreen 显示「第 N 重：{名字} / 12」与渡劫成功率；VictoryScreen 通关摘要 + 再开一局
-- **存档**：persistence 保存/加载 run.tribulationLevel（0..12）
+### 天劫 12 重通关（TICKET-27 / TICKET-40）
+- **状态**：`GameState.run.tribulationLevel` 0..12（已渡过重数）；`run.tribulationIdx` 0..12（当前处于第几劫，0=未进入）；`run.tribulationsCleared` 0..12（本局已成功渡过次数）；`run.ending`（victory/death/abandon）；`run.runSummary`（结局时写入，供 VictoryScreen/失败页展示）
+- **12 劫配置**（TICKET-40）：`src/content/tribulations.v1.json` 驱动，每劫 idx/name/tier（普通/凶/绝/天）/mods（damageMult、intentRarityBoost 等）/rewardOnWin/rewardOnLose；`src/engine/tribulation/progression.ts` — `getCurrentTribulationConfig(state)`、`getTribulationConfigByIdx(idx)`、`getAllTribulationConfigs()`、`TRIBULATION_COUNT=12`
+- **命名**：优先用 content 劫名（霹雳初临劫 … 天游飞升劫）；fallback `src/engine/tribulation/names.ts` 的 `getTribulationName(level)`
+- **传承点结算**（TICKET-40）：`src/engine/legacy/legacy_points.ts` — `calcLegacyPointsOnEnd(state, ending)`：基础每过一劫 +1；里程碑 3/6/9 劫 +2/+3/+4；12 劫通关 +8+20；失败补偿 floor(失败劫数/2)
+- **通关条件**：连续渡过 12 次天劫 → screen=**victory**，写入 runSummary，传承点按 calcLegacyPointsOnEnd('victory')
+- **失败**：任意一重 hp≤0 → screen=final_result，ending=death，写入 runSummary（含 failedAtTribulationIdx），传承点按 calcLegacyPointsOnEnd('death')
+- **续局**：渡劫成功且 level < 12 → screen=home，tribulationsCleared+1，timeLeft/timeMax 重置
+- **UI**：HomeScreen 天劫进度 X/12 + 当前劫名；FinalTrialScreen「第 X 劫：{爽文名}」+ 难度徽章；VictoryScreen 称号/战绩/本局 Build/传承点；FinalResultScreen「你倒在第 X 劫」+ 传承点 + 下局更强
+- **存档**：persistence 保存/加载 run.tribulationLevel、tribulationIdx、tribulationsCleared、ending、runSummary
+
+### 本局总结与传承解锁（TICKET-40）
+- **RunSummary**：`src/engine/run_summary.ts` — `buildRunSummary(state, ending, opts)` 在结局时写入 `run.runSummary`，含 ending、tribulationsCleared、failedAtTribulationIdx、turns、cause、endingId、maxRealm、maxStageIndex、tianPillCount、maxDanger、maxSpiritStones、awakenSkills、legacyPointsEarned；供 VictoryScreen / FinalResultScreen 展示
+- **传承解锁**（Legacy Unlocks）：`src/content/legacy_unlocks.v1.json` 驱动，至少 12 项（便宜/中等/昂贵）；`src/engine/legacy/legacy_unlocks.ts` — `getLegacyUnlocks()`、`canBuyUnlock(meta, unlockId)`、`buyUnlock(meta, unlockId)`（扣点 + 写入 meta.legacyUnlocks）、`applyLegacyUnlocksToNewRun(initState, metaUnlocks)` 新局时把永久加成映射进 state（开局灵石/药/HP/材料、坊市折扣、天劫容错等）
+- **状态**：`GameState.meta.legacyUnlocks`（Record<unlockId, true>）；`run.legacyUnlockToast`（购买后「传承已刻入命魂！」由 CLEAR_LEGACY_UNLOCK_TOAST 清除）
+- **Action**：`LEGACY_UNLOCK { unlockId }` 扣点并写入 legacyUnlocks，设 legacyUnlockToast
+- **传承续局**：`useGameStore.newGame()` 在创建新 state 后调用 `applyLegacyUnlocksToNewRun(newState, prev.meta?.legacyUnlocks)`，开局即生效
+- **UI**：LegacyScreen 传承解锁区块（可购买/已解锁列表、按 tier 展示）+ 传承升级树；购买后 toast「传承已刻入命魂！」
 
 ### 坊市/商店（TICKET-18 / TICKET-34）
 - **位置**：`src/engine/shop.ts`、`src/engine/market/pricing.ts`、`src/engine/market/obtainable.ts`；ScreenId `shop`；`run.shopMissing` 可选（从炼丹页带入缺口）
